@@ -54,6 +54,9 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+		<!-- pre-releases package name -->
+		<bintray.package>holon-datastore-jdbc</bintray.package>
+
 		<!-- Holon Core -->
 		<holon.core.version>5.0.0-SNAPSHOT</holon.core.version>
 		<!-- Holon JDBC -->
