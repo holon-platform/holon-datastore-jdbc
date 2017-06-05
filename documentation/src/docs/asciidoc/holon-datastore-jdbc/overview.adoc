@@ -1,0 +1,48 @@
+= Holon JDBC Datastore
+:revnumber: {project-version}
+:apidir: ../../api/holon-datastore-jdbc
+:linkattrs:
+:sectnums:
+:toc: left
+:toclevels: 3
+
+== Introduction
+
+The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:../../api/holon-core/com/holonplatform/core/datastore/Datastore.html[Datastore^] abstraction. 
+
+TIP: See the link:../../holon-core/core.html#Datastore[Datastore] documentation for further informations about Datastores.
+
+This Datastore uses the Java *DataSource* interface as a factory to obtain database connections and perform operations on the persistence store using the _SQL_ language through the JDBC API.
+
+The `holon-datastore-jdbc` artifact is the main entry point to use the JDBC Datastore.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.jdbc</groupId>
+<artifactId>holon-datastore-jdbc</artifactId>
+<version>{revnumber}</version>
+----
+
+include::holon-datastore-jdbc/_datastore.adoc[]
+
+include::holon-datastore-jdbc/_spring.adoc[]
+
+== Maven BOM
+
+A Maven _Bill of materials_ (BOM) artifact which provides all available dependencies for the JDBC Datastore module is available:
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.jdbc</groupId>
+<artifactId>holon-datastore-jdbc-bom</artifactId>
+<version>{revnumber}</version>
+----
+
+== Loggers
+
+By default, the Holon platform uses the https://www.slf4j.org[SLF4J^] API for logging. The use of SLF4J is optional: it is enabled when the presence of SLF4J is detected in the classpath. Otherwise, logging will fall back to JUL (`java.util.logging`).
+
+The logger name for the *JDBC Datastore* module is `com.holonplatform.datastore.jdbc`.
+

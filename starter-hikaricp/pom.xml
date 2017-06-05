@@ -1,0 +1,37 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.holon-platform.jdbc</groupId>
+		<artifactId>holon-datastore-jdbc-root</artifactId>
+		<version>5.0.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>holon-starter-jdbc-datastore-hikaricp</artifactId>
+	<packaging>jar</packaging>
+
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>Holon Spring Boot JDBC Datastore starter using HikariCP DataSource</description>
+
+	<url>https://holon-platform.com</url>
+
+	<dependencies>
+
+		<!-- Holon JDBC starter -->
+		<dependency>
+			<groupId>com.holon-platform.jdbc</groupId>
+			<artifactId>holon-starter-jdbc-hikaricp</artifactId>
+			<version>${holon.jdbc.version}</version>
+		</dependency>
+
+		<!-- Holon JDBC Datastore Spring boot -->
+		<dependency>
+			<groupId>com.holon-platform.jdbc</groupId>
+			<artifactId>holon-datastore-jdbc-spring-boot</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+	</dependencies>
+
+</project>

@@ -1,0 +1,187 @@
+== Datastore
+
+The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.html[JdbcDatastore^] interface represents the *JDBC Datastore*, which extends the core *Datastore* interface.
+
+The `withConnection` method can be used to execute a JDBC operation using a Datastore managed `java.sql.Connection`, providing the operation execution code through the `ConnectionOperation` functional interface. The connection finalization operations are executed by the JDBC Datastore after the execution of the provided operation.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=connection,indent=0]
+----
+
+IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core *Datastore* interface should be used as a reference for persistence operations, instead of the specific *JdbcDatastore* interface. This way, the concrete Datastore implementation may be replaced by a different one at any time, without any change to rest of the code.
+
+=== Setup
+
+The JDBC Datastore supports default Datastore configuration properties:
+
+* `holon.datastore.trace`: To enable/disable Datastore operations tracing 
+* `holon.datastore.dialect`: To configure the JDBC dialect class to use (providing the fully qualified class name). See <<Dialects>> for the available default JDBC dialects.
+
+To create a *JdbcDatastore* instance, the `builder()` static method of the interface can be used.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup,indent=0]
+----
+<1> Set an explicit `DataSource` instance to use
+<2> Set the database platform: if no dialect is explicitly provided, the Datastore will try to auto-detect the dialect to use relying on the database platform type
+<3> Provide a `DataSourceConfigProperties` structure using the `jdbc.properties` file, to build and configure a DataSource according to the available properties. See link:../../holon-core/jdbc.html#jdbc-datasource-configuration[JDBC DataSource]
+<4> Set a custom dialect
+<5> Build a Datastore bound to a _data context id_, which will be used to distinguish different data sources
+<6> Build a `DataSource` using given _data context id_ and associate it to the Datastore. In this case, the configuration properties are expected to be expressed with the _data context id_ as prefix, for example `holon.datasource.*db1*.url=...`
+
+=== Data targets and paths
+
+The JDBC Datastore relies on the following conventions regarding *DataTarget*s and *Path*s:
+
+* The *DataTarget* _name_ is interpreted as the database _table_ (or _view_) name
+* The *Path* _name_ is interpreted as a table _column_ name
+
+TIP: See the core link:../../holon-core/core.html#Datastore[Datastore] documentation for more informations about *DataTarget*s and *Path*s, and about the use of extension hooks such as *DataTargetResolver* for target names resolution.
+
+=== Relational expressions
+
+As a _relational_ Datastore, the JDBC Datastore supports core relational expressions for data access and manipulation:
+
+*1. Sub-query:*
+
+The link:{apidir}/com/holonplatform/core/datastore/relational/SubQuery.html[SubQuery^] interface can be used to represent a _sub-query_,  which can be used in a query definition to express query restrictions (filters) that involve a sub-query as filter operand.
+
+See the link:../../holon-core/core.html#subquery[Sub query documentation] for further information and code examples.
+
+*2. Alias and Joins:*
+
+The link:{apidir}/com/holonplatform/core/datastore/relational/RelationalTarget.html[RelationalTarget^] interface can be used to express *alias* and *joins* for a `DataTarget`.
+
+See the link:../../holon-core/core.html#joins[Alias and Joins documentation] for further information and code examples.
+
+[[Dialects]]
+=== Dialects
+
+The JDBC Datastore relies on *dialects* to address and resolve any SQL language dissimilarity between RDBMS platforms.
+
+A dialect is represented and implemented by the link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDialect.html[JdbcDialect^] interface.
+
+The currently available dialect implementations are:
+
+|===
+|Database platform |Dialect class |Supported versions
+
+|DB2
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/DB2Dialect.html[DB2Dialect^]
+|8 and higher
+
+|Derby
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/DerbyDialect.html[DerbyDialect^]
+|10.5 and higher
+
+|H2
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/H2Dialect.html[H2Dialect^]
+|1.4 and higher
+
+|HyperSQL (HSQLDB)
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/HSQLDialect.html[HSQLDialect^]
+|2.0.0 and higher
+
+|Informix
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/InformixDialect.html[InformixDialect^]
+|11.5 and higher
+
+|MySQL
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/MySQLDialect.html[MySQLDialect^]
+|4.1 and higher
+
+|MariaDB
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/MariaDBDialect.html[MariaDBDialect^]
+|5.5 and higher
+
+|SAP HANA
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/HANADialect.html[HANADialect^]
+|1.0 SPS12 and higher
+
+|Oracle Database
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/OracleDialect.html[OracleDialect^]
+|9i and higher
+
+|PostgreSQL
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/PostgreSQLDialect.html[PostgreSQLDialect^]
+|8.2.5 and higher
+
+|Microsoft SQL Server
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/SQLServerDialect.html[SQLServerDialect^]
+|2005 or higher
+
+|SQLite
+|link:{apidir}/com/holonplatform/datastore/jdbc/dialect/SQLiteDialect.html[SQLiteDialect^]
+|3.0.7. and higher
+|===
+
+=== Auto-generated ids
+
+The JDBC datastore support the retrieving of auto-generated id column values, if supported by the JDBC driver in use.
+
+The auto-generated id values can be obtained from the `OperationResult` object, returned by Datastore data manipulation operations, through the `getInsertedKeys()` method.
+
+The default *BRING_BACK_GENERATED_IDS* `WriteOption` can be provided to Datastore data manipulation method to bring back any auto-generated id value into the `PropertyBox` which was subject of the operation, if a corresponding `Property` (using the property name) is available in the box property set.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=ids,indent=0]
+----
+<1> The `key` column is supposed to be auto-generated by the database
+<2> Create the `PropertyBox` to insert, not providing the `key` value
+<3> Execute the insert operation using the *BRING_BACK_GENERATED_IDS* write option
+<4> The `KEY` property of the inserted PropertyBox is updated with the auto-generated value
+
+=== JDBC filters and sorts
+
+Two interfaces are available to create filter and sort expression using the SQL language, extending the `QueryFilter` and `QuerySort` expressions:
+
+==== JdbcWhereFilter
+
+The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcWhereFilter.html[JdbcWhereFilter^] interface is a `QueryFilter` representing a SQL _where_ clause expression.
+
+This filter supports *query parameters*, which must be expressed in SQL statement using the default `?` placeholder. The parameters values can be setted using `create` static method:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=where,indent=0]
+----
+<1> Create a SQL filter expression with to parameters, providing `TestName` as first parameter value and `1` as second parameter value
+
+==== JdbcOrderBySort
+
+The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcOrderBySort.html[JdbcOrderBySort^] interface is a `QuerySort` representing a SQL _order by_ clause expression.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=orderby,indent=0]
+----
+<1> Create a SQL order by expression to order by `id` ascending and `name` descending
+
+=== Extensions
+
+=== Expression resolvers
+
+The JDBC Datastore supports `ExpressionResolver` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreExpressionResolver.html[JdbcDatastoreExpressionResolver^] base type and default _Java service extensions_.
+
+To automatically register an `ExpressionResolver` this way, a class implementing `JdbcDatastoreExpressionResolver` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver` placed a `META-INF/services` folder in classpath.
+
+[[CommodityFactories]]
+=== Commodity factories
+
+The JDBC Datastore supports `DatastoreCommodityFactory` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityFactory.html[JdbcDatastoreCommodityFactory^] base type and default _Java service extensions_.
+
+To automatically register an `DatastoreCommodityFactory` this way, a class implementing `JdbcDatastoreCommodityFactory` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory` placed a `META-INF/services` folder in classpath.
+
+The link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityContext.html[JdbcDatastoreCommodityContext^] interface represents the JDBC Datastore specific commodity context and it is provided at commodity creation time to factories.
+
+The context extends the `JdbcDatastore` interface itself and provides the following additional resources:
+
+* The `DataSource` bound the JDBC Datastore;
+* The `DatabasePlatform` to which the DataSource is connected, if available;
+* The `JdbcDialect` used by the JDBC Datastore;
+* Whether the Datastore _trace_ mode is enabled.
+
+

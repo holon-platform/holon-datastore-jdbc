@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.holonplatform.datastore.jdbc.spring.boot.JdbcDatastoreAutoConfiguration

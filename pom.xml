@@ -1,0 +1,213 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.holon-platform</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<groupId>com.holon-platform.jdbc</groupId>
+	<artifactId>holon-datastore-jdbc-root</artifactId>
+	<version>5.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>Holon JDBC Datastore root pom</description>
+
+	<url>https://holon-platform.com</url>
+
+	<organization>
+		<name>Holon TDCN</name>
+		<url>https://holon-platform.com</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>Apache License Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Holon development team</name>
+			<email>dev@holon-platform.com</email>
+			<organization>Holon TDCN</organization>
+			<organizationUrl>https://holon-platform.com</organizationUrl>
+		</developer>
+	</developers>
+
+	<issueManagement>
+		<url>https://github.com/holon-platform/holon-datastore-jdbc/issues</url>
+		<system>GitHub Issues</system>
+	</issueManagement>
+
+	<scm>
+		<connection>scm:git:https://github.com/holon-platform/holon-datastore-jdbc.git</connection>
+		<url>https://github.com/holon-platform/holon-datastore-jdbc</url>
+		<developerConnection>scm:git:https://github.com/holon-platform/holon-datastore-jdbc.git</developerConnection>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<!-- Holon Core -->
+		<holon.core.version>5.0.0-SNAPSHOT</holon.core.version>
+		<!-- Holon JDBC -->
+		<holon.jdbc.version>5.0.0-SNAPSHOT</holon.jdbc.version>
+
+		<!-- ByteBuddy -->
+		<bytebuddy.version>1.7.0</bytebuddy.version>
+
+		<!-- HikariCP (test) -->
+		<hikaricp.version>2.6.1</hikaricp.version>
+
+		<!-- Test/dialects databases -->
+
+		<!-- H2 -->
+		<h2.version>1.4.193</h2.version>
+		<!-- HSQL -->
+		<hsql.version>2.3.4</hsql.version>
+		<!-- Derby -->
+		<derby.version>10.13.1.1</derby.version>
+		<!-- MySQL -->
+		<mysql-driver.version>5.1.41</mysql-driver.version>
+		<!-- PostgreSQL -->
+		<postgre.version>9.4.1212</postgre.version>
+		<!-- Oracle -->
+		<oracle-driver.version>12.1.0.2</oracle-driver.version>
+		<!-- SQLServer -->
+		<sqlserver-driver.version>4.2</sqlserver-driver.version>
+		<!-- MariaDB -->
+		<mariadb-driver.version>1.5.9</mariadb-driver.version>
+		<!-- DB2 -->
+		<db2-driver.version>10.5</db2-driver.version>
+		<!-- Informix -->
+		<informix-driver.version>4.10.8.1</informix-driver.version>
+		<!-- SQLite -->
+		<sqlite-driver.version>3.16.1</sqlite-driver.version>
+
+	</properties>
+
+	<modules>
+		<module>core</module>
+		<module>spring</module>
+		<module>spring-boot</module>
+		<module>starter</module>
+		<module>starter-hikaricp</module>
+		<module>bom</module>
+		<module>documentation</module>
+	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+
+				<!-- failsafe -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<executions>
+						<execution>
+							<goals>
+								<goal>integration-test</goal>
+								<goal>verify</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!-- docker -->
+				<plugin>
+					<groupId>io.fabric8</groupId>
+					<artifactId>docker-maven-plugin</artifactId>
+					<configuration>
+						<showLogs>true</showLogs>
+					</configuration>
+					<executions>
+						<execution>
+							<id>start</id>
+							<phase>pre-integration-test</phase>
+							<goals>
+								<goal>start</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>stop</id>
+							<phase>post-integration-test</phase>
+							<goals>
+								<goal>stop</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<!-- Javadocs generation and aggregation -->
+	<profiles>
+		<profile>
+			<id>apidocs</id>
+			<build>
+				<plugins>
+					<!-- javadoc -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>module-javadocs</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+								<configuration>
+									<verbose>false</verbose>
+								</configuration>
+							</execution>
+							<execution>
+								<id>aggregate</id>
+								<inherited>false</inherited>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>aggregate</goal>
+								</goals>
+								<configuration>
+									<show>public</show>
+									<excludePackageNames>*.internal.*;*.examples.*</excludePackageNames>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Assembly -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<finalName>${project.artifactId}-${project.version}</finalName>
+							<descriptors>
+								<descriptor>${project.basedir}/javadocs-assembly.xml</descriptor>
+							</descriptors>
+						</configuration>
+						<executions>
+							<execution>
+								<id>assembly-docs</id>
+								<inherited>false</inherited>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

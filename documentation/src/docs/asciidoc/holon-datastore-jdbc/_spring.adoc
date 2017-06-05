@@ -1,0 +1,97 @@
+== Spring framework integration
+
+The `holon-datastore-jdbc-spring` artifact provides integration with the https://spring.io[Spring^] framework for the JDBC Datastore.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.jdbc</groupId>
+<artifactId>holon-datastore-jdbc-spring</artifactId>
+<version>{revnumber}</version>
+----
+
+=== Datastore setup
+
+To create a JDBC Datastore and register it as a Spring bean, the link:{apidir}/com/holonplatform/jdbc/spring/SpringJdbcDatastore.html[SpringJdbcDatastore^] interface is provided, with the convenience `builder()` method.
+
+This interface creates and represents a JDBC Datastore implementation wich supports Spring JDBC and transaction management architecture, for example the `DataSource` connection and transaction synchronization support to provide a consistent integration with the Spring infrastructure.
+
+=== Datastore auto-configuration
+
+The link:{apidir}/com/holonplatform/datastore/jdbc/spring/EnableDataSource.html[EnableJdbcDatastore^] 
+annotation can be used on Spring configuration classes to enable automatic JDBC Datastore configuration. An available `DataSource` bean must be present in context to enable the JDBC Datastore.
+
+The _data context id_ to which the JDBC Datastore is bound can be configured using the `dataContextId` annotation attribute, useful when multiple `DataSource` are available and it is required to configure multiple JDBC Datastore instances.
+
+When a _data context id_ is not specified, the JDBC Datastore is bound to the unique `DataSource` type bean registered in context. If the bean is not unique or is not present, a configuration error is thrown. The `dataSourceReference` annotation attribute can be used to specify the explicit `DataSource` bean name to use for the JDBC Datastore.
+
+When a _data context id_ is specified, the registered Datastore is bound to the `DataSource` with a matching
+_data context id_, if available. During registration phase, if a `dataSourceReference` is not specified, an `DataSource` bean is searched in context using the bean name pattern: `dataSource_[datacontextid]` where `[datacontextid]` is equal to the 
+`dataContextId` annotation attribute.
+
+A `DatabasePlatform` can be specified using the `platform` annotation attribute and to select a suitable dialect for the given platform. If the database platform is not specified, the JDBC Datastore tries to auto-detect it from the `DataSource` configuration. 
+
+The `transactional` annotation attribute (`true` by default) can be used to control the Spring transactions architecture integration, i.e. if a `Transactional` behaviour must be configured for the JDBC Datastore data manipulation methods, to automatically create or partecipate in a Spring transaction when these methods are invoked. 
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreSpring.java[tag=spring,indent=0]
+----
+
+=== Commodity factories
+
+To use the `DatastoreCommodityFactory` annotation on beans to automatically register them into the `Datastore`, the `JdbcDatastoreCommodityFactory` base type must be used for such beans.
+
+See <<CommodityFactories>> for additional details about the `JdbcDatastoreCommodityFactory` type.
+
+== Spring Boot integration
+
+The `holon-datastore-jdbc-spring-boot` artifact provides integration with https://projects.spring.io/spring-boot[Spring Boot^] for JDBC Datastore auto-configuration.
+
+To enable Spring Boot auto-configuration the following artifact must be included in your project dependencies:
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.jdbc</groupId>
+<artifactId>holon-datastore-jdbc-spring-boot</artifactId>
+<version>{revnumber}</version>
+----
+
+The JDBC datastore is auto-configured only when:
+
+* A `JdbcDatastore` type bean is not already registered in Spring context
+* A valid `DataSource` type bean is available in Spring context
+
+When multiple `DataSource` type beans are registered in Spring context, and each of them is bound to a _data context id_ (if they were configured using the Holon platform `DataSource` configuration modules), a JDBC Datastore is automatically configured and registered for each `DataSource` bean, using the _data context id_ as Spring bean *qualifier* name.
+
+To disable this auto-configuration feature the `JdbcDatastoreAutoConfiguration` class can be excluded:
+
+[source, java]
+----
+@EnableAutoConfiguration(exclude={JdbcDatastoreAutoConfiguration.class})
+----
+
+=== Spring Boot starters
+
+The following _starter_ artifacts are available to provide a quick project configuration setup using Maven dependency system:
+
+*1.* *Default JDBC Datastore starter* provides the dependencies to the Holon JDBC Datastore Spring Boot integration artifacts, in addition to default Holon _core_ and _JDBC_ Spring Boot starters (see the documentation for further information) and base Spring Boot starter (`spring-boot-starter`):
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.jdbc</groupId>
+<artifactId>holon-starter-jdbc-datastore</artifactId>
+<version>{revnumber}</version>
+----
+
+*2.* *JDBC Datastore starter with HikariCP DataSource* provides the same dependencies as the default JDBC Datastore starter, adding the https://github.com/brettwooldridge/HikariCP[HikariCP] pooling DataSource dependency. This way, the _HikariCP_ DataSource will be selected by default by the `DataSource` auto-configuration strategy if the DataSource type is not explicitly specified using the corresponding configuration property.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.jdbc</groupId>
+<artifactId>holon-starter-jdbc-datastore-hikaricp</artifactId>
+<version>{revnumber}</version>
+----
