@@ -66,6 +66,7 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 	/**
 	 * Constructor
 	 * @param datastore Parent datastore
+	 * @param dialect JDBC dialect to use
 	 * @param trace Whether tracing is enabled
 	 */
 	public JdbcQueryAdapter(JdbcDatastore datastore, JdbcDialect dialect, boolean trace) {
