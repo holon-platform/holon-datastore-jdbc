@@ -29,9 +29,9 @@ _Maven coordinates_:
 <version>{revnumber}</version>
 ----
 
-include::holon-datastore-jdbc/_datastore.adoc[]
+include::_datastore.adoc[]
 
-include::holon-datastore-jdbc/_spring.adoc[]
+include::_spring.adoc[]
 
 == Maven BOM
 
