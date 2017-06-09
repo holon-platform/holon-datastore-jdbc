@@ -3,6 +3,7 @@
 :apidir: ../../api/holon-datastore-jdbc
 :linkattrs:
 :sectnums:
+:nofooter:
 :toc: left
 :toclevels: 3
 
@@ -49,4 +50,14 @@ _Maven coordinates_:
 By default, the Holon platform uses the https://www.slf4j.org[SLF4J^] API for logging. The use of SLF4J is optional: it is enabled when the presence of SLF4J is detected in the classpath. Otherwise, logging will fall back to JUL (`java.util.logging`).
 
 The logger name for the *JDBC Datastore* module is `com.holonplatform.datastore.jdbc`.
+
+== System requirements
+
+=== Java
+
+The Holon Platform JDBC Datastore module requires https://www.java.com[Java] *8* or higher.
+
+=== JDBC Drivers
+
+To retrieve back database generated keys, the JDBC driver in use must be compliant to the *JDBC API version 3 or higher*.
 
