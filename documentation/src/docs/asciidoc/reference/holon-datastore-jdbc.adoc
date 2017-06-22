@@ -1,6 +1,6 @@
 = Holon JDBC Datastore
 :revnumber: {project-version}
-:apidir: ../../api/holon-datastore-jdbc
+:apidir: ../api/holon-datastore-jdbc
 :linkattrs:
 :sectnums:
 :nofooter:
