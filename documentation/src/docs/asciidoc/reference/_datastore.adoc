@@ -1,5 +1,15 @@
 == Datastore
 
+The `holon-datastore-jdbc` artifact is the main entry point to use the JDBC Datastore.
+
+_Maven coordinates_:
+[source, xml, subs="attributes+"]
+----
+<groupId>com.holon-platform.jdbc</groupId>
+<artifactId>holon-datastore-jdbc</artifactId>
+<version>{revnumber}</version>
+----
+
 The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.html[JdbcDatastore^] interface represents the *JDBC Datastore*, which extends the core *Datastore* interface.
 
 The `withConnection` method can be used to execute a JDBC operation using a Datastore managed `java.sql.Connection`, providing the operation execution code through the `ConnectionOperation` functional interface. The connection finalization operations are executed by the JDBC Datastore after the execution of the provided operation.

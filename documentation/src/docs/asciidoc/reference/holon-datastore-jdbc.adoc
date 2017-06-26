@@ -15,27 +15,17 @@ _Copies of this document may be made for your own use and for distribution to ot
 
 The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:../../api/holon-core/com/holonplatform/core/datastore/Datastore.html[Datastore^] abstraction. 
 
-TIP: See the link:holon-core.html#Datastore[Datastore] documentation for further informations about Datastores.
+TIP: See the link:holon-core.html#Datastore[Datastore] documentation for further information about *Datastores*.
 
 This Datastore uses the Java *DataSource* interface as a factory to obtain database connections and perform operations on the persistence store using the _SQL_ language through the JDBC API.
 
-The `holon-datastore-jdbc` artifact is the main entry point to use the JDBC Datastore.
+== Obtaining the artifacts
 
-_Maven coordinates_:
-[source, xml, subs="attributes+"]
-----
-<groupId>com.holon-platform.jdbc</groupId>
-<artifactId>holon-datastore-jdbc</artifactId>
-<version>{revnumber}</version>
-----
+The Holon Platform uses https://maven.apache.org[Maven^] for projects build and configuration. All the platform artifacts are published in the *Maven Central Repository*, so there is no need to explicitly declare additional repositories in your project `pom` file.
 
-include::_datastore.adoc[]
+At the top of each _section_ of this documentation you will find the Maven _coordinates_ (group id, artifact id and version) to obtain the artifact(s) as a dependency for your project.
 
-include::_spring.adoc[]
-
-== Maven BOM
-
-A Maven _Bill of materials_ (BOM) artifact which provides all available dependencies for the JDBC Datastore module is available:
+A *BOM (Bill Of Materials)* `pom` is provided to import the available dependencies for a specific version in your projects. The Maven coordinates for the core BOM are the following:
 
 _Maven coordinates_:
 [source, xml, subs="attributes+"]
@@ -44,6 +34,35 @@ _Maven coordinates_:
 <artifactId>holon-datastore-jdbc-bom</artifactId>
 <version>{revnumber}</version>
 ----
+
+The BOM can be imported in a Maven project in the following way:
+
+[source, xml, subs="verbatim,quotes,attributes+"]
+----
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>com.holon-platform.jdbc</groupId>
+			<artifactId>holon-datastore-jdbc-bom</artifactId>
+			<version>{revnumber}</version>
+			*<type>pom</type>*
+			*<scope>import</scope>*
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+----
+
+=== Using the Platform BOM
+
+The Holon Platform provides an *overall Maven BOM (Bill of Materials)* to easily obtain all the available platform artifacts.
+
+See link:index.html#obtain-the-platform-artifacts[Obtain the platform artifacts] for details.
+
+// Inclusions
+
+include::_datastore.adoc[]
+
+include::_spring.adoc[]
 
 == Loggers
 
