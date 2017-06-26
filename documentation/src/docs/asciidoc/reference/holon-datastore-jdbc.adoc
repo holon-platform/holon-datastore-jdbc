@@ -15,7 +15,7 @@ _Copies of this document may be made for your own use and for distribution to ot
 
 The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:../../api/holon-core/com/holonplatform/core/datastore/Datastore.html[Datastore^] abstraction. 
 
-TIP: See the link:../../holon-core/core.html#Datastore[Datastore] documentation for further informations about Datastores.
+TIP: See the link:holon-core.html#Datastore[Datastore] documentation for further informations about Datastores.
 
 This Datastore uses the Java *DataSource* interface as a factory to obtain database connections and perform operations on the persistence store using the _SQL_ language through the JDBC API.
 

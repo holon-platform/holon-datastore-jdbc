@@ -26,7 +26,7 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 ----
 <1> Set an explicit `DataSource` instance to use
 <2> Set the database platform: if no dialect is explicitly provided, the Datastore will try to auto-detect the dialect to use relying on the database platform type
-<3> Provide a `DataSourceConfigProperties` structure using the `jdbc.properties` file, to build and configure a DataSource according to the available properties. See link:../../holon-core/jdbc.html#jdbc-datasource-configuration[JDBC DataSource]
+<3> Provide a `DataSourceConfigProperties` structure using the `jdbc.properties` file, to build and configure a DataSource according to the available properties. See link:holon-core.html#jdbc-datasource-configuration[JDBC DataSource]
 <4> Set a custom dialect
 <5> Build a Datastore bound to a _data context id_, which will be used to distinguish different data sources
 <6> Build a `DataSource` using given _data context id_ and associate it to the Datastore. In this case, the configuration properties are expected to be expressed with the _data context id_ as prefix, for example `holon.datasource.*db1*.url=...`
@@ -38,7 +38,7 @@ The JDBC Datastore relies on the following conventions regarding *DataTarget*s a
 * The *DataTarget* _name_ is interpreted as the database _table_ (or _view_) name
 * The *Path* _name_ is interpreted as a table _column_ name
 
-TIP: See the core link:../../holon-core/core.html#Datastore[Datastore] documentation for more informations about *DataTarget*s and *Path*s, and about the use of extension hooks such as *DataTargetResolver* for target names resolution.
+TIP: See the core link:holon-core.html#Datastore[Datastore] documentation for more informations about *DataTarget*s and *Path*s, and about the use of extension hooks such as *DataTargetResolver* for target names resolution.
 
 === Relational expressions
 
@@ -48,13 +48,13 @@ As a _relational_ Datastore, the JDBC Datastore supports core relational express
 
 The link:{apidir}/com/holonplatform/core/datastore/relational/SubQuery.html[SubQuery^] interface can be used to represent a _sub-query_,  which can be used in a query definition to express query restrictions (filters) that involve a sub-query as filter operand.
 
-See the link:../../holon-core/core.html#subquery[Sub query documentation] for further information and code examples.
+See the link:holon-core.html#subquery[Sub query documentation] for further information and code examples.
 
 *2. Alias and Joins:*
 
 The link:{apidir}/com/holonplatform/core/datastore/relational/RelationalTarget.html[RelationalTarget^] interface can be used to express *alias* and *joins* for a `DataTarget`.
 
-See the link:../../holon-core/core.html#joins[Alias and Joins documentation] for further information and code examples.
+See the link:holon-core.html#joins[Alias and Joins documentation] for further information and code examples.
 
 [[Dialects]]
 === Dialects
