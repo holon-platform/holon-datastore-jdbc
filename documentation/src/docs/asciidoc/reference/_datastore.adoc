@@ -50,6 +50,7 @@ The JDBC Datastore relies on the following conventions regarding *DataTarget*s a
 
 TIP: See the core link:holon-core.html#Datastore[Datastore] documentation for more informations about *DataTarget*s and *Path*s, and about the use of extension hooks such as *DataTargetResolver* for target names resolution.
 
+[[Relational-expressions]]
 === Relational expressions
 
 As a _relational_ Datastore, the JDBC Datastore supports core relational expressions for data access and manipulation:
