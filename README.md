@@ -24,7 +24,7 @@ The JDBC Datastore leverages on __dialects__ to transparently support different 
 * Derby
 * SQLite
 
-A complete __Spring__ and __Spring Boot__ support is provided for JDBC Datastore integration in a Spring environment and for auto-configuration facilities.
+A complete __Spring__ and __Spring Boot__ support is provided for JDBC Datastore integration in a Spring environment and for __auto-configuration__ facilities.
 
 ## Code structure
 
