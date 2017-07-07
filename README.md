@@ -2,7 +2,7 @@
 
 This is the reference __JDBC__ `Datastore` implementation of the [Holon Platform](https://holon-platform.com), using the `JDBC` API and the `SQL` language for data access and manipulation.
 
-The JDBC Datastore relies on the following conventions regarding __DataTarget__s and __Path__s:
+The JDBC Datastore relies on the following conventions regarding __DataTarget__ and __Path__ naming strategy:
 
 * The [DataTarget](https://holon-platform.com/docs/current/reference/holon-core.html#DataTarget) _name_ is interpreted as the database _table_ (or _view_) name.
 * The [Path](https://holon-platform.com/docs/current/reference/holon-core.html#Path) _name_ is interpreted as a table _column_ name.
