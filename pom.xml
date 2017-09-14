@@ -63,21 +63,21 @@
 		<holon.jdbc.version>5.0.0-SNAPSHOT</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.7.0</bytebuddy.version>
+		<bytebuddy.version>1.7.5</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>2.6.2</hikaricp.version>
+		<hikaricp.version>2.7.1</hikaricp.version>
 
 		<!-- Test/dialects databases -->
 
 		<!-- H2 -->
-		<h2.version>1.4.193</h2.version>
+		<h2.version>1.4.196</h2.version>
 		<!-- HSQL -->
-		<hsql.version>2.3.4</hsql.version>
+		<hsql.version>2.4.0</hsql.version>
 		<!-- Derby -->
 		<derby.version>10.13.1.1</derby.version>
 		<!-- MySQL -->
-		<mysql-driver.version>5.1.41</mysql-driver.version>
+		<mysql-driver.version>5.1.44</mysql-driver.version>
 		<!-- PostgreSQL -->
 		<postgre.version>9.4.1212</postgre.version>
 		<!-- Oracle -->
@@ -91,7 +91,7 @@
 		<!-- Informix -->
 		<informix-driver.version>4.10.8.1</informix-driver.version>
 		<!-- SQLite -->
-		<sqlite-driver.version>3.16.1</sqlite-driver.version>
+		<sqlite-driver.version>3.20.0</sqlite-driver.version>
 
 	</properties>
 
