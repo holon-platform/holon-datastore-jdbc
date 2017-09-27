@@ -4,10 +4,10 @@ This is the reference __JDBC__ `Datastore` implementation of the [Holon Platform
 
 The JDBC Datastore relies on the following conventions regarding __DataTarget__ and __Path__ naming strategy:
 
-* The [DataTarget](https://holon-platform.com/docs/current/reference/holon-core.html#DataTarget) _name_ is interpreted as the database _table_ (or _view_) name.
-* The [Path](https://holon-platform.com/docs/current/reference/holon-core.html#Path) _name_ is interpreted as a table _column_ name.
+* The [DataTarget](https://docs.holon-platform.com/current/reference/holon-core.html#DataTarget) _name_ is interpreted as the database _table_ (or _view_) name.
+* The [Path](https://docs.holon-platform.com/current/reference/holon-core.html#Path) _name_ is interpreted as a table _column_ name.
 
-As a _relational Datastore_, standard [relational expressions](https://holon-platform.com/docs/current/reference/holon-datastore-jdbc.html#Relational-expressions) are supported (alias, joins and sub-queries).
+As a _relational Datastore_, standard [relational expressions](https://docs.holon-platform.com/current/reference/holon-datastore-jdbc.html#Relational-expressions) are supported (alias, joins and sub-queries).
 
 The JDBC Datastore leverages on __dialects__ to transparently support different RDBMS vendors. Dialects for the following RDBMS are provided:
 
@@ -90,7 +90,7 @@ You can build the sources using Maven (version 3.3.x or above is recommended) li
 
 ## Getting help
 
-* Check the [platform documentation](https://holon-platform.com/docs/current/reference) or the specific [module documentation](https://holon-platform.com/docs/current/reference/holon-datastore-jdbc.html).
+* Check the [platform documentation](https://docs.holon-platform.com/current/reference) or the specific [module documentation](https://docs.holon-platform.com/current/reference/holon-datastore-jdbc.html).
 
 * Ask a question on [Stack Overflow](http://stackoverflow.com). We monitor the [`holon-platform`](http://stackoverflow.com/tags/holon-platform) tag.
 
