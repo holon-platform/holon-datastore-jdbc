@@ -60,7 +60,7 @@
 		<!-- Holon Core -->
 		<holon.core.version>5.0.1</holon.core.version>
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.0.0</holon.jdbc.version>
+		<holon.jdbc.version>5.0.1</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
 		<bytebuddy.version>1.7.5</bytebuddy.version>
