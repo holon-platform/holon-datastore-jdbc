@@ -26,7 +26,7 @@ The _data context id_ to which the JDBC Datastore is bound can be configured usi
 When a _data context id_ is not specified, the JDBC Datastore is bound to the unique `DataSource` type bean registered in context. If the bean is not unique or is not present, a configuration error is thrown. The `dataSourceReference` annotation attribute can be used to specify the explicit `DataSource` bean name to use for the JDBC Datastore.
 
 When a _data context id_ is specified, the registered Datastore is bound to the `DataSource` with a matching
-_data context id_, if available. During registration phase, if a `dataSourceReference` is not specified, an `DataSource` bean is searched in context using the bean name pattern: `dataSource_[datacontextid]` where `[datacontextid]` is equal to the 
+_data context id_, if available. During the registration phase, if a `dataSourceReference` is not specified, a  `DataSource` bean is searched in context using the bean name pattern: `dataSource_[datacontextid]` where `[datacontextid]` is equal to the 
 `dataContextId` annotation attribute.
 
 A `DatabasePlatform` can be specified using the `platform` annotation attribute and to select a suitable dialect for the given platform. If the database platform is not specified, the JDBC Datastore tries to auto-detect it from the `DataSource` configuration. 

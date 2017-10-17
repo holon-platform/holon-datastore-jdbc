@@ -153,7 +153,7 @@ Two interfaces are available to create filter and sort expression using the SQL 
 
 The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcWhereFilter.html[JdbcWhereFilter^] interface is a `QueryFilter` representing a SQL _where_ clause expression.
 
-This filter supports *query parameters*, which must be expressed in SQL statement using the default `?` placeholder. The parameters values can be setted using `create` static method:
+This filter supports *query parameters*, which must be expressed in SQL statement using the default `?` placeholder. The parameters values can be setted using the `create` static method:
 
 [source, java]
 ----
@@ -177,14 +177,14 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 
 The JDBC Datastore supports `ExpressionResolver` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreExpressionResolver.html[JdbcDatastoreExpressionResolver^] base type and default _Java service extensions_.
 
-To automatically register an `ExpressionResolver` this way, a class implementing `JdbcDatastoreExpressionResolver` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver` placed a `META-INF/services` folder in classpath.
+To automatically register an `ExpressionResolver` this way, a class implementing `JdbcDatastoreExpressionResolver` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver` and placed in the  `META-INF/services` folder in classpath.
 
 [[CommodityFactories]]
 === Commodity factories
 
 The JDBC Datastore supports `DatastoreCommodityFactory` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityFactory.html[JdbcDatastoreCommodityFactory^] base type and default _Java service extensions_.
 
-To automatically register an `DatastoreCommodityFactory` this way, a class implementing `JdbcDatastoreCommodityFactory` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory` placed a `META-INF/services` folder in classpath.
+To automatically register an `DatastoreCommodityFactory` this way, a class implementing `JdbcDatastoreCommodityFactory` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory` placed in the  `META-INF/services` folder in classpath.
 
 The link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityContext.html[JdbcDatastoreCommodityContext^] interface represents the JDBC Datastore specific commodity context and it is provided at commodity creation time to factories.
 
@@ -194,5 +194,3 @@ The context extends the `JdbcDatastore` interface itself and provides the follow
 * The `DatabasePlatform` to which the DataSource is connected, if available;
 * The `JdbcDialect` used by the JDBC Datastore;
 * Whether the Datastore _trace_ mode is enabled.
-
-
