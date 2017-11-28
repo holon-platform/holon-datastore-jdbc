@@ -4,4 +4,8 @@ INSERT INTO test1 VALUES (2, 'Two', null, parsedatetime('19-04-2016', 'dd-MM-yyy
 INSERT INTO test3 VALUES (2, 'TestJoin');
 INSERT INTO test3 VALUES (3, 'TestJoin3');
 
+INSERT INTO test_recur (name, parent) VALUES ('test1', null);
+INSERT INTO test_recur (name, parent) VALUES ('test2', 'test1');
+INSERT INTO test_recur (name, parent) VALUES ('test3', 'test2');
+
 commit;

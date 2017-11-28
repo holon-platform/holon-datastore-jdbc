@@ -18,6 +18,9 @@ package com.holonplatform.datastore.jdbc.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.junit.Test;
@@ -39,8 +42,10 @@ import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
 import com.holonplatform.jdbc.DatabasePlatform;
@@ -123,6 +128,42 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 
 		assertEquals(1, result.getInsertedKeys().size());
 		assertEquals(Long.valueOf(3), box.getValue(CODE));
+	}
+
+	private static final DataTarget<?> R_TARGET = DataTarget.named("test_recur");
+	private static final PathProperty<String> R_NAME = PathProperty.create("name", String.class);
+	private static final PathProperty<String> R_PARENT = PathProperty.create("parent", String.class);
+
+	@Test
+	public void testRecur() {
+
+		List<String> parents = new ArrayList<>();
+		findParents(parents, "test3");
+
+		assertEquals(2, parents.size());
+
+	}
+
+	private void findParents(List<String> parents, String name) {
+		if (name != null) {
+			RelationalTarget<?> group_alias_1 = RelationalTarget.of(R_TARGET).alias("g1");
+			RelationalTarget<?> group_alias_2 = RelationalTarget.of(R_TARGET).alias("g2");
+			
+			QueryFilter f1 = group_alias_1.property(R_PARENT).isNotNull();
+			QueryFilter f2 = group_alias_2.property(R_NAME).eq(group_alias_1.property(R_PARENT));
+			
+			RelationalTarget<?> target = group_alias_1.innerJoin(group_alias_2).on(f1.and(f2)).add();
+			
+			List<String> group_parents = datastore.query().target(target)
+					.filter(group_alias_1.property(R_NAME).eq(name)).list(group_alias_2.property(R_NAME));
+
+			if (!group_parents.isEmpty()) {
+				parents.addAll(group_parents);
+				for (String p : group_parents) {
+					findParents(parents, p);
+				}
+			}
+		}
 	}
 
 }

@@ -58,15 +58,15 @@
 		<bintray.package>holon-datastore-jdbc</bintray.package>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.0.3</holon.core.version>
+		<holon.core.version>5.0.4-SNAPSHOT</holon.core.version>
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.0.2</holon.jdbc.version>
+		<holon.jdbc.version>5.0.3-SNAPSHOT</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
 		<bytebuddy.version>1.7.9</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>2.7.2</hikaricp.version>
+		<hikaricp.version>2.7.3</hikaricp.version>
 
 		<!-- Test/dialects databases -->
 

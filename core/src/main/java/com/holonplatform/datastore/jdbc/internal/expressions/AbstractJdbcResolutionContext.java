@@ -139,6 +139,15 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 			// root alias
 			return (target != null) ? Optional.ofNullable(pathAlias.get(target.getName())) : Optional.empty();
 		}
+
+		// check Aliasable
+		if (AliasablePath.class.isAssignableFrom(path.getClass())) {
+			final AliasablePath<?, ?> ap = (AliasablePath<?, ?>) path;
+			if (ap.getAlias().isPresent()) {
+				return ap.getAlias();
+			}
+		}
+
 		String alias = pathAlias.get(path.fullName());
 		// check parent
 		if (alias == null && getParent().isPresent()) {

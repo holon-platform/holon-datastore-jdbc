@@ -26,3 +26,9 @@ create table test3 (
 	,text varchar(100) not null
 );
 
+create table test_recur (
+	 code bigint primary key auto_increment
+	,name varchar(100) not null
+	,parent varchar(100)
+);
+
