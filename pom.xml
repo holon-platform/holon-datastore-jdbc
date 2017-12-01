@@ -66,7 +66,7 @@
 		<bytebuddy.version>1.7.9</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>2.7.3</hikaricp.version>
+		<hikaricp.version>2.7.4</hikaricp.version>
 
 		<!-- Test/dialects databases -->
 
