@@ -43,7 +43,20 @@
 					<groupId>com.holon-platform.core</groupId>
 					<artifactId>holon-core</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.holon-platform.core</groupId>
+					<artifactId>holon-spring</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.holon-platform.core</groupId>
+					<artifactId>holon-spring-boot</artifactId>
+				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.holon-platform.core</groupId>
+			<artifactId>holon-spring-boot</artifactId>
+			<version>${holon.core.version}</version>
 		</dependency>
 
 		<!-- JDBC Datastore Spring -->

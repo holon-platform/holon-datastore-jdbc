@@ -28,6 +28,14 @@
 					<groupId>com.holon-platform.core</groupId>
 					<artifactId>holon-core</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.holon-platform.core</groupId>
+					<artifactId>holon-spring</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.holon-platform.core</groupId>
+					<artifactId>holon-spring-boot</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
