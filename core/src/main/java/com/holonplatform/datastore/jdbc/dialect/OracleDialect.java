@@ -71,9 +71,12 @@ public class OracleDialect implements JdbcDialect {
 	public void init(JdbcDatastore datastore) throws SQLException {
 		datastore.withConnection(c -> {
 			DatabaseMetaData databaseMetaData = c.getMetaData();
+			
+			int driverMajorVersion = databaseMetaData.getDriverMajorVersion();
+			
 			oracleVersion = databaseMetaData.getDatabaseMajorVersion();
 			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
+			generatedKeyAlwaysReturned = (driverMajorVersion < 12) ? false : databaseMetaData.generatedKeyAlwaysReturned();
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 			return null;
 		});
