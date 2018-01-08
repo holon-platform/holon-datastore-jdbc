@@ -46,6 +46,7 @@ import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
@@ -68,21 +69,24 @@ import com.holonplatform.datastore.jdbc.dialect.OracleDialect;
 import com.holonplatform.datastore.jdbc.dialect.PostgreSQLDialect;
 import com.holonplatform.datastore.jdbc.dialect.SQLServerDialect;
 import com.holonplatform.datastore.jdbc.dialect.SQLiteDialect;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeyInspector;
 import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeysCache;
 import com.holonplatform.datastore.jdbc.internal.resolvers.ConstantExpressionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.DataTargetResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.DefaultQueryFunctionResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.DialectQueryFunctionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.ExistFilterResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.FunctionExpressionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.LiteralValueResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.NotExistFilterResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.OperationStructureResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.OrderBySortResolver;
-import com.holonplatform.datastore.jdbc.internal.resolvers.PathFunctionResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.PathFunctionExpressionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PathResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PrimaryKeyResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PropertyConstantExpressionResolver;
@@ -176,11 +180,14 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		addExpressionResolver(new PrimaryKeyResolver(primaryKeysCache, this));
 		addExpressionResolver(RelationalTargetResolver.INSTANCE);
 		addExpressionResolver(DataTargetResolver.INSTANCE);
-		addExpressionResolver(PathFunctionResolver.INSTANCE);
+		addExpressionResolver(FunctionExpressionResolver.INSTANCE);
+		addExpressionResolver(PathFunctionExpressionResolver.INSTANCE);
 		addExpressionResolver(PathResolver.INSTANCE);
 		addExpressionResolver(ConstantExpressionResolver.INSTANCE);
 		addExpressionResolver(PropertyConstantExpressionResolver.INSTANCE);
 		addExpressionResolver(LiteralValueResolver.INSTANCE);
+		addExpressionResolver(DialectQueryFunctionResolver.INSTANCE);
+		addExpressionResolver(DefaultQueryFunctionResolver.INSTANCE);
 		addExpressionResolver(SubQueryResolver.INSTANCE);
 		addExpressionResolver(ExistFilterResolver.INSTANCE);
 		addExpressionResolver(NotExistFilterResolver.INSTANCE);
@@ -564,7 +571,8 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			// valid Paths with not null value
 			propertyBox.stream().filter(property -> Path.class.isAssignableFrom(property.getClass()))
 					.filter(path -> propertyBox.containsValue(path)).forEach(p -> {
-						builder.withValue((Path) p, getPathValue((Path) p, propertyBox, false));
+						builder.withValue((Path) p,
+								ConstantExpression.create(getPathValue((Path) p, propertyBox, false)));
 					});
 
 			// resolve OperationStructure
@@ -634,7 +642,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 											QueryExpression propertyExpression = (property instanceof QueryExpression)
 													? (QueryExpression) property : null;
 											propertyBox.setValue(property, getDialect().getValueDeserializer()
-													.deserializeValue(propertyExpression, keyValue));
+													.deserializeValue(c, propertyExpression, keyValue));
 										}
 									}
 								}
@@ -692,7 +700,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			// valid Paths
 			propertyBox.stream().filter(p -> Path.class.isAssignableFrom(p.getClass())).map(p -> (Path<?>) p)
 					.collect(Collectors.toList()).forEach(p -> {
-						builder.withValue(p, getPathValue(p, propertyBox, false));
+						builder.withValue(p, ConstantExpression.create(getPathValue(p, propertyBox, false)));
 					});
 			// primary key filter
 			builder.withFilter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox));

@@ -20,11 +20,20 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.core.query.QueryFunction.Avg;
+import com.holonplatform.core.query.TemporalFunction.CurrentDate;
+import com.holonplatform.core.query.TemporalFunction.CurrentLocalDate;
+import com.holonplatform.core.query.TemporalFunction.Day;
+import com.holonplatform.core.query.TemporalFunction.Hour;
+import com.holonplatform.core.query.TemporalFunction.Month;
+import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.JdbcDialect.SQLFunction.DefaultFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
+import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
 import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
@@ -38,7 +47,7 @@ public class SQLServerDialect implements JdbcDialect {
 
 	private static final long serialVersionUID = -3585193712573424374L;
 
-	private static final SQLFunction AVG_FUNCTION = new AvgFunction();
+	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
 
 	private static final SQLServerParameterProcessor PARAMETER_PROCESSOR = new SQLServerParameterProcessor();
 
@@ -55,6 +64,13 @@ public class SQLServerDialect implements JdbcDialect {
 	public SQLServerDialect() {
 		super();
 		this.statementConfigurator = StatementConfigurator.create(this);
+		this.functions.registerFunction(Avg.class, new AvgFunction());
+		this.functions.registerFunction(CurrentDate.class, new CurrentDateFunction());
+		this.functions.registerFunction(CurrentLocalDate.class, new CurrentDateFunction());
+		this.functions.registerFunction(Year.class, new ExtractTemporalPartFunction("year"));
+		this.functions.registerFunction(Month.class, new ExtractTemporalPartFunction("month"));
+		this.functions.registerFunction(Day.class, new ExtractTemporalPartFunction("day"));
+		this.functions.registerFunction(Hour.class, new ExtractTemporalPartFunction("hour"));
 	}
 
 	/*
@@ -76,6 +92,15 @@ public class SQLServerDialect implements JdbcDialect {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
+	 */
+	@Override
+	public Optional<SQLFunction> resolveFunction(QueryFunction<?> function) {
+		return functions.getFunction(function);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
 	 */
 	@Override
@@ -90,18 +115,6 @@ public class SQLServerDialect implements JdbcDialect {
 	@Override
 	public Optional<SQLParameterProcessor> getParameterProcessor() {
 		return Optional.of(PARAMETER_PROCESSOR);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getFunction(java.lang.String)
-	 */
-	@Override
-	public SQLFunction getFunction(String name) {
-		if (DefaultFunction.AVG.getName().equals(name)) {
-			return AVG_FUNCTION;
-		}
-		return null;
 	}
 
 	/*
@@ -153,29 +166,64 @@ public class SQLServerDialect implements JdbcDialect {
 	private static final class AvgFunction implements SQLFunction {
 
 		@Override
-		public String getName() {
-			return "avg";
-		}
-
-		@Override
-		public boolean hasParenthesesIfNoArguments() {
-			return true;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.jdbc.internal.SQLFunction#serialize(java.util.List)
-		 */
-		@Override
 		public String serialize(List<String> arguments) {
 			final StringBuilder sb = new StringBuilder();
-			sb.append(getName());
+			sb.append("avg");
 			sb.append("(");
 			sb.append("cast(");
 			sb.append(arguments.get(0));
 			sb.append(" as decimal)");
 			sb.append(")");
 			return sb.toString();
+		}
+
+		@Override
+		public void validate() throws InvalidExpressionException {
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	private static final class ExtractTemporalPartFunction implements SQLFunction {
+
+		private final String part;
+
+		public ExtractTemporalPartFunction(String part) {
+			super();
+			this.part = part;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.jdbc.expressions.SQLFunction#serialize(java.util.List)
+		 */
+		@Override
+		public String serialize(List<String> arguments) throws InvalidExpressionException {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("DATEPART(");
+			sb.append(part);
+			sb.append(", ");
+			sb.append(arguments.get(0));
+			sb.append(")");
+			return sb.toString();
+		}
+
+		@Override
+		public void validate() throws InvalidExpressionException {
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	private static final class CurrentDateFunction implements SQLFunction {
+
+		@Override
+		public String serialize(List<String> arguments) {
+			return "CAST(GETDATE() AS DATE)";
+		}
+
+		@Override
+		public void validate() throws InvalidExpressionException {
 		}
 
 	}

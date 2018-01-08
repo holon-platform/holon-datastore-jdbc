@@ -22,8 +22,8 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.internal.datastore.relational.NotExistsFilter;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 
 /**
  * {@link NotExistsFilter} expression resolver.

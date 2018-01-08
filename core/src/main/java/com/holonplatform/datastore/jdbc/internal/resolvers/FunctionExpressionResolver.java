@@ -21,16 +21,19 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.query.QuerySort;
+import com.holonplatform.core.query.FunctionExpression;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 
 /**
- * {@link QuerySort} expression resolver.
+ * {@link FunctionExpression} expression resolver.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
+@SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum QuerySortResolver implements ExpressionResolver<QuerySort, SQLToken> {
+public enum FunctionExpressionResolver implements ExpressionResolver<FunctionExpression, SQLToken> {
 
 	/**
 	 * Singleton instance.
@@ -42,8 +45,8 @@ public enum QuerySortResolver implements ExpressionResolver<QuerySort, SQLToken>
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends QuerySort> getExpressionType() {
-		return QuerySort.class;
+	public Class<? extends FunctionExpression> getExpressionType() {
+		return FunctionExpression.class;
 	}
 
 	/*
@@ -61,18 +64,20 @@ public enum QuerySortResolver implements ExpressionResolver<QuerySort, SQLToken>
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<SQLToken> resolve(QuerySort expression,
-			com.holonplatform.core.ExpressionResolver.ResolutionContext context) throws InvalidExpressionException {
+	public Optional<SQLToken> resolve(FunctionExpression expression, ResolutionContext context)
+			throws InvalidExpressionException {
 
-		// intermediate resolution and validation
-		Optional<QuerySort> sort = context.resolve(expression, QuerySort.class, context);
+		// validate
+		expression.validate();
 
-		if (sort.isPresent()) {
-			sort.get().validate();
-			return context.resolve(sort.get(), SQLToken.class, context);
-		}
+		// resolve function
+		SQLFunction function = JdbcDatastoreUtils.resolveExpression(context, expression.getFunction(),
+				SQLFunction.class, context);
 
-		return Optional.empty();
+		// validate function
+		function.validate();
+
+		return Optional.ofNullable(SQLToken.create(function.serialize()));
 	}
 
 }

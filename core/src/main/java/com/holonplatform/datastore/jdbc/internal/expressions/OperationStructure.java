@@ -22,6 +22,7 @@ import com.holonplatform.core.Expression;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationType;
+import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
 
 /**
@@ -47,7 +48,7 @@ public interface OperationStructure extends Expression {
 	 * Get the paths and their values associated to the operation.
 	 * @return The path-value map, empty if not available
 	 */
-	Map<Path<?>, Object> getValues();
+	Map<Path<?>, QueryExpression<?>> getValues();
 
 	/**
 	 * Get the restrictions expressed as a {@link QueryFilter}.
@@ -71,12 +72,12 @@ public interface OperationStructure extends Expression {
 	public interface Builder {
 
 		/**
-		 * Add a value associated to given <code>path</code>.
+		 * Add a value expression associated to given <code>path</code>.
 		 * @param path Path (not null)
-		 * @param value Value
+		 * @param expression Value expression
 		 * @return this
 		 */
-		Builder withValue(Path<?> path, Object value);
+		Builder withValue(Path<?> path, QueryExpression<?> expression);
 
 		/**
 		 * Add a restriction filter.

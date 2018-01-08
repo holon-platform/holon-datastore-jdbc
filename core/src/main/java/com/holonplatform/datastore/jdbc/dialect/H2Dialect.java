@@ -20,10 +20,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.JdbcDialect.SQLFunction.DefaultFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
+import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
 
 /**
  * H2 {@link JdbcDialect}.
@@ -34,7 +37,8 @@ public class H2Dialect implements JdbcDialect {
 
 	private static final long serialVersionUID = 2386984060916655846L;
 
-	private static final SQLFunction AVG_FUNCTION = new AvgFunction();
+	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
+
 	private static final H2LimitHandler LIMIT_HANDLER = new H2LimitHandler();
 
 	private boolean supportsGeneratedKeys;
@@ -46,6 +50,7 @@ public class H2Dialect implements JdbcDialect {
 	public H2Dialect() {
 		super();
 		this.statementConfigurator = StatementConfigurator.create(this);
+		this.functions.registerFunction(Avg.class, new AvgFunction());
 	}
 
 	/*
@@ -65,23 +70,20 @@ public class H2Dialect implements JdbcDialect {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
+	 */
+	@Override
+	public Optional<SQLFunction> resolveFunction(QueryFunction<?> function) {
+		return functions.getFunction(function);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
 	 */
 	@Override
 	public StatementConfigurator getStatementConfigurator() {
 		return statementConfigurator;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getFunction(java.lang.String)
-	 */
-	@Override
-	public SQLFunction getFunction(String name) {
-		if (DefaultFunction.AVG.getName().equals(name)) {
-			return AVG_FUNCTION;
-		}
-		return null;
 	}
 
 	/*
@@ -144,29 +146,19 @@ public class H2Dialect implements JdbcDialect {
 	private static final class AvgFunction implements SQLFunction {
 
 		@Override
-		public String getName() {
-			return "avg";
-		}
-
-		@Override
-		public boolean hasParenthesesIfNoArguments() {
-			return true;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.jdbc.internal.SQLFunction#serialize(java.util.List)
-		 */
-		@Override
 		public String serialize(List<String> arguments) {
 			final StringBuilder sb = new StringBuilder();
-			sb.append(getName());
+			sb.append("avg");
 			sb.append("(");
 			sb.append("cast(");
 			sb.append(arguments.get(0));
 			sb.append(" as double)");
 			sb.append(")");
 			return sb.toString();
+		}
+
+		@Override
+		public void validate() throws InvalidExpressionException {
 		}
 
 	}

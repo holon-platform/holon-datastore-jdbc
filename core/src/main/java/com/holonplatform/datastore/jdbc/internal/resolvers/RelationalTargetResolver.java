@@ -26,9 +26,9 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.relational.Join;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 
 /**
  * {@link RelationalTarget} expression resolver.

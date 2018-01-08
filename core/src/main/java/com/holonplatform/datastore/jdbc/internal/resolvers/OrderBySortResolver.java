@@ -22,7 +22,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.datastore.jdbc.JdbcOrderBySort;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 
 /**
  * {@link JdbcOrderBySort} expression resolver.

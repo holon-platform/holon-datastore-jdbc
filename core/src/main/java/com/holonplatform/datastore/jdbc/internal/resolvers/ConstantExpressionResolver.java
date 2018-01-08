@@ -22,8 +22,8 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.LiteralValue;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 
 /**
  * {@link ConstantExpression} resolver.
@@ -68,6 +68,11 @@ public enum ConstantExpressionResolver implements ExpressionResolver<ConstantExp
 
 		// validate
 		expression.validate();
+
+		// check NULL
+		if (expression.getValue() == null) {
+			return Optional.of(SQLToken.create("NULL"));
+		}
 
 		// resolve
 		return context.resolve(LiteralValue.create(expression.getValue(), expression.getType(), null), SQLToken.class,

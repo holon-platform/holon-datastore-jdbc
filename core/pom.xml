@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -103,11 +104,32 @@
 							</includes>
 						</configuration>
 					</plugin>
-					<!-- <plugin> <groupId>io.fabric8</groupId> <artifactId>docker-maven-plugin</artifactId> 
-						<configuration> <images> <image> <name>holon/db2</name> <build> <dockerFileDir>db2</dockerFileDir> 
-						</build> <run> <env> <DB2INST1_PASSWORD>holontest</DB2INST1_PASSWORD> <LICENSE>accept</LICENSE> 
-						</env> <ports> <port>50000:50000</port> </ports> <wait> <time>30000</time> 
-						</wait> </run> </image> </images> </configuration> </plugin> -->
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<configuration>
+							<images>
+								<image>
+									<name>holon/db2</name>
+									<build>
+										<dockerFileDir>db2</dockerFileDir>
+									</build>
+									<run>
+										<env>
+											<DB2INST1_PASSWORD>test-pwd</DB2INST1_PASSWORD>
+											<LICENSE>accept</LICENSE>
+										</env>
+										<ports>
+											<port>50000:50000</port>
+										</ports>
+										<wait>
+											<time>15000</time>
+										</wait>
+									</run>
+								</image>
+							</images>
+						</configuration>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>

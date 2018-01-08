@@ -13,13 +13,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal.dialect;
+package com.holonplatform.datastore.jdbc.internal.expressions;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.jdbc.JdbcDialect.SQLFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 
 /**
  * Default {@link SQLFunction} implementation.
@@ -54,19 +54,28 @@ public class DefaultSQLFunction implements SQLFunction {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.internal.SQLFunction#getName()
+	 * @see com.holonplatform.core.Expression#validate()
 	 */
 	@Override
+	public void validate() throws InvalidExpressionException {
+		if (getName() == null) {
+			throw new InvalidExpressionException("Null function name");
+		}
+	}
+
+	/**
+	 * Get the function name
+	 * @return The function name
+	 */
 	public String getName() {
 		return name;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.internal.SQLFunction#hasParenthesesIfNoArguments()
+	/**
+	 * Get whether parentheses are required if there are no arguments.
+	 * @return <code>true</code> if parentheses are required if there are no arguments, <code>false</code> otherwise
 	 */
-	@Override
-	public boolean hasParenthesesIfNoArguments() {
+	protected boolean hasParenthesesIfNoArguments() {
 		return parenthesesIfNoArguments;
 	}
 

@@ -28,14 +28,14 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
-import com.holonplatform.core.internal.query.QueryUtils;
+import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 
 /**
  * {@link OperationStructure} expression resolver.
@@ -136,14 +136,14 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 		// values
 		if (type == OperationType.INSERT || type == OperationType.UPDATE) {
 
-			final Map<Path<?>, Object> pathValues = expression.getValues();
+			final Map<Path<?>, QueryExpression<?>> pathValues = expression.getValues();
 			final List<String> paths = new ArrayList<>(pathValues.size());
 			final List<String> values = new ArrayList<>(pathValues.size());
 
 			try {
 				context.setResolutionQueryClause(ResolutionQueryClause.SET);
 				// resolve path and value
-				for (Entry<Path<?>, Object> entry : pathValues.entrySet()) {
+				for (Entry<Path<?>, QueryExpression<?>> entry : pathValues.entrySet()) {
 					paths.add(resolveExpression(entry.getKey(), context));
 					values.add(resolvePathValue(entry.getKey(), entry.getValue(), context, true));
 				}
@@ -205,23 +205,30 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 	/**
 	 * Resolve a value associated to a {@link Path} to obtain the corresponding SQL expression.
 	 * @param path Path
-	 * @param value Value
+	 * @param expression Value expression
 	 * @param context Resolution context
 	 * @param clause Resolution clause
 	 * @param allowNull if <code>true</code>, null values are allowed and returned as <code>NULL</code> keyword
 	 * @return SQL expression
 	 * @throws InvalidExpressionException If expression cannot be resolved
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static String resolvePathValue(Path<?> path, Object value, JdbcResolutionContext context,
+	@SuppressWarnings("unchecked")
+	private static String resolvePathValue(Path<?> path, QueryExpression<?> expression, JdbcResolutionContext context,
 			boolean allowNull) {
 
-		if (value != null && "?".equals(value)) {
-			return "?";
-		}
+		if (expression instanceof ConstantExpression) {
+			Object value = ((ConstantExpression<?, ?>) expression).getValue();
+			if ("?".equals(value)) {
+				return "?";
+			}
 
-		QueryExpression<?> expression = (QueryExpression.class.isAssignableFrom(path.getClass()))
-				? QueryUtils.asConstantExpression((QueryExpression) path, value) : ConstantExpression.create(value);
+			// check converter
+			if (path instanceof Property) {
+				return JdbcDatastoreUtils.resolveExpression(context,
+						ConstantExpression.create(((Property<Object>) path).getConvertedValue(value)), SQLToken.class,
+						context).getValue();
+			}
+		}
 
 		return JdbcDatastoreUtils.resolveExpression(context, expression, SQLToken.class, context).getValue();
 	}

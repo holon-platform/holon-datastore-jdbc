@@ -23,6 +23,7 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
 
 /**
@@ -45,7 +46,7 @@ public class DefaultOperationStructure implements OperationStructure {
 	/**
 	 * Path values
 	 */
-	private final Map<Path<?>, Object> values = new LinkedHashMap<>();
+	private final Map<Path<?>, QueryExpression<?>> values = new LinkedHashMap<>();
 
 	/**
 	 * Restrictions
@@ -86,7 +87,7 @@ public class DefaultOperationStructure implements OperationStructure {
 	 * @see com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure#getValues()
 	 */
 	@Override
-	public Map<Path<?>, Object> getValues() {
+	public Map<Path<?>, QueryExpression<?>> getValues() {
 		return values;
 	}
 
@@ -102,9 +103,9 @@ public class DefaultOperationStructure implements OperationStructure {
 	/**
 	 * Add a value associated to given <code>path</code>.
 	 * @param path Path (not null)
-	 * @param value Value
+	 * @param value Value expression
 	 */
-	public void addValue(Path<?> path, Object value) {
+	public void addValue(Path<?> path, QueryExpression<?> value) {
 		ObjectUtils.argumentNotNull(path, "Path must be not null");
 		values.put(path, value);
 	}
@@ -186,11 +187,11 @@ public class DefaultOperationStructure implements OperationStructure {
 		 * (non-Javadoc)
 		 * @see
 		 * com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure.Builder#withValue(com.holonplatform.
-		 * core.Path, java.lang.Object)
+		 * core.Path, com.holonplatform.core.query.QueryExpression)
 		 */
 		@Override
-		public Builder withValue(Path<?> path, Object value) {
-			instance.addValue(path, value);
+		public Builder withValue(Path<?> path, QueryExpression<?> expression) {
+			instance.addValue(path, expression);
 			return this;
 		}
 

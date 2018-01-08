@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.internal.expressions;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 
 import com.holonplatform.core.query.QueryResults.QueryResultConversionException;
@@ -30,10 +31,11 @@ public interface ResultSetConverter<R> {
 
 	/**
 	 * Convert a {@link ResultSet} into expected result type.
+	 * @param connection Current JDBC connection
 	 * @param resultSet Result set to convert
 	 * @return Converted result
 	 * @throws QueryResultConversionException If the result set conversion failed
 	 */
-	R convert(ResultSet resultSet) throws QueryResultConversionException;
+	R convert(Connection connection, ResultSet resultSet) throws QueryResultConversionException;
 
 }

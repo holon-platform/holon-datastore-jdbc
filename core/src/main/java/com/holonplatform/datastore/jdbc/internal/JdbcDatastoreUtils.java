@@ -55,9 +55,7 @@ import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.JdbcDialect.SQLFunction;
 import com.holonplatform.datastore.jdbc.JdbcDialect.StatementConfigurationException;
-import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLFunctions;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.support.DefaultPreparedSql;
 import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
@@ -81,20 +79,6 @@ public final class JdbcDatastoreUtils implements Serializable {
 	 * Empty private constructor: this class is intended only to provide constants ad utility methods.
 	 */
 	private JdbcDatastoreUtils() {
-	}
-
-	/**
-	 * Get the {@link SQLFunction} implementation to use for given function <code>name</code>.
-	 * @param name Function name
-	 * @param dialect Jdbc dialect
-	 * @return {@link SQLFunction} implementation to use for given function <code>name</code>, if available
-	 */
-	public static Optional<SQLFunction> getSQLFunction(String name, JdbcDialect dialect) {
-		SQLFunction dialectFunction = dialect.getFunction(name);
-		if (dialectFunction != null) {
-			return Optional.of(dialectFunction);
-		}
-		return DefaultSQLFunctions.getFunction(name);
 	}
 
 	/**

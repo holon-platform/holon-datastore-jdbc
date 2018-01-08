@@ -73,7 +73,7 @@ public class TestJdbcDatastoreHSQL extends AbstractJdbcDatastoreTest {
 		}
 
 	}
-
+ 
 	@Autowired
 	private Datastore datastore;
 

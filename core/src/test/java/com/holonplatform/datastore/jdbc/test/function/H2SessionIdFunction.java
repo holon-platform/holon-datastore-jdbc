@@ -13,32 +13,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal.expressions;
+package com.holonplatform.datastore.jdbc.test.function;
 
-import java.io.Serializable;
+import com.holonplatform.core.query.QueryFunction;
 
-import com.holonplatform.core.Expression;
+public class H2SessionIdFunction implements QueryFunction<Integer> {
 
-/**
- * Represents a SQL statement element.
- * 
- * @since 5.0.0
- */
-public interface SQLToken extends Expression, Serializable {
-
-	/**
-	 * Get the SQL token {@link String} representation.
-	 * @return SQL token value
-	 */
-	String getValue();
-
-	/**
-	 * Create a new {@link SQLToken} with given value.
-	 * @param value SQL token value
-	 * @return A new {@link SQLToken} with given value
-	 */
-	static SQLToken create(String value) {
-		return new DefaultSQLToken(value);
+	@Override
+	public Class<? extends Integer> getResultType() {
+		return Integer.class;
 	}
+
+	@Override
+	public void validate() throws InvalidExpressionException {}
 
 }

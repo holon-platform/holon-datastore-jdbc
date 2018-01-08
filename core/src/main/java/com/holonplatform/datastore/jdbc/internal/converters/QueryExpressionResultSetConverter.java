@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.internal.converters;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -68,10 +69,10 @@ public class QueryExpressionResultSetConverter<T> extends AbstractResultSetConve
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public T convert(ResultSet resultSet) throws QueryResultConversionException {
+	public T convert(Connection connection, ResultSet resultSet) throws QueryResultConversionException {
 
 		try {
-			final Object value = dialect.getValueDeserializer().deserializeValue(expression,
+			final Object value = dialect.getValueDeserializer().deserializeValue(connection, expression,
 					getResult(dialect, resultSet, selection));
 
 			// check type

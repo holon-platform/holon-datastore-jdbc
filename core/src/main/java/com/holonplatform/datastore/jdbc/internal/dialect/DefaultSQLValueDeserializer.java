@@ -24,6 +24,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -32,6 +33,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.Calendar;
 import java.util.Optional;
 
@@ -56,15 +58,9 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 	 */
 	INSTANCE;
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.jdbc.JdbcDialect.SQLValueDeserializer#deserializeValue(com.holonplatform.core.query.
-	 * QueryExpression, java.lang.Object)
-	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public <T> T deserializeValue(QueryExpression<T> expression, Object value) {
+	public <T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value) {
 		if (value != null) {
 
 			Class<?> targetType = expression.getType();
@@ -148,6 +144,28 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 		if (Time.class.isAssignableFrom(value.getClass())) {
 			if (LocalTime.class.isAssignableFrom(targetType)) {
 				return ((Time) value).toLocalTime();
+			}
+		}
+
+		if (LocalDate.class.isAssignableFrom(value.getClass())) {
+			if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
+				return Date.valueOf(((LocalDate) value));
+			}
+		}
+		if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
+			if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
+				return new Date(Timestamp.valueOf(((LocalDateTime) value)).getTime());
+			}
+			if (Timestamp.class.isAssignableFrom(targetType)) {
+				return Timestamp.valueOf(((LocalDateTime) value));
+			}
+		}
+		if (OffsetDateTime.class.isAssignableFrom(value.getClass())) {
+			if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
+				return new Date(Timestamp.valueOf(((OffsetDateTime) value).toLocalDateTime()).getTime());
+			}
+			if (Timestamp.class.isAssignableFrom(targetType)) {
+				return Timestamp.valueOf(((OffsetDateTime) value).toLocalDateTime());
 			}
 		}
 

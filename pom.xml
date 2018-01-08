@@ -58,9 +58,9 @@
 		<bintray.package>holon-datastore-jdbc</bintray.package>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.0.6</holon.core.version>
+		<holon.core.version>5.1.0-SNAPSHOT</holon.core.version>
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.0.4</holon.jdbc.version>
+		<holon.jdbc.version>5.1.0-SNAPSHOT</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
 		<bytebuddy.version>1.7.9</bytebuddy.version>

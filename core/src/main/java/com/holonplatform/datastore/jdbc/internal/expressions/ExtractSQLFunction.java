@@ -15,38 +15,42 @@
  */
 package com.holonplatform.datastore.jdbc.internal.expressions;
 
-import com.holonplatform.datastore.jdbc.expressions.SQLToken;
+import java.util.List;
+
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 
 /**
- * Default {@link SQLToken} representation.
- *
- * @since 5.0.0
+ * EXTRACT function.
+ * 
+ * @since 5.1.0
  */
-public class DefaultSQLToken implements SQLToken {
+public class ExtractSQLFunction implements SQLFunction {
 
-	private static final long serialVersionUID = 8201113162036805498L;
+	private static final long serialVersionUID = 7678038450875263298L;
 
-	/**
-	 * SQL value
-	 */
-	private final String value;
+	private final String partName;
 
-	/**
-	 * Constructor
-	 * @param value SQL value
-	 */
-	public DefaultSQLToken(String value) {
+	public ExtractSQLFunction(String partName) {
 		super();
-		this.value = value;
+		this.partName = partName;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.internal.SQLToken#getValue()
+	 * @see com.holonplatform.datastore.jdbc.expressions.SQLFunction#serialize(java.util.List)
 	 */
 	@Override
-	public String getValue() {
-		return value;
+	public String serialize(List<String> arguments) throws InvalidExpressionException {
+		if (arguments == null || arguments.size() != 1) {
+			throw new InvalidExpressionException("EXTRACT function requires one argument");
+		}
+		final StringBuilder sb = new StringBuilder();
+		sb.append("EXTRACT(");
+		sb.append(partName);
+		sb.append(" FROM ");
+		sb.append(arguments.get(0));
+		sb.append(")");
+		return sb.toString();
 	}
 
 	/*
@@ -55,18 +59,6 @@ public class DefaultSQLToken implements SQLToken {
 	 */
 	@Override
 	public void validate() throws InvalidExpressionException {
-		if (getValue() == null) {
-			throw new InvalidExpressionException("Null SQL token value");
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "DefaultSQLToken [value=" + value + "]";
 	}
 
 }

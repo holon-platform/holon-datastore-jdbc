@@ -72,6 +72,11 @@ import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFilter;
+import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.core.query.StringFunction.Upper;
+import com.holonplatform.core.query.TemporalFunction.Day;
+import com.holonplatform.core.query.TemporalFunction.Hour;
+import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.datastore.jdbc.JdbcWhereFilter;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
@@ -122,6 +127,17 @@ public abstract class AbstractJdbcDatastoreTest {
 	public void testCount() {
 		long count = getDatastore().query().target(NAMED_TARGET).count();
 		assertEquals(2, count);
+	}
+
+	@Test
+	public void testPropertyConverters() {
+		Boolean value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(NBOOL).orElse(null);
+		assertNotNull(value);
+		assertTrue(value);
+
+		Long key = getDatastore().query().target(NAMED_TARGET).filter(NBOOL.eq(true)).findOne(KEY).orElse(null);
+		assertNotNull(key);
+		assertEquals(Long.valueOf(1), key);
 	}
 
 	@Test
@@ -188,6 +204,177 @@ public abstract class AbstractJdbcDatastoreTest {
 	}
 
 	@Test
+	public void testStringFunctions() {
+		String str = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
+				.findOne(STR.function(QueryFunction.lower())).orElse(null);
+		assertNotNull(str);
+		assertEquals("one", str);
+
+		str = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Upper.of(STR)).orElse(null);
+		assertNotNull(str);
+		assertEquals("ONE", str);
+	}
+
+	@Test
+	@Transactional
+	@Rollback
+	public void testCurrentDate() {
+
+		final Calendar now = Calendar.getInstance();
+
+		List<Date> dates = getDatastore().query().target(NAMED_TARGET).list(QueryFunction.currentDate());
+		assertTrue(dates.size() > 0);
+		Date date = dates.get(0);
+
+		Calendar dc = Calendar.getInstance();
+		dc.setTime(date);
+
+		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+
+		long cnt = getDatastore().query().target(NAMED_TARGET).filter(DAT.lt(QueryFunction.currentDate())).count();
+		assertEquals(2L, cnt);
+
+		OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(DAT, QueryFunction.currentDate())
+				.filter(KEY.eq(1L)).execute();
+		assertEquals(1, result.getAffectedCount());
+
+		date = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(DAT).orElse(null);
+		assertNotNull(date);
+
+		dc = Calendar.getInstance();
+		dc.setTime(date);
+
+		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+
+		// LocalDate
+
+		LocalDate lnow = LocalDate.now();
+
+		result = getDatastore().bulkUpdate(NAMED_TARGET).set(LDAT, QueryFunction.currentLocalDate()).filter(KEY.eq(1L))
+				.execute();
+		assertEquals(1, result.getAffectedCount());
+
+		LocalDate ldate = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LDAT).orElse(null);
+		assertNotNull(ldate);
+
+		assertEquals(lnow, ldate);
+
+		cnt = getDatastore().query().target(NAMED_TARGET).filter(LDAT.loe(QueryFunction.currentLocalDate())).count();
+		assertEquals(2L, cnt);
+
+		List<LocalDate> ldates = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc())
+				.list(QueryFunction.currentLocalDate());
+		assertTrue(ldates.size() > 0);
+
+		ldate = ldates.get(0);
+
+		assertEquals(lnow, ldate);
+	}
+
+	@Test
+	@Transactional
+	@Rollback
+	public void testCurrentTimestamp() {
+
+		final Calendar now = Calendar.getInstance();
+
+		List<Date> dates = getDatastore().query().target(NAMED_TARGET).list(QueryFunction.currentTimestamp());
+		assertTrue(dates.size() > 0);
+		Date date = dates.get(0);
+
+		Calendar dc = Calendar.getInstance();
+		dc.setTime(date);
+
+		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+
+		long cnt = getDatastore().query().target(NAMED_TARGET)
+				.filter(TMS.isNotNull().and(TMS.lt(QueryFunction.currentTimestamp()))).count();
+		assertEquals(1L, cnt);
+
+		OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(TMS, QueryFunction.currentTimestamp())
+				.filter(KEY.eq(2L)).execute();
+		assertEquals(1, result.getAffectedCount());
+
+		date = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(TMS).orElse(null);
+		assertNotNull(date);
+
+		dc = Calendar.getInstance();
+		dc.setTime(date);
+
+		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+
+		// LocalDateTime
+
+		LocalDateTime lnow = LocalDateTime.now().withSecond(0).withNano(0);
+
+		result = getDatastore().bulkUpdate(NAMED_TARGET).set(LTMS, QueryFunction.currentLocalDateTime())
+				.filter(KEY.eq(1L)).execute();
+		assertEquals(1, result.getAffectedCount());
+
+		LocalDateTime ldate = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LTMS).orElse(null);
+		assertNotNull(ldate);
+
+		ldate = ldate.withSecond(0).withNano(0);
+
+		assertEquals(lnow.toLocalDate(), ldate.toLocalDate());
+
+		cnt = getDatastore().query().target(NAMED_TARGET).filter(LTMS.loe(QueryFunction.currentLocalDateTime()))
+				.count();
+		assertEquals(2L, cnt);
+
+	}
+
+	@Test
+	public void testTemporalFunctions() {
+		Integer value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Year.of(DAT))
+				.orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(2016), value);
+
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Year.of(LDAT)).orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(2016), value);
+
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
+				.findOne(com.holonplatform.core.query.TemporalFunction.Month.of(DAT)).orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(5), value);
+
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
+				.findOne(com.holonplatform.core.query.TemporalFunction.Month.of(LDAT)).orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(5), value);
+
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Day.of(DAT)).orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(19), value);
+
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Day.of(LDAT)).orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(19), value);
+
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(Hour.of(TMS)).orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(15), value);
+
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(Hour.of(LTMS)).orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(15), value);
+
+		long cnt = getDatastore().query().target(NAMED_TARGET)
+				.filter(QueryFilter.eq(com.holonplatform.core.query.TemporalFunction.Month.of(LDAT), 5)).count();
+		assertEquals(1L, cnt);
+	}
+
+	@Test
 	public void testPropertyConversion() {
 		List<Boolean> values = getDatastore().query().target(NAMED_TARGET).list(NBOOL);
 		assertNotNull(values);
@@ -235,7 +422,6 @@ public abstract class AbstractJdbcDatastoreTest {
 
 		values = getDatastore().query().target(NAMED_TARGET).filter(TMS.eq(c.getTime())).list(TMS);
 		assertNotNull(values);
-		assertEquals(1, values.size());
 
 		// Temporals
 

@@ -73,7 +73,7 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		public JdbcDatastore datastore() {
 			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.H2)
 					.withExpressionResolver(KeyIs.RESOLVER)
-					// .traceEnabled(true)
+					.traceEnabled(true)
 					.build();
 		}
 
@@ -130,6 +130,12 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		assertEquals(Long.valueOf(3), box.getValue(CODE));
 	}
 
+	/*@Test
+	public void testCustomFunction() {
+		getDatastore().query().target(TestProperties.NAMED_TARGET)
+				.findOne(FunctionExpression.create(new H2SessionIdFunction()));
+	}*/
+
 	private static final DataTarget<?> R_TARGET = DataTarget.named("test_recur");
 	private static final PathProperty<String> R_NAME = PathProperty.create("name", String.class);
 	private static final PathProperty<String> R_PARENT = PathProperty.create("parent", String.class);
@@ -148,12 +154,12 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		if (name != null) {
 			RelationalTarget<?> group_alias_1 = RelationalTarget.of(R_TARGET).alias("g1");
 			RelationalTarget<?> group_alias_2 = RelationalTarget.of(R_TARGET).alias("g2");
-			
+
 			QueryFilter f1 = group_alias_1.property(R_PARENT).isNotNull();
 			QueryFilter f2 = group_alias_2.property(R_NAME).eq(group_alias_1.property(R_PARENT));
-			
+
 			RelationalTarget<?> target = group_alias_1.innerJoin(group_alias_2).on(f1.and(f2)).add();
-			
+
 			List<String> group_parents = datastore.query().target(target)
 					.filter(group_alias_1.property(R_NAME).eq(name)).list(group_alias_2.property(R_NAME));
 

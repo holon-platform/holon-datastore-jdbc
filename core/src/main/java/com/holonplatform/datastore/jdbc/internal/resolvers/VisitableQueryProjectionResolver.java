@@ -41,6 +41,7 @@ import com.holonplatform.core.query.CountAllProjection;
 import com.holonplatform.core.query.FunctionExpression;
 import com.holonplatform.core.query.PropertySetProjection;
 import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.converters.BeanResultSetConverter;
 import com.holonplatform.datastore.jdbc.internal.converters.PropertyBoxResultSetConverter;
@@ -49,7 +50,6 @@ import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultProjectionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.ProjectionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 
 /**
  * {@link VisitableQueryProjection} expression resolver.

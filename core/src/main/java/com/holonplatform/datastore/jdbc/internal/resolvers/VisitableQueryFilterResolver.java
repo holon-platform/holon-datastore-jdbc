@@ -42,15 +42,14 @@ import com.holonplatform.core.internal.query.filter.NullFilter;
 import com.holonplatform.core.internal.query.filter.OrFilter;
 import com.holonplatform.core.internal.query.filter.StringMatchFilter;
 import com.holonplatform.core.query.ConstantExpression;
-import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFilter.OperationQueryFilter;
-import com.holonplatform.datastore.jdbc.JdbcDialect.SQLFunction.DefaultFunction;
+import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
-import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLFunctions;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
 
 /**
@@ -272,10 +271,8 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 		StringBuilder sb = new StringBuilder();
 
 		if (filter.isIgnoreCase()) {
-			sb.append(DefaultSQLFunctions.getSQLFunction(DefaultFunction.LOWER.getName(), context.getDialect())
-					.orElseThrow(
-							() -> new QueryBuildException("Missing sql function [" + DefaultFunction.LOWER.getName()
-									+ "] from dialect " + context.getDialect().getClass().getName()))
+			// add LOWER function
+			sb.append(JdbcDatastoreUtils.resolveExpression(context, QueryFunction.lower(), SQLFunction.class, context)
 					.serialize(path));
 			value = value.toLowerCase();
 		} else {

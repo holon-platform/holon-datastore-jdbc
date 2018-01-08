@@ -33,13 +33,14 @@ import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.property.PropertyValueConverter;
+import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.JdbcDialect.StatementConfigurator;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
 
 /**
@@ -108,7 +109,7 @@ public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert> implements
 			OperationStructure.Builder builder = OperationStructure.builder(OperationType.INSERT, getTarget());
 			// valid Paths with not null value
 			pathProperties.forEach(p -> {
-				builder.withValue((Path<?>) p, "?");
+				builder.withValue((Path<?>) p, ConstantExpression.create("?"));
 			});
 
 			// resolve OperationStructure

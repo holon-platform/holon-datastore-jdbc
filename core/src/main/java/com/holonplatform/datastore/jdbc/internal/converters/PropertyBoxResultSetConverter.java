@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.internal.converters;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
@@ -72,14 +73,14 @@ public class PropertyBoxResultSetConverter extends AbstractResultSetConverter<Pr
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public PropertyBox convert(ResultSet resultSet) throws QueryResultConversionException {
+	public PropertyBox convert(Connection connection, ResultSet resultSet) throws QueryResultConversionException {
 
 		final SQLValueDeserializer deserializer = dialect.getValueDeserializer();
 
 		try {
 			PropertyBox.Builder builder = PropertyBox.builder(propertySet).invalidAllowed(true);
 			for (Entry<String, Property<?>> entry : propertySelection.entrySet()) {
-				builder.setIgnoreReadOnly((Property) entry.getValue(), deserializer.deserializeValue(
+				builder.setIgnoreReadOnly((Property) entry.getValue(), deserializer.deserializeValue(connection,
 						(QueryExpression<?>) entry.getValue(), getResult(dialect, resultSet, entry.getKey())));
 			}
 			return builder.build();

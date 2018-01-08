@@ -75,7 +75,7 @@ public class TestJdbcDatastoreDerby extends AbstractJdbcDatastoreTest {
 		}
 
 	}
-
+ 
 	@Autowired
 	private Datastore datastore;
 

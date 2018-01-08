@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.dialect;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -31,7 +32,9 @@ import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
 import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
 
+import oracle.jdbc.OracleConnection;
 import oracle.sql.TIMESTAMP;
+import oracle.sql.TIMESTAMPTZ;
 
 /**
  * Oracle {@link JdbcDialect}.
@@ -71,12 +74,13 @@ public class OracleDialect implements JdbcDialect {
 	public void init(JdbcDatastore datastore) throws SQLException {
 		datastore.withConnection(c -> {
 			DatabaseMetaData databaseMetaData = c.getMetaData();
-			
+
 			int driverMajorVersion = databaseMetaData.getDriverMajorVersion();
-			
+
 			oracleVersion = databaseMetaData.getDatabaseMajorVersion();
 			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-			generatedKeyAlwaysReturned = (driverMajorVersion < 12) ? false : databaseMetaData.generatedKeyAlwaysReturned();
+			generatedKeyAlwaysReturned = (driverMajorVersion < 12) ? false
+					: databaseMetaData.generatedKeyAlwaysReturned();
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 			return null;
 		});
@@ -213,14 +217,8 @@ public class OracleDialect implements JdbcDialect {
 	@SuppressWarnings("serial")
 	private static final class OracleValueDeserializer implements SQLValueDeserializer {
 
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.jdbc.JdbcDialect.SQLValueDeserializer#deserializeValue(com.holonplatform.core.
-		 * query.QueryExpression, java.lang.Object)
-		 */
 		@Override
-		public <T> T deserializeValue(QueryExpression<T> expression, Object value) {
+		public <T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value) {
 			try {
 				Object valueToDeserialize = value;
 				if (value != null) {
@@ -228,9 +226,13 @@ public class OracleDialect implements JdbcDialect {
 					if (TIMESTAMP.class.isAssignableFrom(value.getClass())) {
 						valueToDeserialize = ((TIMESTAMP) value).timestampValue();
 					}
+					if (TIMESTAMPTZ.class.isAssignableFrom(value.getClass())) {
+						valueToDeserialize = TIMESTAMPTZ.toTimestamp(connection.unwrap(OracleConnection.class),
+								((TIMESTAMPTZ) value).toBytes());
+					}
 				}
 				// fallback to default
-				return SQLValueDeserializer.getDefault().deserializeValue(expression, valueToDeserialize);
+				return SQLValueDeserializer.getDefault().deserializeValue(connection, expression, valueToDeserialize);
 			} catch (SQLException e) {
 				throw new QueryExecutionException("Failed to deserialize value [" + value + "]", e);
 			}

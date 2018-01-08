@@ -28,16 +28,24 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.core.query.TemporalFunction.Day;
+import com.holonplatform.core.query.TemporalFunction.Hour;
+import com.holonplatform.core.query.TemporalFunction.Month;
+import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
+import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
 import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
@@ -50,6 +58,8 @@ import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
 public class SQLiteDialect implements JdbcDialect {
 
 	private static final long serialVersionUID = -2218115258014233676L;
+
+	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
 
 	private static final SQLiteLimitHandler LIMIT_HANDLER = new SQLiteLimitHandler();
 
@@ -67,6 +77,10 @@ public class SQLiteDialect implements JdbcDialect {
 	public SQLiteDialect() {
 		super();
 		this.statementConfigurator = StatementConfigurator.create(this);
+		this.functions.registerFunction(Year.class, new ExtractTemporalPartFunction("%Y"));
+		this.functions.registerFunction(Month.class, new ExtractTemporalPartFunction("%m"));
+		this.functions.registerFunction(Day.class, new ExtractTemporalPartFunction("%d"));
+		this.functions.registerFunction(Hour.class, new ExtractTemporalPartFunction("%H"));
 	}
 
 	/*
@@ -82,6 +96,15 @@ public class SQLiteDialect implements JdbcDialect {
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 			return null;
 		});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
+	 */
+	@Override
+	public Optional<SQLFunction> resolveFunction(QueryFunction<?> function) {
+		return functions.getFunction(function);
 	}
 
 	/*
@@ -227,15 +250,9 @@ public class SQLiteDialect implements JdbcDialect {
 	@SuppressWarnings("serial")
 	private static final class SQLiteValueDeserializer implements SQLValueDeserializer {
 
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.jdbc.JdbcDialect.SQLValueDeserializer#deserializeValue(com.holonplatform.core.
-		 * query.QueryExpression, java.lang.Object)
-		 */
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T deserializeValue(QueryExpression<T> expression, Object value) {
+		public <T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value) {
 			if (value != null) {
 
 				// date and times
@@ -267,7 +284,7 @@ public class SQLiteDialect implements JdbcDialect {
 			}
 
 			// fallback to default
-			return SQLValueDeserializer.getDefault().deserializeValue(expression, value);
+			return SQLValueDeserializer.getDefault().deserializeValue(connection, expression, value);
 		}
 
 	}
@@ -330,6 +347,39 @@ public class SQLiteDialect implements JdbcDialect {
 				}
 			}
 			return serialized;
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	private static final class ExtractTemporalPartFunction implements SQLFunction {
+
+		private final String part;
+
+		public ExtractTemporalPartFunction(String part) {
+			super();
+			this.part = part;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.jdbc.expressions.SQLFunction#serialize(java.util.List)
+		 */
+		@Override
+		public String serialize(List<String> arguments) throws InvalidExpressionException {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("CAST(");
+			sb.append("strftime('");
+			sb.append(part);
+			sb.append("', ");
+			sb.append(arguments.get(0));
+			sb.append(")");
+			sb.append(" AS integer)");
+			return sb.toString();
+		}
+
+		@Override
+		public void validate() throws InvalidExpressionException {
 		}
 
 	}

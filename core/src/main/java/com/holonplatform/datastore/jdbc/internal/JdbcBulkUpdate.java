@@ -27,13 +27,15 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.support.PreparedSql;
 
 /**
@@ -47,7 +49,7 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate> implements
 	/**
 	 * Path values to update
 	 */
-	private final Map<Path<?>, Object> values = new HashMap<>();
+	private final Map<Path<?>, QueryExpression<?>> values = new HashMap<>();
 
 	/**
 	 * Constructor
@@ -60,14 +62,14 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate> implements
 		super(datastore, target, dialect, traceEnabled);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.bulk.BulkClause#set(com.holonplatform.core.Path, java.lang.Object)
+	/* (non-Javadoc)
+	 * @see com.holonplatform.core.datastore.bulk.BulkClause#set(com.holonplatform.core.Path, com.holonplatform.core.query.QueryExpression)
 	 */
 	@Override
-	public <T> BulkUpdate set(Path<T> path, T value) {
+	public <T> BulkUpdate set(Path<T> path, QueryExpression<? super T> expression) {
 		ObjectUtils.argumentNotNull(path, "Path must be not null");
-		values.put(path, value);
+		ObjectUtils.argumentNotNull(expression, "Expression must be not null");
+		values.put(path, expression);
 		return this;
 	}
 
@@ -78,7 +80,7 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate> implements
 	@Override
 	public BulkUpdate setNull(Path path) {
 		ObjectUtils.argumentNotNull(path, "Path must be not null");
-		values.put(path, null);
+		values.put(path, ConstantExpression.nullValue());
 		return this;
 	}
 

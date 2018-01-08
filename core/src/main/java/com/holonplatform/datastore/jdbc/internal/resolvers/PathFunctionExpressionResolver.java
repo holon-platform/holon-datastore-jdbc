@@ -22,18 +22,9 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.query.FunctionExpression.PathFunctionExpression;
-import com.holonplatform.core.query.Query.QueryBuildException;
-import com.holonplatform.core.query.QueryFunction;
-import com.holonplatform.core.query.QueryFunction.Avg;
-import com.holonplatform.core.query.QueryFunction.Count;
-import com.holonplatform.core.query.QueryFunction.Max;
-import com.holonplatform.core.query.QueryFunction.Min;
-import com.holonplatform.core.query.QueryFunction.Sum;
-import com.holonplatform.datastore.jdbc.JdbcDialect.SQLFunction.DefaultFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
-import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLFunctions;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
 
 /**
  * JDBC {@link PathFunctionExpression} expression resolver.
@@ -41,8 +32,8 @@ import com.holonplatform.datastore.jdbc.internal.expressions.SQLToken;
  * @since 5.0.0
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE)
-public enum PathFunctionResolver implements ExpressionResolver<PathFunctionExpression, SQLToken> {
+@Priority(Integer.MAX_VALUE - 1000)
+public enum PathFunctionExpressionResolver implements ExpressionResolver<PathFunctionExpression, SQLToken> {
 
 	/**
 	 * Singleton instance.
@@ -76,8 +67,6 @@ public enum PathFunctionResolver implements ExpressionResolver<PathFunctionExpre
 	public Optional<SQLToken> resolve(PathFunctionExpression expression, ResolutionContext context)
 			throws InvalidExpressionException {
 
-		final JdbcResolutionContext jdbcContext = JdbcResolutionContext.checkContext(context);
-
 		// validate
 		expression.validate();
 
@@ -86,33 +75,13 @@ public enum PathFunctionResolver implements ExpressionResolver<PathFunctionExpre
 				.getValue();
 
 		// resolve function
-		return getDefaultFunction(expression.getFunction())
-				.map(f -> SQLToken.create(DefaultSQLFunctions.getSQLFunction(f.getName(), jdbcContext.getDialect())
-						.orElseThrow(() -> new QueryBuildException("Missing JDBC function: " + f)).serialize(path)));
-	}
+		SQLFunction function = JdbcDatastoreUtils.resolveExpression(context, expression.getFunction(),
+				SQLFunction.class, context);
 
-	/**
-	 * Get the {@link DefaultFunction} which corresponds to given {@link QueryFunction}, if available.
-	 * @param function Query function
-	 * @return Optional DefaultFunction
-	 */
-	private static Optional<DefaultFunction> getDefaultFunction(QueryFunction function) {
-		if (Count.class.isAssignableFrom(function.getClass())) {
-			return Optional.of(DefaultFunction.COUNT);
-		}
-		if (Avg.class.isAssignableFrom(function.getClass())) {
-			return Optional.of(DefaultFunction.AVG);
-		}
-		if (Min.class.isAssignableFrom(function.getClass())) {
-			return Optional.of(DefaultFunction.MIN);
-		}
-		if (Max.class.isAssignableFrom(function.getClass())) {
-			return Optional.of(DefaultFunction.MAX);
-		}
-		if (Sum.class.isAssignableFrom(function.getClass())) {
-			return Optional.of(DefaultFunction.SUM);
-		}
-		return Optional.empty();
+		// validate function
+		function.validate();
+
+		return Optional.ofNullable(SQLToken.create(function.serialize(path)));
 	}
 
 }

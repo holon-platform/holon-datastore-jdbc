@@ -21,16 +21,19 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.query.QuerySort;
-import com.holonplatform.datastore.jdbc.expressions.SQLToken;
+import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
- * {@link QuerySort} expression resolver.
+ * {@link QueryFunction} resolver which uses the {@link JdbcDialect} to resolve the function.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
-@Priority(Integer.MAX_VALUE)
-public enum QuerySortResolver implements ExpressionResolver<QuerySort, SQLToken> {
+@SuppressWarnings("rawtypes")
+@Priority(Integer.MIN_VALUE + 1000)
+public enum DialectQueryFunctionResolver implements ExpressionResolver<QueryFunction, SQLFunction> {
 
 	/**
 	 * Singleton instance.
@@ -42,8 +45,8 @@ public enum QuerySortResolver implements ExpressionResolver<QuerySort, SQLToken>
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends QuerySort> getExpressionType() {
-		return QuerySort.class;
+	public Class<? extends QueryFunction> getExpressionType() {
+		return QueryFunction.class;
 	}
 
 	/*
@@ -51,8 +54,8 @@ public enum QuerySortResolver implements ExpressionResolver<QuerySort, SQLToken>
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends SQLToken> getResolvedType() {
-		return SQLToken.class;
+	public Class<? extends SQLFunction> getResolvedType() {
+		return SQLFunction.class;
 	}
 
 	/*
@@ -61,18 +64,16 @@ public enum QuerySortResolver implements ExpressionResolver<QuerySort, SQLToken>
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<SQLToken> resolve(QuerySort expression,
-			com.holonplatform.core.ExpressionResolver.ResolutionContext context) throws InvalidExpressionException {
+	public Optional<SQLFunction> resolve(QueryFunction expression, ResolutionContext context)
+			throws InvalidExpressionException {
 
-		// intermediate resolution and validation
-		Optional<QuerySort> sort = context.resolve(expression, QuerySort.class, context);
+		final JdbcResolutionContext ctx = JdbcResolutionContext.checkContext(context);
 
-		if (sort.isPresent()) {
-			sort.get().validate();
-			return context.resolve(sort.get(), SQLToken.class, context);
-		}
+		// validate
+		expression.validate();
 
-		return Optional.empty();
+		// get dialect-specific function resolution, if available
+		return ctx.getDialect().resolveFunction(expression);
 	}
 
 }

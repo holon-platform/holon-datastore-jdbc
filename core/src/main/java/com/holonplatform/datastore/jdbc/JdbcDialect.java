@@ -19,17 +19,16 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import com.holonplatform.core.Path;
 import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultLimitHandler;
-import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLFunction;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLValueDeserializer;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultStatementConfigurator;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
@@ -50,13 +49,13 @@ public interface JdbcDialect extends Serializable {
 	void init(JdbcDatastore datastore) throws SQLException;
 
 	/**
-	 * Get the {@link SQLFunction} bound to given symbolic name.
-	 * @param name Function symbolic name
-	 * @return Optional {@link SQLFunction} bound to given symbolic name. If null, a default function will be used, if
+	 * Resolve given <code>function</code> into a dialect-specific {@link SQLFunction}.
+	 * @param function The function to resolve (not null)
+	 * @return A dialect-specific function resolution, or empty to fallback to the default function resolution, if
 	 *         available
 	 */
-	default SQLFunction getFunction(String name) {
-		return null;
+	default Optional<SQLFunction> resolveFunction(QueryFunction<?> function) {
+		return Optional.empty();
 	}
 
 	/**
@@ -197,11 +196,12 @@ public interface JdbcDialect extends Serializable {
 		 * Deserialize the <code>value</code> associated to given <code>expression</code>, obtained as the result of a
 		 * SQL query.
 		 * @param <T> Expression type
+		 * @param connection Current JDBC connection (the connection is managed by the Datastore and must not be closed)
 		 * @param expression Query expression
 		 * @param value Value to deserialize
 		 * @return Deserialized value
 		 */
-		<T> T deserializeValue(QueryExpression<T> expression, Object value);
+		<T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value);
 
 		/**
 		 * Get the default SQLValueDeserializer.
@@ -330,107 +330,6 @@ public interface JdbcDialect extends Serializable {
 		 * @return Modified SQL query
 		 */
 		String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset);
-
-	}
-
-	/**
-	 * SQL function representation.
-	 */
-	public interface SQLFunction extends Serializable {
-
-		/**
-		 * Default SQL function enumeration.
-		 */
-		public enum DefaultFunction {
-
-			/**
-			 * Results count
-			 */
-			COUNT("count"),
-
-			/**
-			 * Smallest value
-			 */
-			MIN("min"),
-
-			/**
-			 * Largest value
-			 */
-			MAX("max"),
-
-			/**
-			 * Average value
-			 */
-			AVG("avg"),
-
-			/**
-			 * Sum of values
-			 */
-			SUM("sum"),
-
-			/**
-			 * To lowercase
-			 */
-			LOWER("lower"),
-
-			/**
-			 * To uppercase
-			 */
-			UPPER("upper");
-
-			private final String name;
-
-			private DefaultFunction(String name) {
-				this.name = name;
-			}
-
-			/**
-			 * Get the function symbolic name
-			 * @return the function name
-			 */
-			public String getName() {
-				return name;
-			}
-
-		}
-
-		/**
-		 * Get the function name
-		 * @return The function name
-		 */
-		String getName();
-
-		/**
-		 * Get whether parentheses are required if there are no arguments.
-		 * @return <code>true</code> if parentheses are required if there are no arguments, <code>false</code> otherwise
-		 */
-		boolean hasParenthesesIfNoArguments();
-
-		/**
-		 * Serialize the function as SQL
-		 * @param arguments Optional function arguments
-		 * @return Serialized function
-		 */
-		String serialize(List<String> arguments);
-
-		/**
-		 * Serialize the function as SQL
-		 * @param arguments Function arguments
-		 * @return Serialized function
-		 */
-		default String serialize(String... arguments) {
-			return serialize((arguments != null) ? Arrays.asList(arguments) : Collections.emptyList());
-		}
-
-		/**
-		 * Create a {@link SQLFunction}.
-		 * @param name Function name (not null)
-		 * @param parenthesesIfNoArguments Whether parentheses are required if there are no arguments
-		 * @return The {@link SQLFunction}
-		 */
-		static SQLFunction create(String name, boolean parenthesesIfNoArguments) {
-			return new DefaultSQLFunction(name, parenthesesIfNoArguments);
-		}
 
 	}
 

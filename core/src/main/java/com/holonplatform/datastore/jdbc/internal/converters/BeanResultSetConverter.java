@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.internal.converters;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -73,7 +74,7 @@ public class BeanResultSetConverter<T> extends AbstractResultSetConverter<T> {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public T convert(ResultSet resultSet) throws QueryResultConversionException {
+	public T convert(Connection connection, ResultSet resultSet) throws QueryResultConversionException {
 
 		final SQLValueDeserializer deserializer = dialect.getValueDeserializer();
 
@@ -82,9 +83,9 @@ public class BeanResultSetConverter<T> extends AbstractResultSetConverter<T> {
 			T instance = beanPropertySet.getBeanClass().newInstance();
 
 			for (Entry<String, Path<?>> entry : pathSelection.entrySet()) {
-				beanPropertySet.write((Path) entry.getValue(),
-						deserializer.deserializeValue((QueryExpression<?>) entry.getValue(),
-								getResult(dialect, resultSet, entry.getKey())),
+				beanPropertySet.write(
+						(Path) entry.getValue(), deserializer.deserializeValue(connection,
+								(QueryExpression<?>) entry.getValue(), getResult(dialect, resultSet, entry.getKey())),
 						instance);
 			}
 

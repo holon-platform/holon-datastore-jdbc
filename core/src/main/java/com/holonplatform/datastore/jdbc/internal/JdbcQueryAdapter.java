@@ -123,7 +123,7 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 				try (ResultSet resultSet = statement.executeQuery()) {
 					List<R> rows = new ArrayList<>();
 					while (resultSet.next()) {
-						rows.add(query.getProjection().getConverter().convert(resultSet));
+						rows.add(query.getProjection().getConverter().convert(c, resultSet));
 					}
 					return rows.stream();
 				}
