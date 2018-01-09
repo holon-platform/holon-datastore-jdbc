@@ -19,8 +19,10 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import com.holonplatform.core.Expression;
+import com.holonplatform.datastore.jdbc.internal.expressions.CallbackSQLFunction;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultSQLFunction;
 
 /**
@@ -48,6 +50,15 @@ public interface SQLFunction extends Expression, Serializable {
 	}
 
 	/**
+	 * Create a {@link SQLFunction} using given <code>function</code> as serialization logic.
+	 * @param function Callback function (not null)
+	 * @return A new {@link SQLFunction} using given <code>function</code> for serialization
+	 */
+	static SQLFunction create(Function<List<String>, String> function) {
+		return new CallbackSQLFunction(function);
+	}
+
+	/**
 	 * Create a default {@link SQLFunction}.
 	 * @param name Function name (not null)
 	 * @param parenthesesIfNoArguments Whether parentheses are required if there are no arguments
@@ -63,7 +74,7 @@ public interface SQLFunction extends Expression, Serializable {
 	 * @return A new {@link SQLFunction} with given name
 	 */
 	static SQLFunction create(String name) {
-		return new DefaultSQLFunction(name, false);
+		return create(name, false);
 	}
 
 }

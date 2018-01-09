@@ -42,7 +42,7 @@ public class DialectFunctionsRegistry implements Serializable {
 	 * @param functionType Function type (not null)
 	 * @param function SQL function (not null)
 	 */
-	public <T> void registerFunction(Class<? extends QueryFunction<T>> functionType, SQLFunction function) {
+	public void registerFunction(Class<? extends QueryFunction<?, ?>> functionType, SQLFunction function) {
 		ObjectUtils.argumentNotNull(functionType, "Function type must be not null");
 		ObjectUtils.argumentNotNull(function, "SQLFunction must be not null");
 		functions.put(functionType, function);
@@ -50,12 +50,11 @@ public class DialectFunctionsRegistry implements Serializable {
 
 	/**
 	 * Get the {@link SQLFunction} associated with given {@link QueryFunction} class, if available.
-	 * @param <T> Function result type
 	 * @param function Query function
 	 * @return The {@link SQLFunction} associated with given {@link QueryFunction} class, if available
 	 */
 	@SuppressWarnings("rawtypes")
-	public <T> Optional<SQLFunction> getFunction(QueryFunction<T> function) {
+	public Optional<SQLFunction> getFunction(QueryFunction<?, ?> function) {
 		for (Entry<Class<? extends QueryFunction>, SQLFunction> entry : functions.entrySet()) {
 			if (entry.getKey().isAssignableFrom(function.getClass())) {
 				return Optional.ofNullable(entry.getValue());

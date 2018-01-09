@@ -15,25 +15,28 @@
  */
 package com.holonplatform.datastore.jdbc.internal.resolvers;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.query.FunctionExpression;
+import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 
 /**
- * {@link FunctionExpression} expression resolver.
+ * {@link QueryFunction} resolver.
  *
  * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum FunctionExpressionResolver implements ExpressionResolver<FunctionExpression, SQLToken> {
+public enum QueryFunctionResolver implements ExpressionResolver<QueryFunction, SQLToken> {
 
 	/**
 	 * Singleton instance.
@@ -45,8 +48,8 @@ public enum FunctionExpressionResolver implements ExpressionResolver<FunctionExp
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends FunctionExpression> getExpressionType() {
-		return FunctionExpression.class;
+	public Class<? extends QueryFunction> getExpressionType() {
+		return QueryFunction.class;
 	}
 
 	/*
@@ -64,20 +67,31 @@ public enum FunctionExpressionResolver implements ExpressionResolver<FunctionExp
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<SQLToken> resolve(FunctionExpression expression, ResolutionContext context)
+	public Optional<SQLToken> resolve(QueryFunction expression, ResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		// resolve function
-		SQLFunction function = JdbcDatastoreUtils.resolveExpression(context, expression.getFunction(),
-				SQLFunction.class, context);
-
+		// resolve to a SQLFunction
+		SQLFunction function = JdbcDatastoreUtils.resolveExpression(context, expression, SQLFunction.class, context);
 		// validate function
 		function.validate();
 
-		return Optional.ofNullable(SQLToken.create(function.serialize()));
+		// resolve arguments
+		List<String> arguments = new LinkedList<>();
+		if (expression.getExpressionArguments() != null) {
+			for (QueryExpression<?> argument : ((QueryFunction<?, ?>) expression).getExpressionArguments()) {
+				// resolve argument
+				arguments.add(
+						JdbcDatastoreUtils.resolveExpression(context, argument, SQLToken.class, context).getValue());
+			}
+		}
+
+		// serialize function
+		String value = function.serialize(arguments);
+
+		return Optional.ofNullable(SQLToken.create(value));
 	}
 
 }

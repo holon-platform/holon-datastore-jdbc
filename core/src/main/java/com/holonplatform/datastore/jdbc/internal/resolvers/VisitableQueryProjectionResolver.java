@@ -38,9 +38,11 @@ import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.CountAllProjection;
-import com.holonplatform.core.query.FunctionExpression;
+import com.holonplatform.core.query.PathExpression;
 import com.holonplatform.core.query.PropertySetProjection;
 import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.core.query.QueryFunction.Count;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.converters.BeanResultSetConverter;
@@ -144,11 +146,12 @@ public enum VisitableQueryProjectionResolver implements ExpressionResolver<Visit
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.query.QueryProjectionVisitor#visit(com.holonplatform.core.query.
-	 * FunctionExpression, java.lang.Object)
+	 * @see
+	 * com.holonplatform.core.internal.query.QueryProjectionVisitor#visit(com.holonplatform.core.query.QueryFunction,
+	 * java.lang.Object)
 	 */
 	@Override
-	public <T> ProjectionContext visit(FunctionExpression<T> projection, JdbcResolutionContext context) {
+	public <T> ProjectionContext visit(QueryFunction<T, ?> projection, JdbcResolutionContext context) {
 		DefaultProjectionContext<T> ctx = new DefaultProjectionContext<>(context);
 		final String alias = ctx.addSelection(
 				JdbcDatastoreUtils.resolveExpression(context, projection, SQLToken.class, context).getValue());
@@ -214,7 +217,7 @@ public enum VisitableQueryProjectionResolver implements ExpressionResolver<Visit
 	 */
 	@Override
 	public ProjectionContext visit(CountAllProjection projection, JdbcResolutionContext context) {
-		return visit(FunctionExpression.count(Path.of("*", Object.class)), context);
+		return visit(Count.create(PathExpression.create("*", Object.class)), context);
 	}
 
 }

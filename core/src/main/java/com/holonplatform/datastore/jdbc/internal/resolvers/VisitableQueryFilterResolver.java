@@ -39,14 +39,13 @@ import com.holonplatform.core.internal.query.filter.NotFilter;
 import com.holonplatform.core.internal.query.filter.NotInFilter;
 import com.holonplatform.core.internal.query.filter.NotNullFilter;
 import com.holonplatform.core.internal.query.filter.NullFilter;
+import com.holonplatform.core.internal.query.filter.OperationQueryFilter;
 import com.holonplatform.core.internal.query.filter.OrFilter;
 import com.holonplatform.core.internal.query.filter.StringMatchFilter;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.core.query.QueryFilter.OperationQueryFilter;
-import com.holonplatform.core.query.QueryFunction;
-import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.core.query.StringFunction.Lower;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
@@ -236,6 +235,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 	@Override
 	public SQLToken visit(StringMatchFilter filter, JdbcResolutionContext context) {
 
+		// right operand
 		Object resolved = QueryUtils.getConstantExpressionValue(filter.getRightOperand()
 				.orElseThrow(() -> new InvalidExpressionException("Missing right operand in filter [" + filter + "]")));
 		if (resolved == null) {
@@ -266,18 +266,17 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 			break;
 		}
 
-		final String path = resolve(filter.getLeftOperand(), context);
-
-		StringBuilder sb = new StringBuilder();
-
+		// check ignore case
+		QueryExpression<String> left = (filter.isIgnoreCase()) ? Lower.create(filter.getLeftOperand())
+				: filter.getLeftOperand();
 		if (filter.isIgnoreCase()) {
-			// add LOWER function
-			sb.append(JdbcDatastoreUtils.resolveExpression(context, QueryFunction.lower(), SQLFunction.class, context)
-					.serialize(path));
 			value = value.toLowerCase();
-		} else {
-			sb.append(path);
 		}
+
+		final String path = resolve(left, context);
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append(path);
 
 		sb.append(" LIKE ");
 		sb.append(context.addNamedParameter(ParameterValue.create(String.class, value)));

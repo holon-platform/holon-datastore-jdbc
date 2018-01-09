@@ -23,9 +23,12 @@ import java.time.LocalTime;
 import java.util.Date;
 
 import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.core.property.NumericProperty;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.property.PropertyValueConverter;
+import com.holonplatform.core.property.StringProperty;
+import com.holonplatform.core.property.TemporalProperty;
 import com.holonplatform.core.temporal.TemporalType;
 
 public final class TestProperties implements Serializable {
@@ -34,22 +37,22 @@ public final class TestProperties implements Serializable {
 
 	public final static DataTarget<String> NAMED_TARGET = DataTarget.named("test1");
 
-	public final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
-	public final static PathProperty<String> STR = PathProperty.create("strv", String.class);
-	public final static PathProperty<Double> DBL = PathProperty.create("decv", Double.class);
-	public final static PathProperty<Date> DAT = PathProperty.create("datv", Date.class);
-	public final static PathProperty<LocalDate> LDAT = PathProperty.create("datv2", LocalDate.class);
+	public final static NumericProperty<Long> KEY = NumericProperty.create("keycode", long.class);
+	public final static StringProperty STR = StringProperty.create("strv");
+	public final static NumericProperty<Double> DBL = NumericProperty.doubleType("decv");
+	public final static TemporalProperty<Date> DAT = TemporalProperty.create("datv", Date.class);
+	public final static TemporalProperty<LocalDate> LDAT = TemporalProperty.localDate("datv2");
 	public final static PathProperty<TestEnum> ENM = PathProperty.create("enmv", TestEnum.class);
 	public final static PathProperty<Boolean> NBOOL = PathProperty.create("nbv", boolean.class)
 			.converter(PropertyValueConverter.numericBoolean(Integer.class));
 	public final static PathProperty<String> NST_STR = PathProperty.create("nst1", String.class);
 	public final static PathProperty<BigDecimal> NST_DEC = PathProperty.create("nst2", BigDecimal.class);
 
-	public final static PathProperty<Date> TMS = PathProperty.create("tms", Date.class)
+	public final static TemporalProperty<Date> TMS = TemporalProperty.create("tms", Date.class)
 			.temporalType(TemporalType.DATE_TIME);
-	public final static PathProperty<LocalDateTime> LTMS = PathProperty.create("tms2", LocalDateTime.class);
+	public final static TemporalProperty<LocalDateTime> LTMS = TemporalProperty.localDateTime("tms2");
 
-	public final static PathProperty<LocalTime> TIME = PathProperty.create("tm", LocalTime.class);
+	public final static TemporalProperty<LocalTime> TIME = TemporalProperty.localTime("tm");
 
 	public final static PropertySet<?> PROPS = PropertySet.of(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC,
 			TMS, LTMS, TIME);

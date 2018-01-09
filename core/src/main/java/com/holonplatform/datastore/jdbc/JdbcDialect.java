@@ -54,7 +54,7 @@ public interface JdbcDialect extends Serializable {
 	 * @return A dialect-specific function resolution, or empty to fallback to the default function resolution, if
 	 *         available
 	 */
-	default Optional<SQLFunction> resolveFunction(QueryFunction<?> function) {
+	default Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {
 		return Optional.empty();
 	}
 

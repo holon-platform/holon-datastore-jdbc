@@ -13,18 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.test.function;
+package com.holonplatform.datastore.jdbc.internal.resolvers;
 
-import com.holonplatform.core.query.QueryFunction;
-
-public class H2SessionIdFunction implements QueryFunction<Integer> {
-
-	@Override
-	public Class<? extends Integer> getResultType() {
-		return Integer.class;
-	}
-
-	@Override
-	public void validate() throws InvalidExpressionException {}
+/**
+ * @author BODSI08
+ *
+ */
+public class FunctionInvocationResolver {
 
 }

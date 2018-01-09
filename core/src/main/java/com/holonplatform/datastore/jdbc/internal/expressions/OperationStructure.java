@@ -28,7 +28,7 @@ import com.holonplatform.core.query.QueryFilter;
 /**
  * Represents the structure of a JDBC operation.
  *
- * @since 5.0.
+ * @since 5.0.0
  */
 public interface OperationStructure extends Expression {
 

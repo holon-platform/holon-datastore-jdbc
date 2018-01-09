@@ -73,10 +73,6 @@ import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction;
-import com.holonplatform.core.query.StringFunction.Upper;
-import com.holonplatform.core.query.TemporalFunction.Day;
-import com.holonplatform.core.query.TemporalFunction.Hour;
-import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.datastore.jdbc.JdbcWhereFilter;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
@@ -195,7 +191,7 @@ public abstract class AbstractJdbcDatastoreTest {
 		assertTrue(avg.isPresent());
 		assertEquals(new Double(1.5), avg.get());
 
-		Optional<Long> sum = getDatastore().query().target(NAMED_TARGET).findOne(KEY.sum());
+		Optional<Long> sum = getDatastore().query().target(NAMED_TARGET).findOne(QueryFunction.sum(KEY));
 		assertTrue(sum.isPresent());
 		assertEquals(new Long(3), sum.get());
 
@@ -205,12 +201,11 @@ public abstract class AbstractJdbcDatastoreTest {
 
 	@Test
 	public void testStringFunctions() {
-		String str = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
-				.findOne(STR.function(QueryFunction.lower())).orElse(null);
+		String str = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(STR.lower()).orElse(null);
 		assertNotNull(str);
 		assertEquals("one", str);
 
-		str = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Upper.of(STR)).orElse(null);
+		str = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(STR.upper()).orElse(null);
 		assertNotNull(str);
 		assertEquals("ONE", str);
 	}
@@ -334,43 +329,39 @@ public abstract class AbstractJdbcDatastoreTest {
 
 	@Test
 	public void testTemporalFunctions() {
-		Integer value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Year.of(DAT))
-				.orElse(null);
+		Integer value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(DAT.year()).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(2016), value);
 
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Year.of(LDAT)).orElse(null);
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LDAT.year()).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(2016), value);
 
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
-				.findOne(com.holonplatform.core.query.TemporalFunction.Month.of(DAT)).orElse(null);
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(DAT.month()).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(5), value);
 
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
-				.findOne(com.holonplatform.core.query.TemporalFunction.Month.of(LDAT)).orElse(null);
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LDAT.month()).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(5), value);
 
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Day.of(DAT)).orElse(null);
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(DAT.day()).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(19), value);
 
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(Day.of(LDAT)).orElse(null);
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LDAT.day()).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(19), value);
 
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(Hour.of(TMS)).orElse(null);
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(TMS.hour()).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(15), value);
 
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(Hour.of(LTMS)).orElse(null);
+		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(LTMS.hour()).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(15), value);
 
-		long cnt = getDatastore().query().target(NAMED_TARGET)
-				.filter(QueryFilter.eq(com.holonplatform.core.query.TemporalFunction.Month.of(LDAT), 5)).count();
+		long cnt = getDatastore().query().target(NAMED_TARGET).filter(LDAT.month().eq(5).and(KEY.isNotNull())).count();
 		assertEquals(1L, cnt);
 	}
 

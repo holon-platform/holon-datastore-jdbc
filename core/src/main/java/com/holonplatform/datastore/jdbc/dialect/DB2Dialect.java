@@ -76,7 +76,7 @@ public class DB2Dialect implements JdbcDialect {
 	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
 	 */
 	@Override
-	public Optional<SQLFunction> resolveFunction(QueryFunction<?> function) {
+	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {
 		return functions.getFunction(function);
 	}
 
