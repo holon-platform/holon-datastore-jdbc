@@ -74,22 +74,14 @@ public enum PathResolver implements ExpressionResolver<Path, SQLToken> {
 		// get path name
 		final String name = path.getName();
 
-		// TODO remove: use a literal expression for count all
-		if (!"*".equals(name)) {
-
-			// System.err.println(ctx.getRootAlias().orElse("NULL"));
-
-			// check parent alias
-			Optional<String> alias = path.getParent().flatMap(parent -> ctx.getAlias(parent));
-			if (!alias.isPresent()) {
-				// check root alias
-				alias = ctx.getRootAlias();
-			}
-
-			return Optional.of(SQLToken.create(alias.map(a -> a + "." + name).orElse(name)));
+		// check parent alias
+		Optional<String> alias = path.getParent().flatMap(parent -> ctx.getAlias(parent));
+		if (!alias.isPresent()) {
+			// check root alias
+			alias = ctx.getRootAlias();
 		}
 
-		return Optional.of(SQLToken.create(name));
+		return Optional.of(SQLToken.create(alias.map(a -> a + "." + name).orElse(name)));
 	}
 
 }

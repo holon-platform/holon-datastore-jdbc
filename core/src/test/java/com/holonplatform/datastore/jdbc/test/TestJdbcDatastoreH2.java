@@ -15,6 +15,9 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
+import static com.holonplatform.datastore.jdbc.test.data.TestProperties.KEY;
+import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NAMED_TARGET;
+import static com.holonplatform.datastore.jdbc.test.data.TestProperties.STR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -48,12 +51,9 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
-import com.holonplatform.datastore.jdbc.test.data.TestProperties;
 import com.holonplatform.datastore.jdbc.test.function.IfNullFunction;
 import com.holonplatform.datastore.jdbc.test.function.IfNullFunctionResolver;
 import com.holonplatform.jdbc.DatabasePlatform;
-
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestJdbcDatastoreH2.Config.class)
@@ -77,10 +77,8 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		@Bean
 		public JdbcDatastore datastore() {
 			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.H2)
-					.withExpressionResolver(KeyIs.RESOLVER)
-					.withExpressionResolver(new IfNullFunctionResolver())
-					.traceEnabled(true)
-					.build();
+					.withExpressionResolver(KeyIs.RESOLVER).withExpressionResolver(new IfNullFunctionResolver())
+					.traceEnabled(true).build();
 		}
 
 	}
@@ -136,14 +134,13 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		assertEquals(Long.valueOf(3), box.getValue(CODE));
 	}
 
-	// TODO
-	/*@Test
+	@Test
 	public void testCustomFunction() {
 		String result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
 				.findOne(new IfNullFunction<>(STR, "(fallback)")).orElse(null);
 		assertNotNull(result);
 		assertEquals("One", result);
-	}*/
+	}
 
 	private static final DataTarget<?> R_TARGET = DataTarget.named("test_recur");
 	private static final PathProperty<String> R_NAME = PathProperty.create("name", String.class);
