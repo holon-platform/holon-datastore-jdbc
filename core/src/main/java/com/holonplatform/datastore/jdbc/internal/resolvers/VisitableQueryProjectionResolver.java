@@ -38,7 +38,6 @@ import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.CountAllProjection;
-import com.holonplatform.core.query.PathExpression;
 import com.holonplatform.core.query.PropertySetProjection;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
@@ -217,7 +216,7 @@ public enum VisitableQueryProjectionResolver implements ExpressionResolver<Visit
 	 */
 	@Override
 	public ProjectionContext visit(CountAllProjection projection, JdbcResolutionContext context) {
-		return visit(Count.create(PathExpression.create("*", Object.class)), context);
+		return visit(Count.create(ConstantExpressionProjection.create("*")), context);
 	}
 
 }

@@ -63,6 +63,7 @@ import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.datastore.relational.SubQuery;
+import com.holonplatform.core.internal.query.ConstantExpressionProjection;
 import com.holonplatform.core.internal.query.filter.NotFilter;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.Property;
@@ -183,6 +184,13 @@ public abstract class AbstractJdbcDatastoreTest {
 
 		Optional<Long> count = getDatastore().query().target(NAMED_TARGET).findOne(KEY.count());
 		assertEquals(new Long(2), count.get());
+	}
+	
+	@Test
+	public void testLiteralProjection() {
+		Integer value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(ConstantExpressionProjection.create(1)).orElse(null);
+		assertNotNull(value);
+		assertEquals(Integer.valueOf(1), value);
 	}
 
 	@Test
