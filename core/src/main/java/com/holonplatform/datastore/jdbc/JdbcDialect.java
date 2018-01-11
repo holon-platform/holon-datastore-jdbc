@@ -25,8 +25,8 @@ import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
+import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
-import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultLimitHandler;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLValueDeserializer;
 
@@ -210,13 +210,13 @@ public interface JdbcDialect extends Serializable {
 
 		/**
 		 * Apply results limit to query.
-		 * @param query Query definition
+		 * @param query SQL Query definition
 		 * @param serializedSql Serialized SQL query
 		 * @param limit Limit to apply
 		 * @param offset Offset to use
 		 * @return Modified SQL query
 		 */
-		String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset);
+		String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset);
 
 	}
 

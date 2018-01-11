@@ -13,17 +13,17 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.expressions;
 
 import java.io.Serializable;
 import java.util.Optional;
 
 /**
- * JDBC query clauses definition.
+ * SQL query clauses definition.
  * 
  * @since 5.0.0
  */
-public interface JdbcQueryClauses extends Serializable {
+public interface SQLQueryClauses extends Serializable {
 
 	/**
 	 * Get the <code>SELECT</code> clause.

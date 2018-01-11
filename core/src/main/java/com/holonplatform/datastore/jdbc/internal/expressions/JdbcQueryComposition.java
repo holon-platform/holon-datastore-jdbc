@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.query.Query.QueryBuildException;
-import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
+import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
 
 /**
  * Represents the composition of a JDBC query, providing query clauses and a {@link #serialize()} method to obtain the
@@ -29,7 +29,7 @@ import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
  *
  * @since 5.0.0
  */
-public interface JdbcQueryComposition<T> extends JdbcQueryClauses, Expression {
+public interface JdbcQueryComposition<T> extends SQLQueryClauses, Expression {
 
 	/**
 	 * Get result set limit.

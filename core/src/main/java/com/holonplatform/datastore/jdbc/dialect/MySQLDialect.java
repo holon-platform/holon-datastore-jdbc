@@ -21,7 +21,7 @@ import java.util.Optional;
 
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
+import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
 
 /**
  * MySQL {@link JdbcDialect}.
@@ -115,7 +115,7 @@ public class MySQLDialect implements JdbcDialect {
 	private static final class MySQLLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" limit " + offset + "," + limit) : (" limit " + limit));
 		}
 

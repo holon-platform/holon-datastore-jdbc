@@ -25,7 +25,7 @@ import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
-import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
+import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
 
 /**
  * PostgreSQL {@link JdbcDialect}.
@@ -147,7 +147,7 @@ public class PostgreSQLDialect implements JdbcDialect {
 	private static final class PostgreLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" limit " + limit + " offset " + offset) : (" limit " + limit));
 		}
 

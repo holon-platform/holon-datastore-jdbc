@@ -43,8 +43,8 @@ import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
+import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
-import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
 
@@ -186,7 +186,7 @@ public class SQLiteDialect implements JdbcDialect {
 	private static final class SQLiteLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" limit " + limit + " offset " + offset) : (" limit " + limit));
 		}
 

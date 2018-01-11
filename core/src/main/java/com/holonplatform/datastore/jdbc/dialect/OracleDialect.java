@@ -26,7 +26,7 @@ import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
-import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
+import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
 
 import oracle.jdbc.OracleConnection;
@@ -155,7 +155,7 @@ public class OracleDialect implements JdbcDialect {
 	private static final class OracleLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
 			int maxRows = (offset > -1) ? limit + offset : limit;
 			final StringBuilder sb = new StringBuilder(serializedSql.length() + 100);
 			if (offset > -1) {
@@ -182,7 +182,7 @@ public class OracleDialect implements JdbcDialect {
 	private static final class Oracle12LimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" OFFSET " + offset + " ROWS FETCH NEXT " + limit + " ROWS ONLY")
 					: (" FETCH FIRST " + limit + " ROWS ONLY"));
 		}
