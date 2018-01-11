@@ -493,8 +493,46 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	@Override
 	public Optional<Path<?>[]> getPrimaryKey(String tableName) throws SQLException {
-		ObjectUtils.argumentNotNull(tableName, "Table name must be not null");
-		return withConnection(c -> getDialect().getPrimaryKey(tableName, c));
+		return getPrimaryKeyFromDatabaseMetaData(tableName);
+	}
+
+	/**
+	 * Get table primary key using JDBC database metadata.
+	 * @param table The table name for which to obtain the primary key
+	 * @return Optional table primary keys
+	 * @throws SQLException If an error occurred
+	 */
+	private Optional<Path<?>[]> getPrimaryKeyFromDatabaseMetaData(String table) throws SQLException {
+		ObjectUtils.argumentNotNull(table, "Table name must be not null");
+
+		final String tableName = dialect.getTableName(table);
+
+		return withConnection(connection -> {
+
+			List<OrderedPath> paths = new ArrayList<>();
+
+			DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+			try (ResultSet resultSet = databaseMetaData.getPrimaryKeys(null, null, tableName)) {
+				while (resultSet.next()) {
+					final String columnName = resultSet.getString("COLUMN_NAME");
+					OrderedPath op = new OrderedPath();
+					op.path = Path.of(columnName,
+							JdbcDatastoreUtils.getColumnType(databaseMetaData, tableName, columnName));
+					op.sequence = resultSet.getShort("KEY_SEQ");
+					paths.add(op);
+				}
+			}
+
+			if (!paths.isEmpty()) {
+				Collections.sort(paths);
+				return Optional.of(
+						paths.stream().map(p -> p.path).collect(Collectors.toList()).toArray(new Path[paths.size()]));
+			}
+
+			return Optional.empty();
+
+		});
 	}
 
 	/*
@@ -1240,6 +1278,22 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		public JdbcDatastore build() {
 			datastore.initialize(ClassUtils.getDefaultClassLoader());
 			return datastore;
+		}
+
+	}
+
+	/**
+	 * Support class to order {@link Path}s using a sequence.
+	 */
+	private static class OrderedPath implements Comparable<OrderedPath> {
+
+		@SuppressWarnings("rawtypes")
+		Path path;
+		short sequence;
+
+		@Override
+		public int compareTo(OrderedPath o) {
+			return ((Short) sequence).compareTo(o.sequence);
 		}
 
 	}

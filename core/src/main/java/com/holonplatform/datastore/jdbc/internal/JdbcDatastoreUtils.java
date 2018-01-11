@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.jdbc.internal;
 
 import java.io.Serializable;
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,13 +28,9 @@ import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.ChronoLocalDateTime;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
@@ -47,12 +42,10 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.Datastore.WriteOption;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.internal.Logger;
-import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.temporal.TemporalType;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
 
 /**
  * JDBC query utils.
@@ -170,44 +163,6 @@ public final class JdbcDatastoreUtils implements Serializable {
 	}
 
 	/**
-	 * Get the primary key {@link Path}s of given <code>table</code> using database metadata, if available.
-	 * @param dialect Jdbc dialect
-	 * @param table Table name for which to obtain th primary key
-	 * @param connection Connection to use
-	 * @return The table primary key {@link Path}s, empty if not available
-	 * @throws SQLException Error accessing the database
-	 */
-	public static Optional<Path<?>[]> getPrimaryKey(JdbcDialect dialect, String table, Connection connection)
-			throws SQLException {
-		ObjectUtils.argumentNotNull(table, "Table name must be not null");
-		ObjectUtils.argumentNotNull(connection, "Connection name must be not null");
-
-		final String tableName = dialect.getTableName(table);
-
-		List<OrderedPath> paths = new ArrayList<>();
-
-		DatabaseMetaData databaseMetaData = connection.getMetaData();
-
-		try (ResultSet resultSet = databaseMetaData.getPrimaryKeys(null, null, tableName)) {
-			while (resultSet.next()) {
-				final String columnName = resultSet.getString("COLUMN_NAME");
-				OrderedPath op = new OrderedPath();
-				op.path = Path.of(columnName, getColumnType(databaseMetaData, tableName, columnName));
-				op.sequence = resultSet.getShort("KEY_SEQ");
-				paths.add(op);
-			}
-		}
-
-		if (!paths.isEmpty()) {
-			Collections.sort(paths);
-			return Optional
-					.of(paths.stream().map(p -> p.path).collect(Collectors.toList()).toArray(new Path[paths.size()]));
-		}
-
-		return Optional.empty();
-	}
-
-	/**
 	 * Get the Java type which corresponds to the SQL type of the table column with given <code>columnName</code> using
 	 * the JDBC database metadata.
 	 * @param databaseMetaData Database metadata
@@ -216,7 +171,7 @@ public final class JdbcDatastoreUtils implements Serializable {
 	 * @return Column Java type, or <code>null</code> if column was not found
 	 * @throws SQLException If an error occurred
 	 */
-	private static Class<?> getColumnType(DatabaseMetaData databaseMetaData, String tableName, String columnName)
+	public static Class<?> getColumnType(DatabaseMetaData databaseMetaData, String tableName, String columnName)
 			throws SQLException {
 		try (ResultSet rs = databaseMetaData.getColumns(null, null, tableName, columnName)) {
 			if (rs.next()) {
@@ -355,22 +310,6 @@ public final class JdbcDatastoreUtils implements Serializable {
 		}
 
 		return Types.OTHER;
-	}
-
-	/**
-	 * Support class to order {@link Path}s using a sequence.
-	 */
-	private static class OrderedPath implements Comparable<OrderedPath> {
-
-		@SuppressWarnings("rawtypes")
-		Path path;
-		short sequence;
-
-		@Override
-		public int compareTo(OrderedPath o) {
-			return ((Short) sequence).compareTo(o.sequence);
-		}
-
 	}
 
 }

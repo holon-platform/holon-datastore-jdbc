@@ -20,13 +20,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import com.holonplatform.core.Path;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultLimitHandler;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLValueDeserializer;
 
@@ -139,17 +137,6 @@ public interface JdbcDialect extends Serializable {
 	 */
 	default boolean supportGetGeneratedKeyByName() {
 		return true;
-	}
-
-	/**
-	 * Get the <em>primary key</em> paths for given <code>tableName</code>, if available.
-	 * @param tableName Table name
-	 * @param connection Connection to use
-	 * @return Table primary key paths, or empty if not available
-	 * @throws SQLException Error during primary key retrieving
-	 */
-	default Optional<Path<?>[]> getPrimaryKey(String tableName, Connection connection) throws SQLException {
-		return JdbcDatastoreUtils.getPrimaryKey(this, tableName, connection);
 	}
 
 	/**

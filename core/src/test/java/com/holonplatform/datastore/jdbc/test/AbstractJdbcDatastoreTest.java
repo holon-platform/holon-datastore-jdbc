@@ -56,7 +56,6 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.Path;
 import com.holonplatform.core.beans.BeanIntrospector;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.DataTarget.DataTargetResolver;
@@ -74,8 +73,6 @@ import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.JdbcWhereFilter;
-import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
 import com.holonplatform.datastore.jdbc.test.data.TestData;
 import com.holonplatform.datastore.jdbc.test.data.TestDataImpl;
@@ -85,17 +82,6 @@ import com.holonplatform.datastore.jdbc.test.data.TestProjectionBean;
 public abstract class AbstractJdbcDatastoreTest {
 
 	protected abstract Datastore getDatastore();
-
-	@Test
-	public void testPrimaryKey() {
-		final JdbcDatastoreCommodityContext ds = (JdbcDatastoreCommodityContext) getDatastore();
-		Path<?>[] primaryKey = ds.withConnection(c -> {
-			return JdbcDatastoreUtils.getPrimaryKey(ds.getDialect(), NAMED_TARGET.getName(), c).orElse(null);
-		});
-		assertNotNull(primaryKey);
-		assertEquals(1, primaryKey.length);
-		assertTrue(primaryKey[0].getName().equalsIgnoreCase("keycode"));
-	}
 
 	@Test
 	public void testQueryResults() {
