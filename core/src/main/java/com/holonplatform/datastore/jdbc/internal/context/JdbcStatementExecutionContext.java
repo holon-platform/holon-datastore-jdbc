@@ -22,15 +22,34 @@ import java.sql.SQLException;
 import com.holonplatform.datastore.jdbc.JdbcDatastore.ConnectionOperation;
 
 /**
- * TODO
+ * JDBC {@link StatementExecutionContext}.
  *
+ * @since 5.1.0
  */
 public interface JdbcStatementExecutionContext extends StatementExecutionContext {
 
+	/**
+	 * Get the {@link SQLStatementConfigurator}.
+	 * @return the statement configurator
+	 */
 	SQLStatementConfigurator<PreparedStatement> getStatementConfigurator();
-	
+
+	/**
+	 * Create a {@link PreparedStatement} using given prepared sql and set any parameter value using the
+	 * {@link SQLStatementConfigurator}.
+	 * @param connection Connection
+	 * @param sql Prepared sql
+	 * @return The configured {@link PreparedStatement}
+	 * @throws SQLException If an error occurred
+	 */
 	PreparedStatement createStatement(Connection connection, PreparedSql sql) throws SQLException;
 
+	/**
+	 * Execute given operation with a Datastore managed connection.
+	 * @param <R> Operation result type
+	 * @param operation Operation to execute
+	 * @return Operation result
+	 */
 	<R> R withConnection(ConnectionOperation<R> operation);
 
 }

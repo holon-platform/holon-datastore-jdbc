@@ -20,8 +20,9 @@ import java.util.List;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 
 /**
- * TODO
+ * Represents a SQL statement prepared to be executed, including any parameter placeholder.
  *
+ * @since 5.1.0
  */
 public interface PreparedSql {
 
@@ -36,5 +37,5 @@ public interface PreparedSql {
 	 * @return the parameter definitions in the right sequence
 	 */
 	List<SQLParameterDefinition> getParameters();
-	
+
 }

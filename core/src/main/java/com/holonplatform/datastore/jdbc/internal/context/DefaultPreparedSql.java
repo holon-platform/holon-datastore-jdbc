@@ -20,7 +20,9 @@ import java.util.List;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 
 /**
- * TODO
+ * Default {@link PreparedSql} implementation.
+ * 
+ * @since 5.1.0
  */
 public class DefaultPreparedSql implements PreparedSql {
 

@@ -33,9 +33,15 @@ public interface StatementExecutionContext extends ExpressionResolverSupport {
 	 * @return The dialect.
 	 */
 	JdbcDialect getDialect();
-	
+
+	/**
+	 * Prepare given SQL for execution.
+	 * @param sql SQL to prepare
+	 * @param context Resolution context
+	 * @return Prepared SQL
+	 */
 	PreparedSql prepareSql(String sql, JdbcResolutionContext context);
-	
+
 	/**
 	 * Trace given SQL if tracing is enabled.
 	 * @param sql SQL to trace
