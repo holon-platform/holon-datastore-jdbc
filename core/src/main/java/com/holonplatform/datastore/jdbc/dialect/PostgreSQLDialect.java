@@ -26,7 +26,6 @@ import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * PostgreSQL {@link JdbcDialect}.
@@ -130,8 +129,7 @@ public class PostgreSQLDialect implements JdbcDialect {
 	private static final class PostgreParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
-				JdbcResolutionContext context) {
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter) {
 			// Reader type serialization
 			if (Reader.class.isAssignableFrom(parameter.getType())) {
 				try {

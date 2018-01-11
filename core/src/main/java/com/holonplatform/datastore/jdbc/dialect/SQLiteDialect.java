@@ -47,7 +47,6 @@ import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * SQLite {@link JdbcDialect}.
@@ -278,8 +277,7 @@ public class SQLiteDialect implements JdbcDialect {
 	private static final class SQLiteParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
-				JdbcResolutionContext context) {
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter) {
 			// Reader type serialization
 			if (Reader.class.isAssignableFrom(parameter.getType())) {
 				try {

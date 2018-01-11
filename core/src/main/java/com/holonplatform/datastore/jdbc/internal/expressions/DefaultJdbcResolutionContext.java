@@ -113,7 +113,7 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 	public String addNamedParameter(SQLParameterDefinition parameter) {
 		ObjectUtils.argumentNotNull(parameter, "Parameter must be not null");
 		// dialect parameter processor
-		SQLParameterDefinition processed = getDialect().getParameterProcessor().processParameter(parameter, this);
+		SQLParameterDefinition processed = getDialect().getParameterProcessor().processParameter(parameter);
 		// generate parameter name
 		final String name = generateAndAddParameter(processed);
 		// check serializer function

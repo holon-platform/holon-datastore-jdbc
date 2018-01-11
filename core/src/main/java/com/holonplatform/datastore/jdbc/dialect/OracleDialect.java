@@ -28,7 +28,6 @@ import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 import oracle.jdbc.OracleConnection;
 import oracle.sql.TIMESTAMP;
@@ -219,8 +218,7 @@ public class OracleDialect implements JdbcDialect {
 	private static final class OracleParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
-				JdbcResolutionContext context) {
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter) {
 			TemporalType temporalType = parameter.getTemporalType().orElse(null);
 			if (temporalType != null && TemporalType.DATE == temporalType) {
 				Optional<String> value = SQLValueSerializer.serializeDate(parameter.getValue(), temporalType);

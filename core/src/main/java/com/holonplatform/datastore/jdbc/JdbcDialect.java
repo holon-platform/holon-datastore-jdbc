@@ -29,7 +29,6 @@ import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultLimitHandler;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLValueDeserializer;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * Represents a dialect of SQL implemented by a particular database.
@@ -110,7 +109,7 @@ public interface JdbcDialect extends Serializable {
 	 * @return SQLParameterProcessor
 	 */
 	default SQLParameterProcessor getParameterProcessor() {
-		return (p, c) -> p;
+		return p -> p;
 	}
 
 	/**
@@ -197,10 +196,9 @@ public interface JdbcDialect extends Serializable {
 		/**
 		 * Process given parameter definition.
 		 * @param parameter Parameter definition
-		 * @param context Resolution context
 		 * @return Processed parameter definition (not null)
 		 */
-		SQLParameterDefinition processParameter(SQLParameterDefinition parameter, JdbcResolutionContext context);
+		SQLParameterDefinition processParameter(SQLParameterDefinition parameter);
 
 	}
 

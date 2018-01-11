@@ -31,7 +31,6 @@ import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * DB2 {@link JdbcDialect}.
@@ -160,8 +159,7 @@ public class DB2Dialect implements JdbcDialect {
 	private static final class DB2ParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
-				JdbcResolutionContext context) {
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter) {
 			// Reader type serialization
 			if (Reader.class.isAssignableFrom(parameter.getType())) {
 				try {

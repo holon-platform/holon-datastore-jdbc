@@ -36,7 +36,6 @@ import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * MSSQL {@link JdbcDialect}.
@@ -215,8 +214,7 @@ public class SQLServerDialect implements JdbcDialect {
 	private static final class SQLServerParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
-				JdbcResolutionContext context) {
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter) {
 			return parameter.getTemporalType().filter(temporalType -> TemporalType.TIME == temporalType)
 					.flatMap(temporalType -> SQLValueSerializer.serializeDate(parameter.getValue(), temporalType)
 							.map(value -> SQLParameterDefinition.create(value)))
