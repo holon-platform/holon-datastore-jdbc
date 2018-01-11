@@ -27,7 +27,7 @@ import com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 
 /**
  * Default {@link JdbcResolutionContext} implementation.
@@ -47,14 +47,9 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 	private final JdbcDialect dialect;
 
 	/**
-	 * Generated paremeters name last sequence
-	 */
-	private int parameterSequence = 0;
-
-	/**
 	 * Named parameters
 	 */
-	private final Map<String, ParameterValue> namedParameters = new HashMap<>();
+	private final Map<String, SQLParameterDefinition> namedParameters = new HashMap<>();
 
 	/**
 	 * Atomic context sequence provider
@@ -108,41 +103,55 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 		return dialect;
 	}
 
-	/**
-	 * {@inheritDoc}
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#addNamedParameter(com.holonplatform.
+	 * datastore.jdbc.expressions.SQLParameterDefinition)
 	 */
 	@Override
-	public synchronized String addNamedParameter(ParameterValue value) {
-		final String name = generateParameterName();
-		namedParameters.put(name, value);
-		return name;
+	public String addNamedParameter(SQLParameterDefinition parameter) {
+		ObjectUtils.argumentNotNull(parameter, "Parameter must be not null");
+		// dialect parameter processor
+		SQLParameterDefinition processed = getDialect().getParameterProcessor().processParameter(parameter, this);
+		// generate parameter name
+		final String name = generateAndAddParameter(processed);
+		// check serializer function
+		return processed.getParameterSerializer().map(serializer -> serializer.apply(name)).orElse(name);
 	}
 
-	/**
-	 * {@inheritDoc}
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#getNamedParameters()
 	 */
 	@Override
-	public Map<String, ParameterValue> getNamedParameters() {
+	public Map<String, SQLParameterDefinition> getNamedParameters() {
 		return Collections.unmodifiableMap(namedParameters);
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Add a named parameter with given value using a generated parameter name.
+	 * @param parameter Parameter definition
+	 * @return Generated parameter name
 	 */
-	@Override
-	public void replaceParameter(String name, ParameterValue value) {
-		ObjectUtils.argumentNotNull(name, "Parameter name must be not null");
-		ObjectUtils.argumentNotNull(value, "Parameter value must be not null");
-		namedParameters.put(name, value);
+	protected String generateAndAddParameter(SQLParameterDefinition parameter) {
+		synchronized (namedParameters) {
+			// generate name
+			final String name = generateParameterName(namedParameters.size() + 1);
+			// add parameter
+			namedParameters.put(name, parameter);
+			// return the generated name
+			return name;
+		}
 	}
 
 	/**
-	 * Generate a named parameter name
-	 * @return Parameter name using pattern :001
+	 * Generate a named parameter name. By default, the pattern <code>:[001]</code> is used.
+	 * @param index Parameter index
+	 * @return Parameter name
 	 */
-	protected String generateParameterName() {
-		parameterSequence++;
-		return ":[" + String.format("%04d", parameterSequence) + "]";
+	protected String generateParameterName(int index) {
+		return ":[" + String.format("%04d", index) + "]";
 	}
 
 	/**
@@ -190,11 +199,11 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 		/*
 		 * (non-Javadoc)
 		 * @see com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#addNamedParameter(com.
-		 * holonplatform.datastore.jdbc.internal.support.ParameterValue)
+		 * holonplatform.datastore.jdbc.expressions.SQLParameterDefinition)
 		 */
 		@Override
-		public String addNamedParameter(ParameterValue value) {
-			return parent().addNamedParameter(value);
+		public String addNamedParameter(SQLParameterDefinition parameter) {
+			return parent().addNamedParameter(parameter);
 		}
 
 		/*
@@ -202,7 +211,7 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 		 * @see com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#getNamedParameters()
 		 */
 		@Override
-		public Map<String, ParameterValue> getNamedParameters() {
+		public Map<String, SQLParameterDefinition> getNamedParameters() {
 			return parent().getNamedParameters();
 		}
 
@@ -215,16 +224,6 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 		public <E extends Expression, R extends Expression> Optional<R> resolve(E expression, Class<R> resolutionType,
 				ResolutionContext context) throws InvalidExpressionException {
 			return parent().resolve(expression, resolutionType, context);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.jdbc.JdbcDialect.DialectResolutionContext#replaceParameter(java.lang.String,
-		 * com.holonplatform.datastore.jdbc.internal.support.ParameterValue)
-		 */
-		@Override
-		public void replaceParameter(String name, ParameterValue value) {
-			parent().replaceParameter(name, value);
 		}
 
 		/*

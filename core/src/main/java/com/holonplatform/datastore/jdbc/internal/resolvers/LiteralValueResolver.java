@@ -25,10 +25,10 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.datastore.jdbc.internal.expressions.LiteralValue;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.internal.expressions.LiteralValue;
 
 /**
  * {@link LiteralValue} expression resolver.
@@ -101,15 +101,8 @@ public enum LiteralValueResolver implements ExpressionResolver<LiteralValue, SQL
 	 * @return Serialized value
 	 */
 	private static String serialize(LiteralValue value, JdbcResolutionContext context) {
-		final Class<?> type = (value.getType() != null) ? value.getType()
-				: ((value.getValue() != null ? value.getValue().getClass() : Object.class));
-
-		final ParameterValue parameter = ParameterValue.create(type, value.getValue(),
-				value.getTemporalType().orElse(null));
-		final String serialized = context.addNamedParameter(parameter);
-
-		return context.getDialect().getParameterProcessor().map(p -> p.processParameter(serialized, parameter, context))
-				.orElse(serialized);
+		return context.addNamedParameter(
+				SQLParameterDefinition.create(value.getValue(), value.getTemporalType().orElse(null)));
 	}
 
 }

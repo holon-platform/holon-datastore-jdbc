@@ -17,21 +17,21 @@ package com.holonplatform.datastore.jdbc.dialect;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * DB2 {@link JdbcDialect}.
@@ -44,17 +44,14 @@ public class DB2Dialect implements JdbcDialect {
 
 	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
 
-	private static final DB2ParameterValueHandler PARAMETER_HANDLER = new DB2ParameterValueHandler();
+	private static final DB2ParameterProcessor PARAMETER_PROCESSOR = new DB2ParameterProcessor();
 
 	private static final DB2LimitHandler LIMIT_HANDLER = new DB2LimitHandler();
 
 	private boolean supportsLikeEscapeClause;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public DB2Dialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 		this.functions.registerFunction(Avg.class, new AvgFunction());
 	}
 
@@ -82,20 +79,11 @@ public class DB2Dialect implements JdbcDialect {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
+	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getParameterProcessor()
 	 */
 	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementParameterHandler()
-	 */
-	@Override
-	public Optional<StatementParameterHandler> getStatementParameterHandler() {
-		return Optional.of(PARAMETER_HANDLER);
+	public SQLParameterProcessor getParameterProcessor() {
+		return PARAMETER_PROCESSOR;
 	}
 
 	/*
@@ -168,34 +156,21 @@ public class DB2Dialect implements JdbcDialect {
 		}
 
 	}
-
-	private static final class DB2ParameterValueHandler implements StatementParameterHandler {
+	
+	private static final class DB2ParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public Optional<Object> setParameterValue(Connection connection, PreparedStatement statement, int index,
-				ParameterValue parameterValue) throws SQLException {
-			if (parameterValue.getValue() != null && Reader.class.isAssignableFrom(parameterValue.getType())) {
-				// treat as string
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
+				JdbcResolutionContext context) {
+			// Reader type serialization
+			if (Reader.class.isAssignableFrom(parameter.getType())) {
 				try {
-					String str = readerToString((Reader) parameterValue.getValue());
-					statement.setString(index, str);
-					return Optional.of(str);
+					return SQLParameterDefinition.create(ConversionUtils.readerToString((Reader) parameter.getValue()));
 				} catch (IOException e) {
-					throw new SQLException(e);
+					throw new RuntimeException("Failed to convert Reader to String [" + parameter.getValue() + "]", e);
 				}
 			}
-			return Optional.empty();
-		}
-
-		private static String readerToString(Reader reader) throws IOException {
-			char[] arr = new char[8 * 1024];
-			StringBuilder buffer = new StringBuilder();
-			int numCharsRead;
-			while ((numCharsRead = reader.read(arr, 0, arr.length)) != -1) {
-				buffer.append(arr, 0, numCharsRead);
-			}
-			reader.close();
-			return buffer.toString();
+			return parameter;
 		}
 
 	}

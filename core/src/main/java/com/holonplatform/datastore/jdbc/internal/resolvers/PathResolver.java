@@ -68,18 +68,28 @@ public enum PathResolver implements ExpressionResolver<Path, SQLToken> {
 		final JdbcResolutionContext ctx = JdbcResolutionContext.checkContext(context);
 
 		// intermediate resolution and validation
-		Path<?> path = context.resolve(expression, Path.class, context).orElse(expression);
+		final Path<?> path = context.resolve(expression, Path.class, context).orElse(expression);
 		path.validate();
 
 		// get path name
 		final String name = path.getName();
-		// check alias (avoid parent alias for wildcard)
-		final String actualName = ("*".equals(name)) ? name
-				: ctx.getTargetAlias(path.getParent().orElse(null)).map(a -> a + "." + name).orElse(name);
 
-		return Optional.of(SQLToken.create(ctx.getDialect().getPathProcessor()
-				.map(p -> p.processPath(actualName, path, ctx.getResolutionQueryClause().orElse(null)))
-				.orElse(actualName)));
+		// TODO remove: use a literal expression for count all
+		if (!"*".equals(name)) {
+
+			// System.err.println(ctx.getRootAlias().orElse("NULL"));
+
+			// check parent alias
+			Optional<String> alias = path.getParent().flatMap(parent -> ctx.getAlias(parent));
+			if (!alias.isPresent()) {
+				// check root alias
+				alias = ctx.getRootAlias();
+			}
+
+			return Optional.of(SQLToken.create(alias.map(a -> a + "." + name).orElse(name)));
+		}
+
+		return Optional.of(SQLToken.create(name));
 	}
 
 }

@@ -56,11 +56,8 @@ public class DerbyDialect implements JdbcDialect {
 	private Integer databaseMajorVersion = null;
 	private Integer databaseMinorVersion = null;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public DerbyDialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 		this.functions.registerFunction(Avg.class, new AvgFunction());
 		this.functions.registerFunction(Year.class, SQLFunction.create("YEAR"));
 		this.functions.registerFunction(Month.class, SQLFunction.create("MONTH"));
@@ -108,15 +105,6 @@ public class DerbyDialect implements JdbcDialect {
 	@Override
 	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {
 		return functions.getFunction(function);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
-	 */
-	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
 	}
 
 	/*

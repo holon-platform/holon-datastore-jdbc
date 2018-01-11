@@ -34,21 +34,21 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.property.PropertyValueConverter;
 import com.holonplatform.core.query.ConstantExpression;
-import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.JdbcDialect.StatementConfigurator;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
+import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
+import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
 
 /**
  * JDBC datastore {@link BulkInsert} implementation.
  * 
  * @since 5.0.0
  */
-public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert> implements BulkInsert {
+public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert, JdbcStatementExecutionContext>
+		implements BulkInsert {
 
 	/**
 	 * Property set to use
@@ -61,17 +61,15 @@ public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert> implements
 	private final List<PropertyBox> values = new ArrayList<>();
 
 	/**
-	 * Constructor
-	 * @param datastore Parent Datastore (not null)
-	 * @param target Data target (not null)
-	 * @param dialect JDBC dialect (not null)
+	 * Constructor.
+	 * @param executionContext Execution context
+	 * @param target Operation data target
 	 * @param traceEnabled Whether tracing is enabled
 	 * @param propertySet Property set to use (not null)
 	 */
-	public JdbcBulkInsert(JdbcDatastore datastore, DataTarget<?> target, JdbcDialect dialect, boolean traceEnabled,
+	public JdbcBulkInsert(JdbcStatementExecutionContext executionContext, DataTarget<?> target, boolean traceEnabled,
 			PropertySet<?> propertySet) {
-		super(datastore, target, dialect, traceEnabled);
-
+		super(executionContext, target, traceEnabled);
 		ObjectUtils.argumentNotNull(propertySet, "PropertySet must be not null");
 		this.propertySet = propertySet;
 	}
@@ -98,7 +96,8 @@ public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert> implements
 			throw new DataAccessException("No values to insert");
 		}
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getDialect(), AliasMode.UNSUPPORTED);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getExecutionContext().getDialect(),
+				AliasMode.UNSUPPORTED);
 
 		final List<Property> pathProperties = propertySet.stream()
 				.filter(property -> Path.class.isAssignableFrom(property.getClass())).collect(Collectors.toList());
@@ -121,19 +120,20 @@ public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert> implements
 
 		trace(sql);
 
-		return getDatastore().withConnection(c -> {
+		return getExecutionContext().withConnection(c -> {
 
 			try (PreparedStatement stmt = c.prepareStatement(sql)) {
 
-				final StatementConfigurator configurator = context.getDialect().getStatementConfigurator();
+				final SQLStatementConfigurator<PreparedStatement> configurator = getExecutionContext()
+						.getStatementConfigurator();
 
 				for (PropertyBox value : values) {
 					// resolve parameter values
-					List<ParameterValue> parameterValues = new ArrayList<>();
+					List<SQLParameterDefinition> parameterValues = new ArrayList<>();
 					pathProperties.forEach(p -> {
 						parameterValues.add(getParameterValue(p, value.getValue(p)));
 					});
-					configurator.configureStatement(c, stmt, sql, parameterValues);
+					configurator.configureStatement(stmt, sql, parameterValues);
 					// add batch
 					stmt.addBatch();
 				}
@@ -154,17 +154,17 @@ public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert> implements
 	}
 
 	/**
-	 * Get the {@link ParameterValue} which represents the value of given property, converting the value to the model
-	 * value type is a {@link PropertyValueConverter} is bound to given property.
+	 * Get the {@link SQLParameterDefinition<?>} which represents the value of given property, converting the value to
+	 * the model value type is a {@link PropertyValueConverter} is bound to given property.
 	 * @param property Property
 	 * @param value Property value
 	 * @return Parameter value definition
 	 */
-	private static ParameterValue getParameterValue(Property<Object> property, Object value) {
+	private static SQLParameterDefinition getParameterValue(Property<Object> property, Object value) {
 		return property.getConverter()
-				.map(c -> ParameterValue.create(c.getModelType(), c.toModel(value, property),
+				.map(c -> SQLParameterDefinition.create(c.toModel(value, property),
 						property.getConfiguration().getTemporalType().orElse(null)))
-				.orElse(ParameterValue.create(property.getType(), value,
+				.orElse(SQLParameterDefinition.create(value,
 						property.getConfiguration().getTemporalType().orElse(null)));
 	}
 

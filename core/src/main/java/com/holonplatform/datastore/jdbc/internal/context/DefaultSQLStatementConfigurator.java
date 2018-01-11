@@ -13,11 +13,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal.dialect;
+package com.holonplatform.datastore.jdbc.internal.context;
 
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -27,56 +26,27 @@ import java.util.Calendar;
 import java.util.List;
 
 import com.holonplatform.core.internal.utils.ConversionUtils;
-import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.temporal.TemporalType;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.JdbcDialect.StatementConfigurationException;
-import com.holonplatform.datastore.jdbc.JdbcDialect.StatementConfigurator;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
 
 /**
- * Default {@link StatementConfigurator} implementation.
+ * Default {@link SQLStatementConfigurator}.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
-public class DefaultStatementConfigurator implements StatementConfigurator {
+public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator<PreparedStatement> {
 
-	/**
-	 * Dialect to use
-	 */
-	private final JdbcDialect dialect;
+	INSTANCE;
 
-	/**
-	 * Constructor
-	 * @param dialect Dialect to use (not null)
-	 */
-	public DefaultStatementConfigurator(JdbcDialect dialect) {
-		super();
-		ObjectUtils.argumentNotNull(dialect, "Dialect must be not null");
-		this.dialect = dialect;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect.StatementConfigurator#configureStatement(java.sql.Connection,
-	 * java.sql.PreparedStatement, java.lang.String, java.util.List)
-	 */
 	@Override
-	public void configureStatement(Connection connection, PreparedStatement statement, String sql,
-			List<ParameterValue> parameterValues) throws StatementConfigurationException {
+	public void configureStatement(PreparedStatement statement, String sql,
+			List<SQLParameterDefinition> parameterValues) throws StatementConfigurationException {
 		for (int i = 0; i < parameterValues.size(); i++) {
 			final int index = (i + 1);
-			final ParameterValue parameterValue = parameterValues.get(i);
+			final SQLParameterDefinition parameterValue = parameterValues.get(i);
 			try {
-				if (dialect.getStatementParameterHandler().isPresent()) {
-					if (dialect.getStatementParameterHandler().get()
-							.setParameterValue(connection, statement, index, parameterValue).isPresent()) {
-						continue;
-					}
-				}
-				// default
 				setParameterValue(statement, index, parameterValue);
 			} catch (Exception e) {
 				throw new StatementConfigurationException("Failed to configure statement for SQL [" + sql + "]", e);
@@ -85,14 +55,14 @@ public class DefaultStatementConfigurator implements StatementConfigurator {
 	}
 
 	/**
-	 * Set the value of given {@link ParameterValue} representation into the given <code>statement</code> at given
-	 * <code>index</code>.
+	 * Set the value of given {@link SQLParameterDefinition} representation into the given <code>statement</code> at
+	 * given <code>index</code>.
 	 * @param statement Prepared statement for which to set the parameter value
 	 * @param index Parameter index
 	 * @param parameterValue Parameter value representation
 	 * @throws SQLException If an error occurred
 	 */
-	private static void setParameterValue(PreparedStatement statement, int index, ParameterValue parameterValue)
+	private static void setParameterValue(PreparedStatement statement, int index, SQLParameterDefinition parameterValue)
 			throws SQLException {
 		if (parameterValue.getValue() != null) {
 			setNotNullParameterValue(statement, index, parameterValue);
@@ -102,7 +72,7 @@ public class DefaultStatementConfigurator implements StatementConfigurator {
 	}
 
 	/**
-	 * Set a not null parameter value using given {@link ParameterValue} representation into the given
+	 * Set a not null parameter value using given {@link SQLParameterDefinition} representation into the given
 	 * <code>statement</code> at given <code>index</code>.
 	 * @param statement Prepared statement for which to set the parameter value
 	 * @param index Parameter index
@@ -112,7 +82,7 @@ public class DefaultStatementConfigurator implements StatementConfigurator {
 	 */
 	@SuppressWarnings("unchecked")
 	private static Object setNotNullParameterValue(PreparedStatement statement, int index,
-			ParameterValue parameterValue) throws SQLException {
+			SQLParameterDefinition parameterValue) throws SQLException {
 
 		final Class<?> type = parameterValue.getType();
 		Object pvalue = parameterValue.getValue();

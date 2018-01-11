@@ -48,7 +48,12 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
+import com.holonplatform.datastore.jdbc.test.data.TestProperties;
+import com.holonplatform.datastore.jdbc.test.function.IfNullFunction;
+import com.holonplatform.datastore.jdbc.test.function.IfNullFunctionResolver;
 import com.holonplatform.jdbc.DatabasePlatform;
+
+import static com.holonplatform.datastore.jdbc.test.data.TestProperties.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestJdbcDatastoreH2.Config.class)
@@ -73,6 +78,7 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		public JdbcDatastore datastore() {
 			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.H2)
 					.withExpressionResolver(KeyIs.RESOLVER)
+					.withExpressionResolver(new IfNullFunctionResolver())
 					.traceEnabled(true)
 					.build();
 		}
@@ -130,10 +136,13 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		assertEquals(Long.valueOf(3), box.getValue(CODE));
 	}
 
+	// TODO
 	/*@Test
 	public void testCustomFunction() {
-		getDatastore().query().target(TestProperties.NAMED_TARGET)
-				.findOne(FunctionExpression.create(new H2SessionIdFunction()));
+		String result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
+				.findOne(new IfNullFunction<>(STR, "(fallback)")).orElse(null);
+		assertNotNull(result);
+		assertEquals("One", result);
 	}*/
 
 	private static final DataTarget<?> R_TARGET = DataTarget.named("test_recur");

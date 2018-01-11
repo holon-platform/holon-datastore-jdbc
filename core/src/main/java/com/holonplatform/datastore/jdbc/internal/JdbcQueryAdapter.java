@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.query.QueryAdapter;
 import com.holonplatform.core.internal.query.QueryStructure;
 import com.holonplatform.core.internal.utils.ObjectUtils;
@@ -29,12 +28,11 @@ import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryProjection;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
-import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
+import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcQueryComposition;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.support.PreparedSql;
 
 /**
  * JDBC {@link QueryAdapter}.
@@ -44,37 +42,26 @@ import com.holonplatform.datastore.jdbc.internal.support.PreparedSql;
 public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 
 	/**
-	 * Logger
+	 * Execution context
 	 */
-	private final static Logger LOGGER = JdbcDatastoreLogger.create();
-
-	/**
-	 * Parent datastore
-	 */
-	private final JdbcDatastore datastore;
-
-	/**
-	 * Dialect
-	 */
-	private final JdbcDialect dialect;
-
-	/**
-	 * Whether query tracing is enabled
-	 */
-	private final boolean trace;
+	private final JdbcStatementExecutionContext executionContext;
 
 	/**
 	 * Constructor
-	 * @param datastore Parent datastore
-	 * @param dialect JDBC dialect to use
-	 * @param trace Whether tracing is enabled
+	 * @param executionContext Execution context
 	 */
-	public JdbcQueryAdapter(JdbcDatastore datastore, JdbcDialect dialect, boolean trace) {
+	public JdbcQueryAdapter(JdbcStatementExecutionContext executionContext) {
 		super();
-		ObjectUtils.argumentNotNull(datastore, "Datastore must be not null");
-		this.datastore = datastore;
-		this.dialect = dialect;
-		this.trace = trace;
+		ObjectUtils.argumentNotNull(executionContext, "Execution context must be not null");
+		this.executionContext = executionContext;
+	}
+
+	/**
+	 * Get the execution context.
+	 * @return the execution context
+	 */
+	protected JdbcStatementExecutionContext getExecutionContext() {
+		return executionContext;
 	}
 
 	/*
@@ -88,7 +75,8 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 			throws QueryExecutionException {
 
 		// context
-		final JdbcResolutionContext context = JdbcResolutionContext.create(configuration, dialect, AliasMode.AUTO);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(configuration,
+				getExecutionContext().getDialect(), AliasMode.AUTO);
 
 		final JdbcQueryComposition<R> query;
 		final PreparedSql preparedSql;
@@ -102,23 +90,17 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 			query.validate();
 
 			// prepare SQL
-			preparedSql = JdbcDatastoreUtils.prepareSql(query.serialize(), context);
-
-			// trace
-			if (trace) {
-				LOGGER.info("(TRACE) SQL: [" + preparedSql.getSql() + "]");
-			} else {
-				LOGGER.debug(() -> "SQL: [" + preparedSql.getSql() + "]");
-			}
+			preparedSql = getExecutionContext().prepareSql(query.serialize(), context);
+			getExecutionContext().trace(preparedSql.getSql());
 
 		} catch (Exception e) {
 			throw new QueryExecutionException("Failed to build query", e);
 		}
 
 		// execute
-		return datastore.withConnection(c -> {
+		return getExecutionContext().withConnection(c -> {
 
-			try (PreparedStatement statement = preparedSql.createStatement(c, context.getDialect())) {
+			try (PreparedStatement statement = getExecutionContext().createStatement(c, preparedSql)) {
 				// convert results
 				try (ResultSet resultSet = statement.executeQuery()) {
 					List<R> rows = new ArrayList<>();

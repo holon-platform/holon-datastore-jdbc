@@ -29,7 +29,6 @@ import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultJdbcQueryComposition;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcQueryComposition;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
 import com.holonplatform.datastore.jdbc.internal.expressions.ProjectionContext;
 
 /**
@@ -77,7 +76,6 @@ public enum QueryStructureResolver implements ExpressionResolver<QueryStructure,
 		expression.validate();
 
 		final JdbcResolutionContext context = JdbcResolutionContext.checkContext(resolutionContext);
-		final ResolutionQueryClause previous = context.getResolutionQueryClause().orElse(null);
 
 		// build query composition
 
@@ -90,77 +88,49 @@ public enum QueryStructureResolver implements ExpressionResolver<QueryStructure,
 		configuration.getOffset().ifPresent(o -> query.setOffset(o));
 
 		// from
-		try {
-			context.setResolutionQueryClause(ResolutionQueryClause.FROM);
 
-			// relational target
-			RelationalTarget<?> target = JdbcDatastoreUtils.resolveExpression(context,
-					configuration.getTarget().orElseThrow(() -> new QueryBuildException("Missing query target")),
-					RelationalTarget.class, context);
+		RelationalTarget<?> target = JdbcDatastoreUtils.resolveExpression(context,
+				configuration.getTarget().orElseThrow(() -> new QueryBuildException("Missing query target")),
+				RelationalTarget.class, context);
 
-			context.setTarget(target);
+		context.setTarget(target);
 
-			query.setFrom(JdbcDatastoreUtils.resolveExpression(context, target, SQLToken.class, context).getValue());
-		} finally {
-			context.setResolutionQueryClause(previous);
-		}
+		query.setFrom(JdbcDatastoreUtils.resolveExpression(context, target, SQLToken.class, context).getValue());
 
 		// where
-		try {
-			context.setResolutionQueryClause(ResolutionQueryClause.WHERE);
-			configuration.getFilter().ifPresent(f -> {
-				query.setWhere(JdbcDatastoreUtils.resolveExpression(context, f, SQLToken.class, context).getValue());
-			});
-		} finally {
-			context.setResolutionQueryClause(previous);
-		}
+		configuration.getFilter().ifPresent(f -> {
+			query.setWhere(JdbcDatastoreUtils.resolveExpression(context, f, SQLToken.class, context).getValue());
+		});
 
 		// group by
-		try {
-			context.setResolutionQueryClause(ResolutionQueryClause.GROUPBY);
-			configuration.getAggregation().ifPresent(a -> {
-				query.setGroupBy(JdbcDatastoreUtils.resolveExpression(context, a, SQLToken.class, context).getValue());
-			});
-		} finally {
-			context.setResolutionQueryClause(previous);
-		}
+		configuration.getAggregation().ifPresent(a -> {
+			query.setGroupBy(JdbcDatastoreUtils.resolveExpression(context, a, SQLToken.class, context).getValue());
+		});
 
 		// order by
-		try {
-			context.setResolutionQueryClause(ResolutionQueryClause.ORDERBY);
-			configuration.getSort().ifPresent(s -> {
-				query.setOrderBy(JdbcDatastoreUtils.resolveExpression(context, s, SQLToken.class, context).getValue());
-			});
-		} finally {
-			context.setResolutionQueryClause(previous);
-		}
+		configuration.getSort().ifPresent(s -> {
+			query.setOrderBy(JdbcDatastoreUtils.resolveExpression(context, s, SQLToken.class, context).getValue());
+		});
 
 		// select
-		try {
-			context.setResolutionQueryClause(ResolutionQueryClause.SELECT);
+		final ProjectionContext<?> projectionContext = context
+				.resolve(expression.getProjection(), ProjectionContext.class, context)
+				.orElseThrow(() -> new InvalidExpressionException(
+						"Failed to resolve projection [" + expression.getProjection() + "]"));
+		projectionContext.validate();
 
-			final ProjectionContext<?> projectionContext = context
-					.resolve(expression.getProjection(), ProjectionContext.class, context)
-					.orElseThrow(() -> new InvalidExpressionException(
-							"Failed to resolve projection [" + expression.getProjection() + "]"));
-			projectionContext.validate();
-
-			// check selection
-			if (projectionContext.getSelection() == null || projectionContext.getSelection().isEmpty()) {
-				throw new InvalidExpressionException("Null or empty query selection");
-			}
-
-			// select clause
-			query.setSelect(projectionContext.getSelection().stream()
-					.map(s -> s + projectionContext.getSelectionAlias(s).map(a -> " AS " + a).orElse(""))
-					.collect(Collectors.joining(", ")));
-
-			// projection context
-			query.setProjection(projectionContext);
-
-		} finally {
-			context.setResolutionQueryClause(previous);
+		// check selection
+		if (projectionContext.getSelection() == null || projectionContext.getSelection().isEmpty()) {
+			throw new InvalidExpressionException("Null or empty query selection");
 		}
+
+		// select clause
+		query.setSelect(projectionContext.getSelection().stream()
+				.map(s -> s + projectionContext.getSelectionAlias(s).map(a -> " AS " + a).orElse(""))
+				.collect(Collectors.joining(", ")));
+
+		// projection context
+		query.setProjection(projectionContext);
 
 		return Optional.of(query);
 	}

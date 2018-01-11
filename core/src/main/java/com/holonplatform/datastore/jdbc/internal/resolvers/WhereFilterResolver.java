@@ -22,9 +22,9 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.datastore.jdbc.JdbcWhereFilter;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
 
 /**
  * {@link JdbcWhereFilter} expression resolver.
@@ -82,7 +82,7 @@ public enum WhereFilterResolver implements ExpressionResolver<JdbcWhereFilter, S
 					throw new InvalidExpressionException("Cannot replace parameter [" + parameter + "] in sql ["
 							+ expression.getSQL() + "]: no placeholder found at index [" + (i + 1) + "]");
 				}
-				String named = jdbcContext.addNamedParameter(ParameterValue.create(parameter.getClass(), parameter));
+				String named = jdbcContext.addNamedParameter(SQLParameterDefinition.create(parameter));
 				sql = sql.replaceFirst("\\?", named);
 			}
 		}

@@ -49,7 +49,6 @@ import com.holonplatform.core.query.StringFunction.Lower;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
 
 /**
  * JDBC {@link VisitableQueryFilter} expression resolver.
@@ -279,7 +278,8 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 		sb.append(path);
 
 		sb.append(" LIKE ");
-		sb.append(context.addNamedParameter(ParameterValue.create(String.class, value)));
+		sb.append(JdbcDatastoreUtils
+				.resolveExpression(context, ConstantExpression.create(value), SQLToken.class, context).getValue());
 
 		if (escape) {
 			sb.append(" ESCAPE '!'");

@@ -47,9 +47,7 @@ public class JdbcQueryFactory implements DatastoreCommodityFactory<JdbcDatastore
 	 */
 	@Override
 	public Query createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
-		return new QueryAdapterQuery<>(context,
-				new JdbcQueryAdapter(context, context.getDialect(), context.isTraceEnabled()),
-				QueryDefinition.create());
+		return new QueryAdapterQuery<>(context, new JdbcQueryAdapter(context), QueryDefinition.create());
 	}
 
 }

@@ -96,7 +96,7 @@ public enum RelationalTargetResolver implements ExpressionResolver<RelationalTar
 	 * @return SQL expression
 	 */
 	private static String getSQLPath(JdbcResolutionContext context, final Path<?> path) {
-		return context.getTargetAlias(path).map(a -> {
+		return context.getAlias(path).map(a -> {
 			StringBuilder pb = new StringBuilder();
 			pb.append(path.getName());
 			pb.append(" ");

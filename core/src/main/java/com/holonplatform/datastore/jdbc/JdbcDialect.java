@@ -17,22 +17,19 @@ package com.holonplatform.datastore.jdbc;
 
 import java.io.Serializable;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Optional;
 
 import com.holonplatform.core.Path;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultLimitHandler;
 import com.holonplatform.datastore.jdbc.internal.dialect.DefaultSQLValueDeserializer;
-import com.holonplatform.datastore.jdbc.internal.dialect.DefaultStatementConfigurator;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * Represents a dialect of SQL implemented by a particular database.
@@ -109,33 +106,11 @@ public interface JdbcDialect extends Serializable {
 	}
 
 	/**
-	 * Get the {@link StatementConfigurator} to use to configure JDBC statements.
-	 * @return The StatementConfigurator (not null)
-	 */
-	StatementConfigurator getStatementConfigurator();
-
-	/**
-	 * Get the dialect {@link SQLPathProcessor}.
-	 * @return Optional SQLPathProcessor
-	 */
-	default Optional<SQLPathProcessor> getPathProcessor() {
-		return Optional.empty();
-	}
-
-	/**
 	 * Get the dialect {@link SQLParameterProcessor}.
-	 * @return Optional SQLParameterProcessor
+	 * @return SQLParameterProcessor
 	 */
-	default Optional<SQLParameterProcessor> getParameterProcessor() {
-		return Optional.empty();
-	}
-
-	/**
-	 * Get the dialect {@link StatementParameterHandler}.
-	 * @return Optional StatementParameterHandler
-	 */
-	default Optional<StatementParameterHandler> getStatementParameterHandler() {
-		return Optional.empty();
+	default SQLParameterProcessor getParameterProcessor() {
+		return (p, c) -> p;
 	}
 
 	/**
@@ -214,104 +189,18 @@ public interface JdbcDialect extends Serializable {
 	}
 
 	/**
-	 * JDBC {@link PreparedStatement} configurator.
-	 */
-	@FunctionalInterface
-	public interface StatementConfigurator {
-
-		/**
-		 * Configure given <code>statement</code>, setting any parameter value.
-		 * @param connection Connection
-		 * @param statement Statement to configure
-		 * @param sql The precompiled SQL statement
-		 * @param parameterValues Parameter values to set (if any), in the right sequence
-		 * @throws StatementConfigurationException If an error occurred
-		 */
-		void configureStatement(Connection connection, PreparedStatement statement, String sql,
-				List<ParameterValue> parameterValues) throws StatementConfigurationException;
-
-		/**
-		 * Create a new {@link StatementConfigurator} using given dialect.
-		 * @param dialect JDBC dialect
-		 * @return A new StatementConfigurator instance
-		 */
-		static StatementConfigurator create(JdbcDialect dialect) {
-			return new DefaultStatementConfigurator(dialect);
-		}
-
-	}
-
-	/**
-	 * Handler to manage statement parameters setting.
-	 */
-	@FunctionalInterface
-	public interface StatementParameterHandler {
-
-		/**
-		 * Set a statement parameter value.
-		 * @param connection Connection
-		 * @param statement Statement
-		 * @param index Parameter index
-		 * @param parameterValue Parameter value
-		 * @return The setted parameter value if handled, an empty optional to fallback to standard behaviour
-		 * @throws SQLException If an error occurred
-		 */
-		Optional<Object> setParameterValue(Connection connection, PreparedStatement statement, int index,
-				ParameterValue parameterValue) throws SQLException;
-
-	}
-
-	/**
-	 * Path processor for serialized path manipulation.
-	 */
-	@FunctionalInterface
-	public interface SQLPathProcessor {
-
-		/**
-		 * Process given serialized path.
-		 * @param serialized Serialized path
-		 * @param path Path
-		 * @param clause Resolution clause
-		 * @return Processed path
-		 */
-		String processPath(String serialized, Path<?> path, ResolutionQueryClause clause);
-
-	}
-
-	/**
-	 * Dialect resolution context.
-	 */
-	public interface DialectResolutionContext {
-
-		/**
-		 * Get the query clause to resolve with this context, if available.
-		 * @return Optional resolution query clause
-		 */
-		Optional<ResolutionQueryClause> getResolutionQueryClause();
-
-		/**
-		 * Replace a named parameter definition.
-		 * @param name Parameter name
-		 * @param value Parameter definition
-		 */
-		void replaceParameter(String name, ParameterValue value);
-
-	}
-
-	/**
-	 * Parameter processor for serialized parameters manipulation.
+	 * Parameter processor for SQL query parameters manipulation.
 	 */
 	@FunctionalInterface
 	public interface SQLParameterProcessor {
 
 		/**
-		 * Process given serialized parameter.
-		 * @param serialized Serialized parameter
-		 * @param parameter Parameter value definition
+		 * Process given parameter definition.
+		 * @param parameter Parameter definition
 		 * @param context Resolution context
-		 * @return Processed parameter
+		 * @return Processed parameter definition (not null)
 		 */
-		String processParameter(String serialized, ParameterValue parameter, DialectResolutionContext context);
+		SQLParameterDefinition processParameter(SQLParameterDefinition parameter, JdbcResolutionContext context);
 
 	}
 
@@ -330,32 +219,6 @@ public interface JdbcDialect extends Serializable {
 		 * @return Modified SQL query
 		 */
 		String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset);
-
-	}
-
-	/**
-	 * Exception related to JDBC statement configuration errors.
-	 */
-	public class StatementConfigurationException extends Exception {
-
-		private static final long serialVersionUID = -5669947102236544262L;
-
-		/**
-		 * Constructor
-		 * @param message Error message
-		 */
-		public StatementConfigurationException(String message) {
-			super(message);
-		}
-
-		/**
-		 * Constructor
-		 * @param message Error message
-		 * @param cause The cause
-		 */
-		public StatementConfigurationException(String message, Throwable cause) {
-			super(message, cause);
-		}
 
 	}
 

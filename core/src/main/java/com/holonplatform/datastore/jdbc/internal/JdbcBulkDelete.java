@@ -24,30 +24,29 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.bulk.BulkDelete;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
+import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
+import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
-import com.holonplatform.datastore.jdbc.internal.support.PreparedSql;
 
 /**
  * JDBC datastore {@link BulkDelete} implementation.
  * 
  * @since 5.0.0
  */
-public class JdbcBulkDelete extends AbstractBulkOperation<BulkDelete> implements BulkDelete {
+public class JdbcBulkDelete extends AbstractBulkOperation<BulkDelete, JdbcStatementExecutionContext>
+		implements BulkDelete {
 
 	/**
-	 * Constructor
-	 * @param datastore Parent Datastore (not null)
-	 * @param target Data target (not null)
-	 * @param dialect JDBC dialect (not null)
+	 * Constructor.
+	 * @param executionContext Execution context
+	 * @param target Operation data target
 	 * @param traceEnabled Whether tracing is enabled
 	 */
-	public JdbcBulkDelete(JdbcDatastore datastore, DataTarget<?> target, JdbcDialect dialect, boolean traceEnabled) {
-		super(datastore, target, dialect, traceEnabled);
+	public JdbcBulkDelete(JdbcStatementExecutionContext executionContext, DataTarget<?> target, boolean traceEnabled) {
+		super(executionContext, target, traceEnabled);
 	}
 
 	/*
@@ -67,8 +66,9 @@ public class JdbcBulkDelete extends AbstractBulkOperation<BulkDelete> implements
 	@Override
 	public OperationResult execute() {
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getDialect(),
-				getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO : AliasMode.UNSUPPORTED);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getExecutionContext().getDialect(),
+				getExecutionContext().getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO
+						: AliasMode.UNSUPPORTED);
 
 		final String sql;
 		try {
@@ -83,16 +83,18 @@ public class JdbcBulkDelete extends AbstractBulkOperation<BulkDelete> implements
 			throw new DataAccessException("Failed to configure delete operation", e);
 		}
 
+		// prepare SQL
+		final PreparedSql preparedSql = getExecutionContext().prepareSql(sql, context);
+		trace(preparedSql.getSql());
+
 		// execute
-		return getDatastore().withConnection(c -> {
+		return getExecutionContext().withConnection(c -> {
 
-			final PreparedSql preparedSql = JdbcDatastoreUtils.prepareSql(sql, context);
-			trace(preparedSql.getSql());
-
-			try (PreparedStatement stmt = preparedSql.createStatement(c, getDialect())) {
+			try (PreparedStatement stmt = getExecutionContext().createStatement(c, preparedSql)) {
 				int count = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.DELETE).affectedCount(count).build();
 			}
+
 		});
 	}
 

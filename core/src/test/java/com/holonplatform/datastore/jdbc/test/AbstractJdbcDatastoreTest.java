@@ -430,6 +430,10 @@ public abstract class AbstractJdbcDatastoreTest {
 				.list(LDAT);
 		assertNotNull(lvalues);
 		assertEquals(2, lvalues.size());
+	}
+
+	@Test
+	public void testTimeFilter() {
 
 		// Time
 
@@ -441,11 +445,10 @@ public abstract class AbstractJdbcDatastoreTest {
 
 		long cnt = getDatastore().query().target(NAMED_TARGET).filter(TIME.eq(LocalTime.of(18, 30, 15))).count();
 		assertEquals(1, cnt);
-
 	}
 
 	@Test
-	public void testDateTime() {
+	public void testLocalDateTimeWithTimestampFilter() {
 		List<LocalDateTime> ltvalues = getDatastore().query().target(NAMED_TARGET)
 				.filter(LTMS.eq(LocalDateTime.of(2017, Month.MARCH, 23, 15, 30, 25))).list(LTMS);
 		assertNotNull(ltvalues);

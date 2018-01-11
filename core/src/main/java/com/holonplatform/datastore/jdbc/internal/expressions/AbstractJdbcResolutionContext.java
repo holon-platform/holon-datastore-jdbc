@@ -45,11 +45,6 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 	private final AliasMode aliasMode;
 
 	/**
-	 * Current resolution query clause
-	 */
-	private ResolutionQueryClause clause;
-
-	/**
 	 * Data target
 	 */
 	private DataTarget<?> target;
@@ -102,25 +97,6 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect.DialectResolutionContext#getResolutionQueryClause()
-	 */
-	@Override
-	public Optional<ResolutionQueryClause> getResolutionQueryClause() {
-		return Optional.ofNullable(clause);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#setResolutionQueryClause(com.
-	 * holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause)
-	 */
-	@Override
-	public void setResolutionQueryClause(ResolutionQueryClause clause) {
-		this.clause = clause;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#getAliasMode()
 	 */
 	@Override
@@ -130,16 +106,34 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#getRootAlias()
+	 */
+	@Override
+	public Optional<String> getRootAlias() {
+		if (target != null) {
+			
+			// check aliasable
+			if (AliasablePath.class.isAssignableFrom(target.getClass())) {
+				final AliasablePath<?, ?> ap = (AliasablePath<?, ?>) target;
+				if (ap.getAlias().isPresent()) {
+					return ap.getAlias();
+				}
+			}
+			
+			return Optional.ofNullable(pathAlias.get(target.getName()));
+		}
+		return Optional.empty();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see
 	 * com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#getAlias(com.holonplatform.core.Path)
 	 */
 	@Override
-	public Optional<String> getTargetAlias(Path<?> path) {
-		if (path == null) {
-			// root alias
-			return (target != null) ? Optional.ofNullable(pathAlias.get(target.getName())) : Optional.empty();
-		}
-
+	public Optional<String> getAlias(Path<?> path) {
+		ObjectUtils.argumentNotNull(path, "Path must be not null");
+		
 		// check Aliasable
 		if (AliasablePath.class.isAssignableFrom(path.getClass())) {
 			final AliasablePath<?, ?> ap = (AliasablePath<?, ?>) path;
@@ -149,12 +143,13 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 		}
 
 		String alias = pathAlias.get(path.fullName());
-		// check parent
+		
+		// check parent context
 		if (alias == null && getParent().isPresent()) {
 			JdbcResolutionContext ctx = getParent().get();
 			while (ctx != null) {
 				if (ctx.getAliasMode() != AliasMode.UNSUPPORTED) {
-					Optional<String> parentAlias = ctx.getTargetAlias(path);
+					Optional<String> parentAlias = ctx.getAlias(path);
 					if (parentAlias.isPresent()) {
 						alias = parentAlias.get();
 						break;

@@ -32,11 +32,11 @@ import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * MSSQL {@link JdbcDialect}.
@@ -59,11 +59,8 @@ public class SQLServerDialect implements JdbcDialect {
 
 	private boolean version2012orHigher;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public SQLServerDialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 		this.functions.registerFunction(Avg.class, new AvgFunction());
 		this.functions.registerFunction(CurrentDate.class, new CurrentDateFunction());
 		this.functions.registerFunction(CurrentLocalDate.class, new CurrentDateFunction());
@@ -99,22 +96,9 @@ public class SQLServerDialect implements JdbcDialect {
 		return functions.getFunction(function);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
-	 */
 	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getParameterProcessor()
-	 */
-	@Override
-	public Optional<SQLParameterProcessor> getParameterProcessor() {
-		return Optional.of(PARAMETER_PROCESSOR);
+	public SQLParameterProcessor getParameterProcessor() {
+		return PARAMETER_PROCESSOR;
 	}
 
 	/*
@@ -231,23 +215,12 @@ public class SQLServerDialect implements JdbcDialect {
 	private static final class SQLServerParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public String processParameter(String serialized, ParameterValue parameter, DialectResolutionContext context) {
-			if (context.getResolutionQueryClause().isPresent()
-					&& (context.getResolutionQueryClause().get() == ResolutionQueryClause.WHERE)) {
-				TemporalType temporalType = parameter.getTemporalType().orElse(null);
-				if (temporalType != null) {
-					if (TemporalType.TIME == temporalType) {
-						Optional<String> serializedTime = SQLValueSerializer.serializeDate(parameter.getValue(),
-								temporalType);
-						if (serializedTime.isPresent()) {
-							context.replaceParameter(serialized,
-									ParameterValue.create(String.class, serializedTime.get(), temporalType));
-							return serialized;
-						}
-					}
-				}
-			}
-			return serialized;
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
+				JdbcResolutionContext context) {
+			return parameter.getTemporalType().filter(temporalType -> TemporalType.TIME == temporalType)
+					.flatMap(temporalType -> SQLValueSerializer.serializeDate(parameter.getValue(), temporalType)
+							.map(value -> SQLParameterDefinition.create(value)))
+					.orElse(parameter);
 		}
 
 	}

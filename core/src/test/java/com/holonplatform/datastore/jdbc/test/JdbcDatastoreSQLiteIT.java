@@ -71,7 +71,7 @@ public class JdbcDatastoreSQLiteIT extends AbstractDatastoreIntegrationTest {
 		public JdbcDatastore datastore() {
 			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.SQLITE)
 					.withExpressionResolver(KeyIs.RESOLVER)
-					// .traceEnabled(true)
+					.traceEnabled(true)
 					.build();
 		}
 
@@ -96,7 +96,7 @@ public class JdbcDatastoreSQLiteIT extends AbstractDatastoreIntegrationTest {
 	}
 
 	@Override
-	public void testDateTime() {
+	public void testLocalDateTimeWithTimestampFilter() {
 	}
 
 	@Test

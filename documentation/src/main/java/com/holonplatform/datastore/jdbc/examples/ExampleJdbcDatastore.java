@@ -42,11 +42,6 @@ public class ExampleJdbcDatastore {
 	private class MyDialect implements JdbcDialect {
 
 		@Override
-		public StatementConfigurator getStatementConfigurator() {
-			return null;
-		}
-
-		@Override
 		public void init(JdbcDatastore datastore) throws SQLException {
 		}
 

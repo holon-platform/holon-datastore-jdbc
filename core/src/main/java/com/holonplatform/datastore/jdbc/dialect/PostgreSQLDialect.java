@@ -17,16 +17,16 @@ package com.holonplatform.datastore.jdbc.dialect;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * PostgreSQL {@link JdbcDialect}.
@@ -37,7 +37,7 @@ public class PostgreSQLDialect implements JdbcDialect {
 
 	private static final long serialVersionUID = -1351306688409439156L;
 
-	private static final PostgreParameterValueHandler PARAMETER_HANDLER = new PostgreParameterValueHandler();
+	private static final PostgreParameterProcessor PARAMETER_PROCESSOR = new PostgreParameterProcessor();
 
 	private static final PostgreLimitHandler LIMIT_HANDLER = new PostgreLimitHandler();
 
@@ -45,11 +45,8 @@ public class PostgreSQLDialect implements JdbcDialect {
 	private boolean generatedKeyAlwaysReturned;
 	private boolean supportsLikeEscapeClause;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public PostgreSQLDialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 	}
 
 	/*
@@ -69,20 +66,11 @@ public class PostgreSQLDialect implements JdbcDialect {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
+	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getParameterProcessor()
 	 */
 	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementParameterHandler()
-	 */
-	@Override
-	public Optional<StatementParameterHandler> getStatementParameterHandler() {
-		return Optional.of(PARAMETER_HANDLER);
+	public SQLParameterProcessor getParameterProcessor() {
+		return PARAMETER_PROCESSOR;
 	}
 
 	/*
@@ -138,34 +126,21 @@ public class PostgreSQLDialect implements JdbcDialect {
 	public String getColumnName(String columnName) {
 		return (columnName != null) ? columnName.toLowerCase() : null;
 	}
-
-	private static final class PostgreParameterValueHandler implements StatementParameterHandler {
+	
+	private static final class PostgreParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public Optional<Object> setParameterValue(Connection connection, PreparedStatement statement, int index,
-				ParameterValue parameterValue) throws SQLException {
-			if (parameterValue.getValue() != null && Reader.class.isAssignableFrom(parameterValue.getType())) {
-				// treat as string
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
+				JdbcResolutionContext context) {
+			// Reader type serialization
+			if (Reader.class.isAssignableFrom(parameter.getType())) {
 				try {
-					String str = readerToString((Reader) parameterValue.getValue());
-					statement.setString(index, str);
-					return Optional.of(str);
+					return SQLParameterDefinition.create(ConversionUtils.readerToString((Reader) parameter.getValue()));
 				} catch (IOException e) {
-					throw new SQLException(e);
+					throw new RuntimeException("Failed to convert Reader to String [" + parameter.getValue() + "]", e);
 				}
 			}
-			return Optional.empty();
-		}
-
-		private static String readerToString(Reader reader) throws IOException {
-			char[] arr = new char[8 * 1024];
-			StringBuilder buffer = new StringBuilder();
-			int numCharsRead;
-			while ((numCharsRead = reader.read(arr, 0, arr.length)) != -1) {
-				buffer.append(arr, 0, numCharsRead);
-			}
-			reader.close();
-			return buffer.toString();
+			return parameter;
 		}
 
 	}

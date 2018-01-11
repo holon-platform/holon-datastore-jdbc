@@ -25,24 +25,14 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.JdbcDialect.DialectResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 
 /**
  * JDBC {@link ResolutionContext}.
  *
  * @since 5.0.0
  */
-public interface JdbcResolutionContext extends ResolutionContext, DialectResolutionContext {
-
-	/**
-	 * Current resolution query clause enumeration
-	 */
-	public enum ResolutionQueryClause {
-
-		SELECT, FROM, WHERE, ORDERBY, GROUPBY, SET;
-
-	}
+public interface JdbcResolutionContext extends ResolutionContext {
 
 	/**
 	 * Data target alias handling mode
@@ -91,30 +81,30 @@ public interface JdbcResolutionContext extends ResolutionContext, DialectResolut
 	AliasMode getAliasMode();
 
 	/**
-	 * Get the optional alias associated to given data target path
-	 * @param path Path to get the alias for, <code>null</code> for the the root data target alias, if available
+	 * Get the <em>root</em> data target alias, if available.
+	 * @return The <em>root</em> data target alias, if available
+	 */
+	Optional<String> getRootAlias();
+
+	/**
+	 * Get the optional alias associated to given path.
+	 * @param path Path to get the alias for (not null)
 	 * @return Optional path alias
 	 */
-	Optional<String> getTargetAlias(Path<?> path);
+	Optional<String> getAlias(Path<?> path);
 
 	/**
 	 * Add a named parameter to context
-	 * @param value Parameter value
-	 * @return Generated parameter name
+	 * @param parameter Parameter definition (not null)
+	 * @return Generated parameter SQL
 	 */
-	String addNamedParameter(ParameterValue value);
+	String addNamedParameter(SQLParameterDefinition parameter);
 
 	/**
 	 * Get the context named parameters.
 	 * @return Map of named parameters with name - value associations
 	 */
-	Map<String, ParameterValue> getNamedParameters();
-
-	/**
-	 * Set the query clause to resolve with this context.
-	 * @param clause The resolution query clause
-	 */
-	void setResolutionQueryClause(ResolutionQueryClause clause);
+	Map<String, SQLParameterDefinition> getNamedParameters();
 
 	/**
 	 * Set the resolution context data target

@@ -25,26 +25,20 @@ import com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.ExpressionResolverRegistry;
 import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.internal.context.StatementExecutionContext;
 
 /**
  * Abstract JDBC bulk operation.
  * 
- * @param <C> Concrete operation type
+ * @param <O> Concrete operation type
+ * @param <S> Statement execution context type
  *
  * @since 5.0.0
  */
-public abstract class AbstractBulkOperation<C extends ExpressionResolverBuilder<C>>
-		implements ExpressionResolverBuilder<C>, ExpressionResolverHandler {
-
-	/**
-	 * Logger
-	 */
-	private final static Logger LOGGER = JdbcDatastoreLogger.create();
+public abstract class AbstractBulkOperation<O extends ExpressionResolverBuilder<O>, S extends StatementExecutionContext>
+		implements ExpressionResolverBuilder<O>, ExpressionResolverHandler {
 
 	/**
 	 * Expression resolvers
@@ -52,19 +46,14 @@ public abstract class AbstractBulkOperation<C extends ExpressionResolverBuilder<
 	private final ExpressionResolverRegistry expressionResolverRegistry = ExpressionResolverRegistry.create();
 
 	/**
-	 * Datastore
-	 */
-	private final JdbcDatastore datastore;
-
-	/**
-	 * Dialect
-	 */
-	private final JdbcDialect dialect;
-
-	/**
 	 * Whether tracing is enabled
 	 */
 	private final boolean traceEnabled;
+
+	/**
+	 * Execution context
+	 */
+	private final S executionContext;
 
 	/**
 	 * Data target
@@ -78,25 +67,21 @@ public abstract class AbstractBulkOperation<C extends ExpressionResolverBuilder<
 
 	/**
 	 * Constructor
-	 * @param datastore Parent Datastore (not null)
+	 * @param executionContext Execution context (not null)
 	 * @param target Data target (not null)
-	 * @param dialect JDBC dialect (not null)
 	 * @param traceEnabled Whether tracing is enabled
 	 */
 	@SuppressWarnings("unchecked")
-	public AbstractBulkOperation(JdbcDatastore datastore, DataTarget<?> target, JdbcDialect dialect,
-			boolean traceEnabled) {
+	public AbstractBulkOperation(S executionContext, DataTarget<?> target, boolean traceEnabled) {
 		super();
-		ObjectUtils.argumentNotNull(datastore, "Datastore must be not null");
+		ObjectUtils.argumentNotNull(executionContext, "Execution context must be not null");
 		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		ObjectUtils.argumentNotNull(dialect, "Dialect must be not null");
-		this.datastore = datastore;
+		this.executionContext = executionContext;
 		this.target = target;
-		this.dialect = dialect;
 		this.traceEnabled = traceEnabled;
 
 		// inherit resolvers
-		datastore.getExpressionResolvers().forEach(r -> expressionResolverRegistry.addExpressionResolver(r));
+		executionContext.getExpressionResolvers().forEach(r -> expressionResolverRegistry.addExpressionResolver(r));
 	}
 
 	/**
@@ -108,19 +93,11 @@ public abstract class AbstractBulkOperation<C extends ExpressionResolverBuilder<
 	}
 
 	/**
-	 * Get the parent JDBC datastore
-	 * @return parent JDBC datastore
+	 * Get the statement execution context.
+	 * @return the execution context
 	 */
-	protected JdbcDatastore getDatastore() {
-		return datastore;
-	}
-
-	/**
-	 * Get the JDBC dialect
-	 * @return the dialect
-	 */
-	protected JdbcDialect getDialect() {
-		return dialect;
+	protected S getExecutionContext() {
+		return executionContext;
 	}
 
 	/**
@@ -166,11 +143,7 @@ public abstract class AbstractBulkOperation<C extends ExpressionResolverBuilder<
 	 * @param sql SQL to trace
 	 */
 	protected void trace(String sql) {
-		if (isTraceEnabled()) {
-			LOGGER.info("(TRACE) SQL: [" + sql + "]");
-		} else {
-			LOGGER.debug(() -> "SQL: [" + sql + "]");
-		}
+		getExecutionContext().trace(sql);
 	}
 
 	/*
@@ -181,10 +154,10 @@ public abstract class AbstractBulkOperation<C extends ExpressionResolverBuilder<
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <E extends Expression, R extends Expression> C withExpressionResolver(
+	public <E extends Expression, R extends Expression> O withExpressionResolver(
 			ExpressionResolver<E, R> expressionResolver) {
 		getExpressionResolverRegistry().addExpressionResolver(expressionResolver);
-		return (C) this;
+		return (O) this;
 	}
 
 	/*

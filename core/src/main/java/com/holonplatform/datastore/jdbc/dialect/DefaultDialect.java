@@ -34,11 +34,8 @@ public class DefaultDialect implements JdbcDialect {
 	private boolean generatedKeyAlwaysReturned;
 	private boolean supportsLikeEscapeClause;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public DefaultDialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 	}
 
 	/*
@@ -54,15 +51,6 @@ public class DefaultDialect implements JdbcDialect {
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 			return null;
 		});
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
-	 */
-	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
 	}
 
 	/*

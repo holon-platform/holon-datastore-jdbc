@@ -62,7 +62,7 @@ public class JdbcDatastoreOracleIT extends AbstractDatastoreIntegrationTest {
 		public JdbcDatastore datastore() {
 			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.ORACLE)
 					.withExpressionResolver(KeyIs.RESOLVER)
-					// .traceEnabled(true)
+					.traceEnabled(true)
 					.build();
 		}
 
@@ -74,6 +74,19 @@ public class JdbcDatastoreOracleIT extends AbstractDatastoreIntegrationTest {
 	@Override
 	protected Datastore getDatastore() {
 		return datastore;
+	}
+	
+	@Override
+	public void testLocalDateTimeWithTimestampFilter() {
+		// in Oracle the trunc() function is required for timestamp 
+	}
+
+	/* (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.test.AbstractJdbcDatastoreTest#testTimeFilter()
+	 */
+	@Override
+	public void testTimeFilter() {
+		// Oracle does not support TIME data type
 	}
 
 }

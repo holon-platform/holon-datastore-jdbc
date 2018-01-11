@@ -30,13 +30,12 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
+import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
+import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
-import com.holonplatform.datastore.jdbc.internal.support.PreparedSql;
 
 /**
  * JDBC datastore {@link BulkUpdate} implementation.
@@ -44,7 +43,8 @@ import com.holonplatform.datastore.jdbc.internal.support.PreparedSql;
  * @since 5.0.0
  */
 @SuppressWarnings("rawtypes")
-public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate> implements BulkUpdate {
+public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate, JdbcStatementExecutionContext>
+		implements BulkUpdate {
 
 	/**
 	 * Path values to update
@@ -52,18 +52,19 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate> implements
 	private final Map<Path<?>, QueryExpression<?>> values = new HashMap<>();
 
 	/**
-	 * Constructor
-	 * @param datastore Parent Datastore (not null)
-	 * @param target Data target (not null)
-	 * @param dialect JDBC dialect (not null)
+	 * Constructor.
+	 * @param executionContext Execution context
+	 * @param target Operation data target
 	 * @param traceEnabled Whether tracing is enabled
 	 */
-	public JdbcBulkUpdate(JdbcDatastore datastore, DataTarget<?> target, JdbcDialect dialect, boolean traceEnabled) {
-		super(datastore, target, dialect, traceEnabled);
+	public JdbcBulkUpdate(JdbcStatementExecutionContext executionContext, DataTarget<?> target, boolean traceEnabled) {
+		super(executionContext, target, traceEnabled);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.bulk.BulkClause#set(com.holonplatform.core.Path, com.holonplatform.core.query.QueryExpression)
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.datastore.bulk.BulkClause#set(com.holonplatform.core.Path,
+	 * com.holonplatform.core.query.QueryExpression)
 	 */
 	@Override
 	public <T> BulkUpdate set(Path<T> path, QueryExpression<? super T> expression) {
@@ -104,7 +105,8 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate> implements
 			throw new DataAccessException("No values to update");
 		}
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getDialect(), AliasMode.UNSUPPORTED);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getExecutionContext().getDialect(),
+				AliasMode.UNSUPPORTED);
 
 		final String sql;
 		try {
@@ -120,16 +122,18 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate> implements
 			throw new DataAccessException("Failed to configure update operation", e);
 		}
 
+		// prepare SQL
+		final PreparedSql preparedSql = getExecutionContext().prepareSql(sql, context);
+		trace(preparedSql.getSql());
+
 		// execute
-		return getDatastore().withConnection(c -> {
+		return getExecutionContext().withConnection(c -> {
 
-			final PreparedSql preparedSql = JdbcDatastoreUtils.prepareSql(sql, context);
-			trace(preparedSql.getSql());
-
-			try (PreparedStatement stmt = preparedSql.createStatement(c, getDialect())) {
+			try (PreparedStatement stmt = getExecutionContext().createStatement(c, preparedSql)) {
 				int count = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(count).build();
 			}
+			
 		});
 	}
 

@@ -21,8 +21,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -69,7 +73,13 @@ import com.holonplatform.datastore.jdbc.dialect.OracleDialect;
 import com.holonplatform.datastore.jdbc.dialect.PostgreSQLDialect;
 import com.holonplatform.datastore.jdbc.dialect.SQLServerDialect;
 import com.holonplatform.datastore.jdbc.dialect.SQLiteDialect;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
+import com.holonplatform.datastore.jdbc.internal.context.DefaultPreparedSql;
+import com.holonplatform.datastore.jdbc.internal.context.DefaultSQLStatementConfigurator;
+import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
+import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurator;
+import com.holonplatform.datastore.jdbc.internal.context.StatementConfigurationException;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
@@ -100,7 +110,6 @@ import com.holonplatform.datastore.jdbc.internal.resolvers.VisitableQueryFilterR
 import com.holonplatform.datastore.jdbc.internal.resolvers.VisitableQueryProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.VisitableQuerySortResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.WhereFilterResolver;
-import com.holonplatform.datastore.jdbc.internal.support.PreparedSql;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
@@ -580,11 +589,12 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			throw new DataAccessException("Failed to configure insert operation", e);
 		}
 
+		// prepare SQL
+		final PreparedSql preparedSql = prepareSql(sql, context);
+		trace(preparedSql.getSql());
+
 		// execute
 		return withConnection(c -> {
-
-			final PreparedSql preparedSql = JdbcDatastoreUtils.prepareSql(sql, context);
-			trace(preparedSql.getSql());
 
 			// primary key
 			Optional<Path<?>[]> pk = Optional.empty();
@@ -614,8 +624,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 					pkNames)) {
 
 				// configure parameters
-				context.getDialect().getStatementConfigurator().configureStatement(c, stmt, preparedSql.getSql(),
-						preparedSql.getParameterValues());
+				getStatementConfigurator().configureStatement(stmt, preparedSql.getSql(), preparedSql.getParameters());
 
 				int inserted = stmt.executeUpdate();
 
@@ -710,15 +719,17 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			throw new DataAccessException("Failed to configure update operation", e);
 		}
 
+		// prepare SQL
+		final PreparedSql preparedSql = prepareSql(sql, context);
+		trace(preparedSql.getSql());
+
 		return withConnection(c -> {
 
-			PreparedSql preparedSql = JdbcDatastoreUtils.prepareSql(sql, context);
-			trace(preparedSql.getSql());
-
-			try (PreparedStatement stmt = preparedSql.createStatement(c, getDialect())) {
+			try (PreparedStatement stmt = createStatement(c, preparedSql)) {
 				int result = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(result).build();
 			}
+
 		});
 	}
 
@@ -750,13 +761,14 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			throw new DataAccessException("Failed to configure delete operation", e);
 		}
 
+		// prepare SQL
+		final PreparedSql preparedSql = prepareSql(sql, context);
+		trace(preparedSql.getSql());
+
 		// execute
 		return withConnection(c -> {
 
-			PreparedSql preparedSql = JdbcDatastoreUtils.prepareSql(sql, context);
-			trace(preparedSql.getSql());
-
-			try (PreparedStatement stmt = preparedSql.createStatement(c, getDialect())) {
+			try (PreparedStatement stmt = createStatement(c, preparedSql)) {
 				int deleted = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.DELETE).affectedCount(deleted).build();
 			}
@@ -771,7 +783,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	@Override
 	public BulkInsert bulkInsert(DataTarget<?> target, PropertySet<?> propertySet, WriteOption... options) {
 		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		return new JdbcBulkInsert(this, target, getDialect(), isTraceEnabled(), propertySet);
+		return new JdbcBulkInsert(this, target, isTraceEnabled(), propertySet);
 	}
 
 	/*
@@ -782,7 +794,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	@Override
 	public BulkUpdate bulkUpdate(DataTarget<?> target, WriteOption... options) {
 		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		return new JdbcBulkUpdate(this, target, getDialect(), isTraceEnabled());
+		return new JdbcBulkUpdate(this, target, isTraceEnabled());
 	}
 
 	/*
@@ -793,7 +805,88 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	@Override
 	public BulkDelete bulkDelete(DataTarget<?> target, WriteOption... options) {
 		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		return new JdbcBulkDelete(this, target, getDialect(), isTraceEnabled());
+		return new JdbcBulkDelete(this, target, isTraceEnabled());
+	}
+
+	// ------- Execution context
+
+	@Override
+	public SQLStatementConfigurator<PreparedStatement> getStatementConfigurator() {
+		return DefaultSQLStatementConfigurator.INSTANCE;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.internal.context.StatementExecutionContext#prepareSql(java.lang.String,
+	 * com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext)
+	 */
+	@Override
+	public PreparedSql prepareSql(String sql, JdbcResolutionContext context) {
+		ObjectUtils.argumentNotNull(sql, "SQL to prepare must be not null");
+		ObjectUtils.argumentNotNull(context, "Resolution context must be not null");
+		final Map<String, SQLParameterDefinition> namedParameters = context.getNamedParameters();
+
+		if (!namedParameters.isEmpty()) {
+
+			char[] chars = sql.toCharArray();
+			final int length = chars.length;
+
+			StringBuilder sb = new StringBuilder();
+
+			List<SQLParameterDefinition> parameters = new ArrayList<>(namedParameters.size());
+
+			for (int i = 0; i < length; i++) {
+				if (chars[i] == ':' && (length - i) >= 7) {
+					String namedParameter = String.valueOf(Arrays.copyOfRange(chars, i, i + 7));
+					if (namedParameters.containsKey(namedParameter)) {
+						sb.append('?');
+						parameters.add(namedParameters.get(namedParameter));
+						i = i + 6;
+						continue;
+					}
+				}
+				sb.append(chars[i]);
+			}
+
+			return new DefaultPreparedSql(sb.toString(), parameters);
+
+		}
+
+		return new DefaultPreparedSql(sql, Collections.emptyList());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext#createStatement(java.sql.
+	 * Connection, java.lang.String, java.util.List)
+	 */
+	@Override
+	public PreparedStatement createStatement(Connection connection, PreparedSql sql) throws SQLException {
+		ObjectUtils.argumentNotNull(connection, "Connection must be not null");
+		ObjectUtils.argumentNotNull(sql, "SQL must be not null");
+
+		PreparedStatement stmt = connection.prepareStatement(sql.getSql());
+
+		try {
+			getStatementConfigurator().configureStatement(stmt, sql.getSql(), sql.getParameters());
+		} catch (StatementConfigurationException e) {
+			throw new SQLException("Failed to configure statement [" + sql + "]", e);
+		}
+
+		return stmt;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.internal.context.StatementExecutionContext#trace(java.lang.String)
+	 */
+	@Override
+	public void trace(String sql) {
+		if (isTraceEnabled()) {
+			LOGGER.info("(TRACE) SQL: [" + sql + "]");
+		} else {
+			LOGGER.debug(() -> "SQL: [" + sql + "]");
+		}
 	}
 
 	/**
@@ -873,18 +966,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	protected TablePrimaryKey getTablePrimaryKey(JdbcResolutionContext context, DataTarget<?> target) {
 		return resolvePrimaryKey(context, target).orElseThrow(
 				() -> new DataAccessException("Cannot obtain the primary key for target [" + target + "]"));
-	}
-
-	/**
-	 * Trace given SQL if {@link #isTraceEnabled()}.
-	 * @param sql SQL to trace
-	 */
-	protected void trace(String sql) {
-		if (isTraceEnabled()) {
-			LOGGER.info("(TRACE) SQL: [" + sql + "]");
-		} else {
-			LOGGER.debug(() -> "SQL: [" + sql + "]");
-		}
 	}
 
 	/**

@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,12 +42,12 @@ import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * SQLite {@link JdbcDialect}.
@@ -63,7 +62,6 @@ public class SQLiteDialect implements JdbcDialect {
 
 	private static final SQLiteLimitHandler LIMIT_HANDLER = new SQLiteLimitHandler();
 
-	private static final SQLiteParameterValueHandler PARAMETER_HANDLER = new SQLiteParameterValueHandler();
 	private static final SQLiteParameterProcessor PARAMETER_PROCESSOR = new SQLiteParameterProcessor();
 
 	private static final SQLiteValueDeserializer DESERIALIZER = new SQLiteValueDeserializer();
@@ -72,11 +70,8 @@ public class SQLiteDialect implements JdbcDialect {
 	private boolean generatedKeyAlwaysReturned;
 	private boolean supportsLikeEscapeClause;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public SQLiteDialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 		this.functions.registerFunction(Year.class, new ExtractTemporalPartFunction("%Y"));
 		this.functions.registerFunction(Month.class, new ExtractTemporalPartFunction("%m"));
 		this.functions.registerFunction(Day.class, new ExtractTemporalPartFunction("%d"));
@@ -109,29 +104,11 @@ public class SQLiteDialect implements JdbcDialect {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
-	 */
-	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getParameterProcessor()
 	 */
 	@Override
-	public Optional<SQLParameterProcessor> getParameterProcessor() {
-		return Optional.of(PARAMETER_PROCESSOR);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementParameterHandler()
-	 */
-	@Override
-	public Optional<StatementParameterHandler> getStatementParameterHandler() {
-		return Optional.of(PARAMETER_HANDLER);
+	public SQLParameterProcessor getParameterProcessor() {
+		return PARAMETER_PROCESSOR;
 	}
 
 	/*
@@ -212,37 +189,6 @@ public class SQLiteDialect implements JdbcDialect {
 		@Override
 		public String limitResults(JdbcQueryClauses query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" limit " + limit + " offset " + offset) : (" limit " + limit));
-		}
-
-	}
-
-	private static final class SQLiteParameterValueHandler implements StatementParameterHandler {
-
-		@Override
-		public Optional<Object> setParameterValue(Connection connection, PreparedStatement statement, int index,
-				ParameterValue parameterValue) throws SQLException {
-			if (parameterValue.getValue() != null && Reader.class.isAssignableFrom(parameterValue.getType())) {
-				// treat as string
-				try {
-					String str = readerToString((Reader) parameterValue.getValue());
-					statement.setString(index, str);
-					return Optional.of(str);
-				} catch (IOException e) {
-					throw new SQLException(e);
-				}
-			}
-			return Optional.empty();
-		}
-
-		private static String readerToString(Reader reader) throws IOException {
-			char[] arr = new char[8 * 1024];
-			StringBuilder buffer = new StringBuilder();
-			int numCharsRead;
-			while ((numCharsRead = reader.read(arr, 0, arr.length)) != -1) {
-				buffer.append(arr, 0, numCharsRead);
-			}
-			reader.close();
-			return buffer.toString();
 		}
 
 	}
@@ -332,21 +278,21 @@ public class SQLiteDialect implements JdbcDialect {
 	private static final class SQLiteParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public String processParameter(String serialized, ParameterValue parameter, DialectResolutionContext context) {
-			if (context.getResolutionQueryClause().isPresent()
-					&& (context.getResolutionQueryClause().get() == ResolutionQueryClause.WHERE)) {
-				TemporalType temporalType = parameter.getTemporalType().orElse(null);
-				if (temporalType != null) {
-					Optional<String> serializedTime = SQLValueSerializer.serializeDate(parameter.getValue(),
-							temporalType);
-					if (serializedTime.isPresent()) {
-						context.replaceParameter(serialized,
-								ParameterValue.create(String.class, serializedTime.get(), temporalType));
-						return serialized;
-					}
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
+				JdbcResolutionContext context) {
+			// Reader type serialization
+			if (Reader.class.isAssignableFrom(parameter.getType())) {
+				try {
+					return SQLParameterDefinition.create(ConversionUtils.readerToString((Reader) parameter.getValue()));
+				} catch (IOException e) {
+					throw new RuntimeException("Failed to convert Reader to String [" + parameter.getValue() + "]", e);
 				}
 			}
-			return serialized;
+			// check temporals
+			return parameter.getTemporalType()
+					.flatMap(temporalType -> SQLValueSerializer.serializeDate(parameter.getValue(), temporalType)
+							.map(value -> SQLParameterDefinition.create(value)))
+					.orElse(parameter);
 		}
 
 	}

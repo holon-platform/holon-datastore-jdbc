@@ -49,11 +49,8 @@ public class HSQLDialect implements JdbcDialect {
 	private boolean generatedKeyAlwaysReturned;
 	private boolean supportsLikeEscapeClause;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public HSQLDialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 		this.functions.registerFunction(Avg.class, new AvgFunction());
 	}
 
@@ -79,15 +76,6 @@ public class HSQLDialect implements JdbcDialect {
 	@Override
 	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {
 		return functions.getFunction(function);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
-	 */
-	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
 	}
 
 	/*

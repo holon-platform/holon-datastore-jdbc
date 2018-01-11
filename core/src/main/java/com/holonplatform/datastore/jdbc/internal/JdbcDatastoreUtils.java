@@ -30,12 +30,10 @@ import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -55,11 +53,6 @@ import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.JdbcDialect.StatementConfigurationException;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.support.DefaultPreparedSql;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
-import com.holonplatform.datastore.jdbc.internal.support.PreparedSql;
 
 /**
  * JDBC query utils.
@@ -114,55 +107,6 @@ public final class JdbcDatastoreUtils implements Serializable {
 			throw new InvalidExpressionException("Failed to resolve expression [" + expression + "]");
 		}
 		return resolved;
-	}
-
-	/**
-	 * Perform SQL preparation, replacing context named parameters with JDBC parameter character.
-	 * @param sql SQL to prepare
-	 * @param context Resolution context
-	 * @return Prepared sql
-	 * @throws StatementConfigurationException If an error occurred
-	 */
-	public static PreparedSql prepareSql(String sql, JdbcResolutionContext context)
-			throws StatementConfigurationException {
-
-		if (sql == null) {
-			throw new StatementConfigurationException("Null sql");
-		}
-		if (context == null) {
-			throw new StatementConfigurationException("Null context");
-		}
-
-		final Map<String, ParameterValue> namedParameters = context.getNamedParameters();
-
-		if (!namedParameters.isEmpty()) {
-
-			char[] chars = sql.toCharArray();
-			final int length = chars.length;
-
-			StringBuilder sb = new StringBuilder();
-
-			List<ParameterValue> parameters = new ArrayList<>(namedParameters.size());
-
-			for (int i = 0; i < length; i++) {
-				if (chars[i] == ':' && (length - i) >= 7) {
-					String namedParameter = String.valueOf(Arrays.copyOfRange(chars, i, i + 7));
-					if (namedParameters.containsKey(namedParameter)) {
-						sb.append('?');
-						parameters.add(namedParameters.get(namedParameter));
-						i = i + 6;
-						continue;
-					}
-				}
-				sb.append(chars[i]);
-			}
-
-			return new DefaultPreparedSql(sb.toString(), parameters);
-
-		}
-
-		return new DefaultPreparedSql(sql, Collections.emptyList());
-
 	}
 
 	/**

@@ -20,17 +20,15 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import com.holonplatform.core.Path;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
+import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.internal.JdbcQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
-import com.holonplatform.datastore.jdbc.internal.support.ParameterValue;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 import oracle.jdbc.OracleConnection;
 import oracle.sql.TIMESTAMP;
@@ -45,7 +43,6 @@ public class OracleDialect implements JdbcDialect {
 
 	private static final long serialVersionUID = 7693711472395387628L;
 
-	private static final OraclePathProcessor PATH_PROCESSOR = new OraclePathProcessor();
 	private static final OracleParameterProcessor PARAMETER_PROCESSOR = new OracleParameterProcessor();
 
 	private static final OracleValueDeserializer DESERIALIZER = new OracleValueDeserializer();
@@ -59,11 +56,8 @@ public class OracleDialect implements JdbcDialect {
 
 	private int oracleVersion;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public OracleDialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 	}
 
 	/*
@@ -84,15 +78,6 @@ public class OracleDialect implements JdbcDialect {
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 			return null;
 		});
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
-	 */
-	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
 	}
 
 	/*
@@ -151,20 +136,11 @@ public class OracleDialect implements JdbcDialect {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getPathProcessor()
-	 */
-	@Override
-	public Optional<SQLPathProcessor> getPathProcessor() {
-		return Optional.of(PATH_PROCESSOR);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getParameterProcessor()
 	 */
 	@Override
-	public Optional<SQLParameterProcessor> getParameterProcessor() {
-		return Optional.of(PARAMETER_PROCESSOR);
+	public SQLParameterProcessor getParameterProcessor() {
+		return PARAMETER_PROCESSOR;
 	}
 
 	/*
@@ -240,55 +216,20 @@ public class OracleDialect implements JdbcDialect {
 
 	}
 
-	private static final class OraclePathProcessor implements SQLPathProcessor {
-
-		@Override
-		public String processPath(String serialized, Path<?> path, ResolutionQueryClause clause) {
-			if (clause != null && (clause == ResolutionQueryClause.WHERE)) {
-				TemporalType temporalType = JdbcDatastoreUtils.getTemporalType(path, true).orElse(null);
-				if (temporalType != null) {
-					if (TemporalType.DATE == temporalType) {
-						return "trunc(" + serialized + ")";
-					}
-					if (TemporalType.TIME == temporalType) {
-						return "to_char(" + serialized + ",'HH24:MI:SS')";
-					}
-				}
-			}
-			return serialized;
-		}
-
-	}
-
 	private static final class OracleParameterProcessor implements SQLParameterProcessor {
 
 		@Override
-		public String processParameter(String serialized, ParameterValue parameter, DialectResolutionContext context) {
-			if (context.getResolutionQueryClause().isPresent()
-					&& (context.getResolutionQueryClause().get() == ResolutionQueryClause.WHERE)) {
-				TemporalType temporalType = parameter.getTemporalType().orElse(null);
-				if (temporalType != null) {
-					if (TemporalType.DATE == temporalType) {
-						Optional<String> serializedDate = SQLValueSerializer.serializeDate(parameter.getValue(),
-								temporalType);
-						if (serializedDate.isPresent()) {
-							context.replaceParameter(serialized,
-									ParameterValue.create(String.class, serializedDate.get(), temporalType));
-							return "to_date(" + serialized + ", '" + SQLValueSerializer.ANSI_DATE_FORMAT.toUpperCase()
-									+ "')";
-						}
-					} else if (TemporalType.TIME == temporalType) {
-						Optional<String> serializedTime = SQLValueSerializer.serializeDate(parameter.getValue(),
-								temporalType);
-						if (serializedTime.isPresent()) {
-							context.replaceParameter(serialized,
-									ParameterValue.create(String.class, serializedTime.get(), temporalType));
-							return serialized;
-						}
-					}
+		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter,
+				JdbcResolutionContext context) {
+			TemporalType temporalType = parameter.getTemporalType().orElse(null);
+			if (temporalType != null && TemporalType.DATE == temporalType) {
+				Optional<String> value = SQLValueSerializer.serializeDate(parameter.getValue(), temporalType);
+				if (value.isPresent()) {
+					return SQLParameterDefinition.create(value.get(),
+							p -> "to_date('" + p + "', '" + SQLValueSerializer.ANSI_DATE_FORMAT.toUpperCase() + "')");
 				}
 			}
-			return serialized;
+			return parameter;
 		}
 
 	}

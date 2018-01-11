@@ -39,11 +39,8 @@ public class InformixDialect implements JdbcDialect {
 	private boolean generatedKeyAlwaysReturned;
 	private boolean supportsLikeEscapeClause;
 
-	private final StatementConfigurator statementConfigurator;
-
 	public InformixDialect() {
 		super();
-		this.statementConfigurator = StatementConfigurator.create(this);
 	}
 
 	/*
@@ -59,15 +56,6 @@ public class InformixDialect implements JdbcDialect {
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 			return null;
 		});
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getStatementConfigurator()
-	 */
-	@Override
-	public StatementConfigurator getStatementConfigurator() {
-		return statementConfigurator;
 	}
 
 	/*

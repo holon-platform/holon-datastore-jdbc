@@ -34,7 +34,6 @@ import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.ResolutionQueryClause;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
 
 /**
@@ -81,22 +80,12 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 
 		// context
 		final JdbcResolutionContext context = JdbcResolutionContext.checkContext(resolutionContext);
-		final ResolutionQueryClause previous = context.getResolutionQueryClause().orElse(null);
 
 		// from
-		final RelationalTarget<?> target;
-		try {
-			context.setResolutionQueryClause(ResolutionQueryClause.FROM);
+		final RelationalTarget<?> target = JdbcDatastoreUtils.resolveExpression(context, expression.getTarget(),
+				RelationalTarget.class, context);
 
-			// relational target
-			target = JdbcDatastoreUtils.resolveExpression(context, expression.getTarget(), RelationalTarget.class,
-					context);
-
-			context.setTarget(target);
-
-		} finally {
-			context.setResolutionQueryClause(previous);
-		}
+		context.setTarget(target);
 
 		// configure statement
 
@@ -109,7 +98,7 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 		case DELETE:
 			if (context.getDialect().deleteStatementTargetRequired()) {
 				operation.append("DELETE");
-				context.getTargetAlias(target).ifPresent(a -> {
+				context.getAlias(target).ifPresent(a -> {
 					operation.append(" ");
 					operation.append(a);
 				});
@@ -140,15 +129,10 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 			final List<String> paths = new ArrayList<>(pathValues.size());
 			final List<String> values = new ArrayList<>(pathValues.size());
 
-			try {
-				context.setResolutionQueryClause(ResolutionQueryClause.SET);
-				// resolve path and value
-				for (Entry<Path<?>, QueryExpression<?>> entry : pathValues.entrySet()) {
-					paths.add(resolveExpression(entry.getKey(), context));
-					values.add(resolvePathValue(entry.getKey(), entry.getValue(), context, true));
-				}
-			} finally {
-				context.setResolutionQueryClause(previous);
+			// resolve path and value
+			for (Entry<Path<?>, QueryExpression<?>> entry : pathValues.entrySet()) {
+				paths.add(resolveExpression(entry.getKey(), context));
+				values.add(resolvePathValue(entry.getKey(), entry.getValue(), context, true));
 			}
 
 			// configure statement
