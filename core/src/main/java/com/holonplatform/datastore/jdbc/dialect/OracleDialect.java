@@ -226,7 +226,7 @@ public class OracleDialect implements JdbcDialect {
 				Optional<String> value = SQLValueSerializer.serializeDate(parameter.getValue(), temporalType);
 				if (value.isPresent()) {
 					return SQLParameterDefinition.create(value.get(),
-							p -> "to_date('" + p + "', '" + SQLValueSerializer.ANSI_DATE_FORMAT.toUpperCase() + "')");
+							p -> "to_date(" + p + ", '" + SQLValueSerializer.ANSI_DATE_FORMAT.toUpperCase() + "')");
 				}
 			}
 			return parameter;
