@@ -35,13 +35,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.Calendar;
-import java.util.Optional;
 
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
-import com.holonplatform.core.property.Property;
-import com.holonplatform.core.property.PropertyValueConverter;
+import com.holonplatform.core.query.ConverterExpression;
+import com.holonplatform.core.query.ExpressionValueConverter;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryResults.QueryResultConversionException;
 import com.holonplatform.datastore.jdbc.JdbcDialect.SQLValueDeserializer;
@@ -58,26 +57,23 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 	 */
 	INSTANCE;
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value) {
 		if (value != null) {
 
-			Class<?> targetType = expression.getType();
+			// check converter
+			ExpressionValueConverter<?, ?> converter = (expression instanceof ConverterExpression)
+					? ((ConverterExpression<?>) expression).getExpressionValueConverter().orElse(null) : null;
 
-			// check property converter for model type
-			Optional<PropertyValueConverter> converter = Optional.empty();
-			if (expression instanceof Property) {
-				converter = ((Property) expression).getConverter();
-				targetType = converter.map(c -> c.getModelType()).orElse(targetType);
-			}
+			// actual type to deserialize
+			Class<?> targetType = (converter != null) ? converter.getModelType() : expression.getType();
 
 			Object deserialized = deserialize(targetType, value);
 
-			if (converter.isPresent()) {
-				if (deserialized == null
-						|| TypeUtils.isAssignable(deserialized.getClass(), converter.get().getModelType())) {
-					deserialized = converter.get().fromModel(deserialized, (Property) expression);
+			if (converter != null) {
+				if (deserialized == null || TypeUtils.isAssignable(deserialized.getClass(), converter.getModelType())) {
+					deserialized = ((ExpressionValueConverter<Object, Object>) converter).fromModel(deserialized);
 				}
 			}
 
