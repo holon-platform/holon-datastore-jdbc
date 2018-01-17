@@ -36,12 +36,6 @@ public interface LiteralValue extends Expression, Serializable {
 	Object getValue();
 
 	/**
-	 * Get the value type
-	 * @return the value type
-	 */
-	Class<?> getType();
-
-	/**
 	 * If the value is a temporal value, get the {@link TemporalType} if available.
 	 * @return The value {@link TemporalType}, empty is value is not a temporal value or the temporal type cannot be
 	 *         detected
@@ -51,12 +45,11 @@ public interface LiteralValue extends Expression, Serializable {
 	/**
 	 * Create an {@link LiteralValue} using given value.
 	 * @param value Value
-	 * @param type Value type
 	 * @param temporalType Temporal type
 	 * @return A new {@link LiteralValue}
 	 */
-	static LiteralValue create(Object value, Class<?> type, TemporalType temporalType) {
-		return new DefaultLiteralValue(value, type, temporalType);
+	static LiteralValue create(Object value, TemporalType temporalType) {
+		return new DefaultLiteralValue(value, temporalType);
 	}
 
 }

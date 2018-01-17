@@ -82,7 +82,7 @@ public enum LiteralValueResolver implements ExpressionResolver<LiteralValue, SQL
 			final List<String> tokens = new ArrayList<>(((Collection<?>) expression.getValue()).size());
 			for (Object value : (Collection<?>) expression.getValue()) {
 				tokens.add(serialize(
-						LiteralValue.create(value, expression.getType(), expression.getTemporalType().orElse(null)),
+						LiteralValue.create(value, expression.getTemporalType().orElse(null)),
 						ctx));
 			}
 			serialized = tokens.stream().collect(Collectors.joining(","));

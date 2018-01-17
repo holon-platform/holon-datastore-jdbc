@@ -101,7 +101,6 @@ import com.holonplatform.datastore.jdbc.internal.resolvers.OrderBySortResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PathExpressionProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PathResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PrimaryKeyResolver;
-import com.holonplatform.datastore.jdbc.internal.resolvers.PropertyConstantExpressionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PropertySetProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.QueryAggregationResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.QueryFilterResolver;
@@ -195,7 +194,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		addExpressionResolver(DataTargetResolver.INSTANCE);
 		addExpressionResolver(PathResolver.INSTANCE);
 		addExpressionResolver(ConstantExpressionResolver.INSTANCE);
-		addExpressionResolver(PropertyConstantExpressionResolver.INSTANCE);
 		addExpressionResolver(LiteralValueResolver.INSTANCE);
 		addExpressionResolver(QueryFunctionResolver.INSTANCE);
 		addExpressionResolver(DialectQueryFunctionResolver.INSTANCE);
