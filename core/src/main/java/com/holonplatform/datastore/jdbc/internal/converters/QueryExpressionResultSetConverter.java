@@ -67,12 +67,11 @@ public class QueryExpressionResultSetConverter<T> extends AbstractResultSetConve
 		this.selection = selection;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public T convert(Connection connection, ResultSet resultSet) throws QueryResultConversionException {
 
 		try {
-			final Object value = dialect.getValueDeserializer().deserializeValue(connection, expression,
+			final T value = dialect.getValueDeserializer().deserializeValue(connection, expression,
 					getResult(dialect, resultSet, selection));
 
 			// check type
@@ -81,7 +80,7 @@ public class QueryExpressionResultSetConverter<T> extends AbstractResultSetConve
 						+ expression.getType().getName() + "], got a value of type: " + value.getClass().getName());
 			}
 
-			return (T) value;
+			return value;
 
 		} catch (SQLException e) {
 			throw new QueryResultConversionException(
