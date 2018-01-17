@@ -19,11 +19,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.holonplatform.core.Expression;
+import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.relational.Aliasable.AliasablePath;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 
 /**
  * Base {@link JdbcResolutionContext} class.
@@ -31,6 +35,11 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
  * @since 5.0.0
  */
 public abstract class AbstractJdbcResolutionContext implements JdbcResolutionContext {
+
+	/**
+	 * Logger
+	 */
+	private final static Logger LOGGER = JdbcDatastoreLogger.create();
 
 	private static final String ALIAS_CHARS = "abcdefghijklmnopqrstuvwxyw0123456789_";
 
@@ -97,6 +106,30 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 
 	/*
 	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#resolveExpression(com.holonplatform.
+	 * core.Expression, java.lang.Class)
+	 */
+	@Override
+	public <E extends Expression, R extends Expression> R resolveExpression(E expression, Class<R> resolutionType)
+			throws InvalidExpressionException {
+		// resolve
+		R resolved = resolve(expression, resolutionType, this).map(e -> {
+			// validate
+			e.validate();
+			return e;
+		}).orElse(null);
+		// check
+		if (resolved == null) {
+			LOGGER.debug(() -> "No ExpressionResolver available to resolve expression [" + expression + "]");
+			LOGGER.debug(() -> "Available ExpressionResolvers: " + getExpressionResolvers());
+			throw new InvalidExpressionException("Failed to resolve expression [" + expression + "]");
+		}
+		return resolved;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext#getAliasMode()
 	 */
 	@Override
@@ -111,7 +144,7 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 	@Override
 	public Optional<String> getRootAlias() {
 		if (target != null) {
-			
+
 			// check aliasable
 			if (AliasablePath.class.isAssignableFrom(target.getClass())) {
 				final AliasablePath<?, ?> ap = (AliasablePath<?, ?>) target;
@@ -119,7 +152,7 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 					return ap.getAlias();
 				}
 			}
-			
+
 			return Optional.ofNullable(pathAlias.get(target.getName()));
 		}
 		return Optional.empty();
@@ -133,7 +166,7 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 	@Override
 	public Optional<String> getAlias(Path<?> path) {
 		ObjectUtils.argumentNotNull(path, "Path must be not null");
-		
+
 		// check Aliasable
 		if (AliasablePath.class.isAssignableFrom(path.getClass())) {
 			final AliasablePath<?, ?> ap = (AliasablePath<?, ?>) path;
@@ -143,7 +176,7 @@ public abstract class AbstractJdbcResolutionContext implements JdbcResolutionCon
 		}
 
 		String alias = pathAlias.get(path.fullName());
-		
+
 		// check parent context
 		if (alias == null && getParent().isPresent()) {
 			JdbcResolutionContext ctx = getParent().get();

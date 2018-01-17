@@ -21,23 +21,22 @@ import java.util.stream.Collectors;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
-import com.holonplatform.core.internal.query.QueryStructure;
 import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.core.query.QueryConfiguration;
+import com.holonplatform.core.query.QueryExecution;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultJdbcQueryComposition;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcQueryComposition;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.ProjectionContext;
 
 /**
- * {@link QueryStructure} expression resolver.
+ * {@link QueryExecution} expression resolver.
  *
  * @since 5.0.0
  */
 @SuppressWarnings("rawtypes")
-public enum QueryStructureResolver implements ExpressionResolver<QueryStructure, JdbcQueryComposition> {
+public enum QueryStructureResolver implements ExpressionResolver<QueryExecution, JdbcQueryComposition> {
 
 	/**
 	 * Singleton instance.
@@ -49,8 +48,8 @@ public enum QueryStructureResolver implements ExpressionResolver<QueryStructure,
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends QueryStructure> getExpressionType() {
-		return QueryStructure.class;
+	public Class<? extends QueryExecution> getExpressionType() {
+		return QueryExecution.class;
 	}
 
 	/*
@@ -69,7 +68,7 @@ public enum QueryStructureResolver implements ExpressionResolver<QueryStructure,
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<JdbcQueryComposition> resolve(QueryStructure expression, ResolutionContext resolutionContext)
+	public Optional<JdbcQueryComposition> resolve(QueryExecution expression, ResolutionContext resolutionContext)
 			throws InvalidExpressionException {
 
 		// validate
@@ -89,27 +88,27 @@ public enum QueryStructureResolver implements ExpressionResolver<QueryStructure,
 
 		// from
 
-		RelationalTarget<?> target = JdbcDatastoreUtils.resolveExpression(context,
+		RelationalTarget<?> target = context.resolveExpression(
 				configuration.getTarget().orElseThrow(() -> new QueryBuildException("Missing query target")),
-				RelationalTarget.class, context);
+				RelationalTarget.class);
 
 		context.setTarget(target);
 
-		query.setFrom(JdbcDatastoreUtils.resolveExpression(context, target, SQLToken.class, context).getValue());
+		query.setFrom(context.resolveExpression(target, SQLToken.class).getValue());
 
 		// where
 		configuration.getFilter().ifPresent(f -> {
-			query.setWhere(JdbcDatastoreUtils.resolveExpression(context, f, SQLToken.class, context).getValue());
+			query.setWhere(context.resolveExpression(f, SQLToken.class).getValue());
 		});
 
 		// group by
 		configuration.getAggregation().ifPresent(a -> {
-			query.setGroupBy(JdbcDatastoreUtils.resolveExpression(context, a, SQLToken.class, context).getValue());
+			query.setGroupBy(context.resolveExpression(a, SQLToken.class).getValue());
 		});
 
 		// order by
 		configuration.getSort().ifPresent(s -> {
-			query.setOrderBy(JdbcDatastoreUtils.resolveExpression(context, s, SQLToken.class, context).getValue());
+			query.setOrderBy(context.resolveExpression(s, SQLToken.class).getValue());
 		});
 
 		// select

@@ -185,10 +185,11 @@ public abstract class AbstractJdbcDatastoreTest {
 		Optional<Long> count = getDatastore().query().target(NAMED_TARGET).findOne(KEY.count());
 		assertEquals(new Long(2), count.get());
 	}
-	
+
 	@Test
 	public void testLiteralProjection() {
-		Integer value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(ConstantExpressionProjection.create(1)).orElse(null);
+		Integer value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
+				.findOne(ConstantExpressionProjection.create(1)).orElse(null);
 		assertNotNull(value);
 		assertEquals(Integer.valueOf(1), value);
 	}
@@ -891,27 +892,26 @@ public abstract class AbstractJdbcDatastoreTest {
 	@Test
 	public void testSubQuery() {
 
-		long count = getDatastore().query().target(NAMED_TARGET).filter(KEY.in(SubQuery
-				.create(getDatastore(), Long.class).target(TEST3).filter(TEST3_TEXT.eq("TestJoin")).select(TEST3_CODE)))
+		long count = getDatastore().query().target(NAMED_TARGET)
+				.filter(KEY.in(
+						SubQuery.create(Long.class).target(TEST3).filter(TEST3_TEXT.eq("TestJoin")).select(TEST3_CODE)))
 				.count();
 		assertEquals(1, count);
 
 		count = getDatastore().query().target(NAMED_TARGET)
-				.filter(KEY
-						.nin(SubQuery.create(getDatastore(), TEST3_CODE).target(TEST3).filter(TEST3_CODE.isNotNull())))
-				.count();
+				.filter(KEY.nin(SubQuery.create(TEST3_CODE).target(TEST3).filter(TEST3_CODE.isNotNull()))).count();
 		assertEquals(1, count);
 
 		final PathProperty<Long> T_KEY = KEY.clone().parent(NAMED_TARGET);
 
 		count = getDatastore().query().target(NAMED_TARGET)
-				.filter(SubQuery.create(getDatastore()).target(TEST3).filter(TEST3_CODE.eq(T_KEY)).exists()).count();
+				.filter(SubQuery.create().target(TEST3).filter(TEST3_CODE.eq(T_KEY)).exists()).count();
 		assertEquals(1, count);
 
 		final PathProperty<Long> D_KEY = NAMED_TARGET.property(KEY);
 
 		count = getDatastore().query().target(NAMED_TARGET)
-				.filter(SubQuery.create(getDatastore()).target(TEST3).filter(TEST3_CODE.eq(D_KEY)).notExists()).count();
+				.filter(SubQuery.create().target(TEST3).filter(TEST3_CODE.eq(D_KEY)).notExists()).count();
 		assertEquals(1, count);
 
 		// explicit alias
@@ -920,14 +920,14 @@ public abstract class AbstractJdbcDatastoreTest {
 		final PathProperty<Long> A_KEY = AT.property(KEY);
 
 		count = getDatastore().query().target(AT)
-				.filter(SubQuery.create(getDatastore()).target(TEST3).filter(TEST3_CODE.eq(A_KEY)).notExists()).count();
+				.filter(SubQuery.create().target(TEST3).filter(TEST3_CODE.eq(A_KEY)).notExists()).count();
 		assertEquals(1, count);
 
 		final RelationalTarget<String> AT2 = RelationalTarget.of(TEST3).alias("sub");
 		final PathProperty<Long> A2_KEY = AT2.property(TEST3_CODE);
 
 		count = getDatastore().query().target(AT)
-				.filter(SubQuery.create(getDatastore()).target(AT2).filter(A2_KEY.eq(A_KEY)).notExists()).count();
+				.filter(SubQuery.create().target(AT2).filter(A2_KEY.eq(A_KEY)).notExists()).count();
 		assertEquals(1, count);
 
 	}

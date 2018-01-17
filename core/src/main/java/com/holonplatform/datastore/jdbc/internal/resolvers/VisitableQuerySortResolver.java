@@ -31,7 +31,6 @@ import com.holonplatform.core.query.QuerySort.CompositeQuerySort;
 import com.holonplatform.core.query.QuerySort.PathQuerySort;
 import com.holonplatform.core.query.QuerySort.SortDirection;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
@@ -90,7 +89,7 @@ public enum VisitableQuerySortResolver
 	@Override
 	public SQLToken visit(PathQuerySort<?> sort, JdbcResolutionContext context) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(JdbcDatastoreUtils.resolveExpression(context, sort.getPath(), SQLToken.class, context).getValue());
+		sb.append(context.resolveExpression(sort.getPath(), SQLToken.class).getValue());
 		sb.append(" ");
 		if (sort.getDirection() == SortDirection.ASCENDING) {
 			sb.append("asc");
@@ -109,7 +108,7 @@ public enum VisitableQuerySortResolver
 	public SQLToken visit(CompositeQuerySort sort, JdbcResolutionContext context) {
 		List<String> resolved = new LinkedList<>();
 		QueryUtils.flattenQuerySort(sort).forEach(s -> {
-			resolved.add(JdbcDatastoreUtils.resolveExpression(context, s, SQLToken.class, context).getValue());
+			resolved.add(context.resolveExpression(s, SQLToken.class).getValue());
 		});
 		return SQLToken.create(resolved.stream().collect(Collectors.joining(",")));
 	}

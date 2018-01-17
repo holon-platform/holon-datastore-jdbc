@@ -23,7 +23,6 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.query.PathExpression;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.converters.QueryExpressionResultSetConverter;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultProjectionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
@@ -58,10 +57,9 @@ public enum PathExpressionProjectionResolver implements ExpressionResolver<PathE
 
 		final DefaultProjectionContext ctx = new DefaultProjectionContext<>(jdbcContext);
 		// resolve path alias
-		final String alias = ctx.addSelection(
-				JdbcDatastoreUtils.resolveExpression(context, expression, SQLToken.class, context).getValue());
+		final String alias = ctx.addSelection(jdbcContext.resolveExpression(expression, SQLToken.class).getValue());
 		ctx.setConverter(new QueryExpressionResultSetConverter<>(jdbcContext.getDialect(), expression, alias));
-		
+
 		return Optional.of(ctx);
 	}
 

@@ -23,7 +23,6 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.converters.QueryExpressionResultSetConverter;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultProjectionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
@@ -49,7 +48,7 @@ public enum QueryFunctionProjectionResolver implements ExpressionResolver<QueryF
 	@Override
 	public Optional<ProjectionContext> resolve(QueryFunction expression, ResolutionContext context)
 			throws InvalidExpressionException {
-		
+
 		// validate
 		expression.validate();
 
@@ -58,10 +57,9 @@ public enum QueryFunctionProjectionResolver implements ExpressionResolver<QueryF
 
 		final DefaultProjectionContext ctx = new DefaultProjectionContext<>(jdbcContext);
 		// resolve function alias
-		final String alias = ctx.addSelection(
-				JdbcDatastoreUtils.resolveExpression(context, expression, SQLToken.class, context).getValue());
+		final String alias = ctx.addSelection(jdbcContext.resolveExpression(expression, SQLToken.class).getValue());
 		ctx.setConverter(new QueryExpressionResultSetConverter<>(jdbcContext.getDialect(), expression, alias));
-		
+
 		return Optional.of(ctx);
 	}
 

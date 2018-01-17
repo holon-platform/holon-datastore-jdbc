@@ -33,15 +33,9 @@ import java.util.Date;
 import java.util.Optional;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler;
-import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
-import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.Datastore.WriteOption;
 import com.holonplatform.core.datastore.DefaultWriteOption;
-import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.QueryExpression;
@@ -56,50 +50,10 @@ public final class JdbcDatastoreUtils implements Serializable {
 
 	private static final long serialVersionUID = 6908756408186059733L;
 
-	/**
-	 * Logger
-	 */
-	private final static Logger LOGGER = JdbcDatastoreLogger.create();
-
 	/*
 	 * Empty private constructor: this class is intended only to provide constants ad utility methods.
 	 */
 	private JdbcDatastoreUtils() {
-	}
-
-	/**
-	 * Resolve given <code>expression</code> using given <code>resolver</code> to obtain a <code>resolutionType</code>
-	 * type expression. If no {@link ExpressionResolver} is available to resolve given expression, an
-	 * {@link InvalidExpressionException} is thrown. The resolved expression is validate using
-	 * {@link Expression#validate()} before returning it to caller.
-	 * @param <E> Expression type
-	 * @param <R> Resolution type
-	 * @param resolver {@link ExpressionResolverHandler}
-	 * @param expression Expression to resolve
-	 * @param resolutionType Expression type to obtain
-	 * @param context Resolution context
-	 * @return Resolved expression
-	 * @throws InvalidExpressionException If an error occurred during resolution, or if no {@link ExpressionResolver} is
-	 *         available to resolve given expression or if expression validation failed
-	 */
-	public static <E extends Expression, R extends Expression> R resolveExpression(ExpressionResolverHandler resolver,
-			E expression, Class<R> resolutionType, ResolutionContext context) throws InvalidExpressionException {
-		// resolve
-		R resolved = resolver.resolve(expression, resolutionType, context).map(e -> {
-			// validate
-			e.validate();
-			return e;
-		}).orElse(null);
-		// check
-		if (resolved == null) {
-			LOGGER.debug(() -> "No ExpressionResolver available to resolve expression [" + expression + "]");
-			if (resolver instanceof ExpressionResolverSupport) {
-				LOGGER.debug(() -> "Available ExpressionResolvers: "
-						+ ((ExpressionResolverSupport) resolver).getExpressionResolvers());
-			}
-			throw new InvalidExpressionException("Failed to resolve expression [" + expression + "]");
-		}
-		return resolved;
 	}
 
 	/**

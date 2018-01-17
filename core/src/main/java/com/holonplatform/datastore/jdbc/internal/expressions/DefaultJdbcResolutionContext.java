@@ -23,11 +23,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler;
+import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
+import com.holonplatform.core.ExpressionResolverRegistry;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
+import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 
 /**
  * Default {@link JdbcResolutionContext} implementation.
@@ -36,10 +38,10 @@ import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
  */
 public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext {
 
-	/**
-	 * Expression resolver handler
+	/*
+	 * Expression resolvers
 	 */
-	private final ExpressionResolverHandler expressionResolverHandler;
+	private final ExpressionResolverRegistry expressionResolverRegistry = ExpressionResolverRegistry.create();
 
 	/**
 	 * Dialect
@@ -62,13 +64,13 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 	 * @param dialect Dialect (not null)
 	 * @param aliasMode Alias mode
 	 */
-	public DefaultJdbcResolutionContext(ExpressionResolverHandler expressionResolverHandler, JdbcDialect dialect,
-			AliasMode aliasMode) {
+	public DefaultJdbcResolutionContext(JdbcStatementExecutionContext context, AliasMode aliasMode) {
 		super(null, 0, aliasMode);
-		ObjectUtils.argumentNotNull(expressionResolverHandler, "ExpressionResolverHandler must be not null");
-		ObjectUtils.argumentNotNull(dialect, "Dialect must be not null");
-		this.expressionResolverHandler = expressionResolverHandler;
-		this.dialect = dialect;
+		ObjectUtils.argumentNotNull(context, "Context must be not null");
+		this.dialect = context.getDialect();
+
+		// inherit resolvers
+		addExpressionResolvers(context.getExpressionResolvers());
 	}
 
 	/*
@@ -91,7 +93,41 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 	@Override
 	public <E extends Expression, R extends Expression> Optional<R> resolve(E expression, Class<R> resolutionType,
 			ResolutionContext context) throws InvalidExpressionException {
-		return expressionResolverHandler.resolve(expression, resolutionType, context);
+		return expressionResolverRegistry.resolve(expression, resolutionType, context);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler#getExpressionResolvers()
+	 */
+	@SuppressWarnings("rawtypes")
+	@Override
+	public Iterable<ExpressionResolver> getExpressionResolvers() {
+		return expressionResolverRegistry.getExpressionResolvers();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport#addExpressionResolver(com.holonplatform.core.
+	 * ExpressionResolver)
+	 */
+	@Override
+	public <E extends Expression, R extends Expression> void addExpressionResolver(
+			ExpressionResolver<E, R> expressionResolver) {
+		expressionResolverRegistry.addExpressionResolver(expressionResolver);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport#removeExpressionResolver(com.holonplatform.
+	 * core.ExpressionResolver)
+	 */
+	@Override
+	public <E extends Expression, R extends Expression> void removeExpressionResolver(
+			ExpressionResolver<E, R> expressionResolver) {
+		expressionResolverRegistry.removeExpressionResolver(expressionResolver);
 	}
 
 	/*
@@ -224,6 +260,39 @@ public class DefaultJdbcResolutionContext extends AbstractJdbcResolutionContext 
 		public <E extends Expression, R extends Expression> Optional<R> resolve(E expression, Class<R> resolutionType,
 				ResolutionContext context) throws InvalidExpressionException {
 			return parent().resolve(expression, resolutionType, context);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport#addExpressionResolver(com.holonplatform.
+		 * core.ExpressionResolver)
+		 */
+		@Override
+		public <E extends Expression, R extends Expression> void addExpressionResolver(
+				ExpressionResolver<E, R> expressionResolver) {
+			parent().addExpressionResolver(expressionResolver);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport#removeExpressionResolver(com.
+		 * holonplatform.core.ExpressionResolver)
+		 */
+		@Override
+		public <E extends Expression, R extends Expression> void removeExpressionResolver(
+				ExpressionResolver<E, R> expressionResolver) {
+			parent().removeExpressionResolver(expressionResolver);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler#getExpressionResolvers()
+		 */
+		@SuppressWarnings("rawtypes")
+		@Override
+		public Iterable<ExpressionResolver> getExpressionResolvers() {
+			return parent().getExpressionResolvers();
 		}
 
 		/*

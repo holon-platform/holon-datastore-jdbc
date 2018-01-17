@@ -71,7 +71,6 @@ public abstract class AbstractBulkOperation<O extends ExpressionResolverBuilder<
 	 * @param target Data target (not null)
 	 * @param traceEnabled Whether tracing is enabled
 	 */
-	@SuppressWarnings("unchecked")
 	public AbstractBulkOperation(S executionContext, DataTarget<?> target, boolean traceEnabled) {
 		super();
 		ObjectUtils.argumentNotNull(executionContext, "Execution context must be not null");
@@ -79,9 +78,6 @@ public abstract class AbstractBulkOperation<O extends ExpressionResolverBuilder<
 		this.executionContext = executionContext;
 		this.target = target;
 		this.traceEnabled = traceEnabled;
-
-		// inherit resolvers
-		executionContext.getExpressionResolvers().forEach(r -> expressionResolverRegistry.addExpressionResolver(r));
 	}
 
 	/**
@@ -170,6 +166,16 @@ public abstract class AbstractBulkOperation<O extends ExpressionResolverBuilder<
 	public <E extends Expression, R extends Expression> Optional<R> resolve(E expression, Class<R> resolutionType,
 			ResolutionContext context) throws InvalidExpressionException {
 		return getExpressionResolverRegistry().resolve(expression, resolutionType, context);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler#getExpressionResolvers()
+	 */
+	@SuppressWarnings("rawtypes")
+	@Override
+	public Iterable<ExpressionResolver> getExpressionResolvers() {
+		return getExpressionResolverRegistry().getExpressionResolvers();
 	}
 
 }

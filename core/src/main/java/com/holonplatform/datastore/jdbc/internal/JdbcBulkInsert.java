@@ -96,8 +96,11 @@ public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert, JdbcStatem
 			throw new DataAccessException("No values to insert");
 		}
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getExecutionContext().getDialect(),
+		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(),
 				AliasMode.UNSUPPORTED);
+
+		// add operation specific resolvers
+		context.addExpressionResolvers(getExpressionResolvers());
 
 		final List<Property> pathProperties = propertySet.stream()
 				.filter(property -> Path.class.isAssignableFrom(property.getClass())).collect(Collectors.toList());
@@ -112,7 +115,7 @@ public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert, JdbcStatem
 			});
 
 			// resolve OperationStructure
-			sql = JdbcDatastoreUtils.resolveExpression(this, builder.build(), SQLToken.class, context).getValue();
+			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
 
 		} catch (InvalidExpressionException e) {
 			throw new DataAccessException("Failed to configure insert operation", e);

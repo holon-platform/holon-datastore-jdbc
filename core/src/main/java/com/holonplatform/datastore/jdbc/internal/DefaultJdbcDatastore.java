@@ -554,7 +554,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
 
 		try {
-			final JdbcResolutionContext context = JdbcResolutionContext.create(this, getDialect(), AliasMode.AUTO);
+			final JdbcResolutionContext context = JdbcResolutionContext.create(this, AliasMode.AUTO);
 			final TablePrimaryKey primaryKey = getTablePrimaryKey(context, target);
 			return query().target(target).filter(getPrimaryKeyFilter(primaryKey, propertyBox)).findOne(propertyBox)
 					.orElseThrow(() -> new DataAccessException(
@@ -580,7 +580,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		try {
 			// check exist
 			Optional<TablePrimaryKey> primaryKey = resolvePrimaryKey(
-					JdbcResolutionContext.create(this, getDialect(), AliasMode.UNSUPPORTED), target);
+					JdbcResolutionContext.create(this, AliasMode.UNSUPPORTED), target);
 			if (!primaryKey.isPresent()) {
 				LOGGER.warn("(save) Cannot obtain the primary key for target [" + target
 						+ "]: an INSERT operation will be performed by default");
@@ -615,7 +615,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		ObjectUtils.argumentNotNull(target, "Data target must be not null");
 		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getDialect(), AliasMode.UNSUPPORTED);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(this, AliasMode.UNSUPPORTED);
 
 		final String sql;
 		try {
@@ -629,7 +629,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 					});
 
 			// resolve OperationStructure
-			sql = JdbcDatastoreUtils.resolveExpression(this, builder.build(), SQLToken.class, context).getValue();
+			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
 
 		} catch (InvalidExpressionException e) {
 			throw new DataAccessException("Failed to configure insert operation", e);
@@ -744,7 +744,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		ObjectUtils.argumentNotNull(target, "Data target must be not null");
 		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getDialect(), AliasMode.UNSUPPORTED);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(this, AliasMode.UNSUPPORTED);
 
 		final String sql;
 		try {
@@ -759,7 +759,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			builder.withFilter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox));
 
 			// resolve OperationStructure
-			sql = JdbcDatastoreUtils.resolveExpression(this, builder.build(), SQLToken.class, context).getValue();
+			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
 
 		} catch (InvalidExpressionException e) {
 			throw new DataAccessException("Failed to configure update operation", e);
@@ -790,7 +790,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		ObjectUtils.argumentNotNull(target, "Data target must be not null");
 		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getDialect(),
+		final JdbcResolutionContext context = JdbcResolutionContext.create(this,
 				getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO : AliasMode.UNSUPPORTED);
 
 		final String sql;
@@ -801,7 +801,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			builder.withFilter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox));
 
 			// resolve OperationStructure
-			sql = JdbcDatastoreUtils.resolveExpression(this, builder.build(), SQLToken.class, context).getValue();
+			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
 
 		} catch (InvalidExpressionException e) {
 			throw new DataAccessException("Failed to configure delete operation", e);

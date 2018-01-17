@@ -28,7 +28,6 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.PropertySetProjection;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.converters.PropertyBoxResultSetConverter;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultProjectionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
@@ -65,8 +64,8 @@ public enum PropertySetProjectionResolver implements ExpressionResolver<Property
 
 		for (Property<?> property : expression.getPropertySet()) {
 			if (QueryExpression.class.isAssignableFrom(property.getClass())) {
-				final String alias = ctx.addSelection(JdbcDatastoreUtils
-						.resolveExpression(context, (QueryExpression<?>) property, SQLToken.class, context).getValue());
+				final String alias = ctx.addSelection(jdbcContext
+						.resolveExpression((QueryExpression<?>) property, SQLToken.class).getValue());
 				propertySelection.put(alias, property);
 			}
 		}

@@ -24,7 +24,7 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.internal.query.ConstantExpressionProjection;
 import com.holonplatform.core.query.CountAllProjection;
 import com.holonplatform.core.query.QueryFunction.Count;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.ProjectionContext;
 
 /**
@@ -35,7 +35,7 @@ import com.holonplatform.datastore.jdbc.internal.expressions.ProjectionContext;
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
 public enum CountAllProjectionResolver implements ExpressionResolver<CountAllProjection, ProjectionContext> {
-	
+
 	INSTANCE;
 
 	/*
@@ -50,8 +50,10 @@ public enum CountAllProjectionResolver implements ExpressionResolver<CountAllPro
 		// validate
 		expression.validate();
 
-		return Optional.ofNullable(JdbcDatastoreUtils.resolveExpression(context,
-				Count.create(ConstantExpressionProjection.create("*")), ProjectionContext.class, context));
+		final JdbcResolutionContext jdbcContext = JdbcResolutionContext.checkContext(context);
+
+		return Optional.ofNullable(jdbcContext.resolveExpression(Count.create(ConstantExpressionProjection.create("*")),
+				ProjectionContext.class));
 	}
 
 	/*

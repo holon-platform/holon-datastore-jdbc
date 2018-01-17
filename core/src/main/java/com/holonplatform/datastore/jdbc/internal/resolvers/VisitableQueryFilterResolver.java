@@ -46,7 +46,6 @@ import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.StringFunction.Lower;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
@@ -241,7 +240,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 			throw new InvalidExpressionException(
 					"Invalid right operand expression for StringMatchFilter: [" + filter.getRightOperand().get() + "]");
 		}
-		Object resolved = ((ConstantExpression<?,?>) filter.getRightOperand().get()).getModelValue();
+		Object resolved = ((ConstantExpression<?, ?>) filter.getRightOperand().get()).getModelValue();
 		if (resolved == null) {
 			throw new InvalidExpressionException(
 					"Invalid right operand value for StringMatchFilter: [" + resolved + "]");
@@ -283,8 +282,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 		sb.append(path);
 
 		sb.append(" LIKE ");
-		sb.append(JdbcDatastoreUtils
-				.resolveExpression(context, ConstantExpression.create(value), SQLToken.class, context).getValue());
+		sb.append(context.resolveExpression(ConstantExpression.create(value), SQLToken.class).getValue());
 
 		if (escape) {
 			sb.append(" ESCAPE '!'");
@@ -330,8 +328,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 	public SQLToken visit(NotFilter filter, JdbcResolutionContext context) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("NOT (");
-		sb.append(JdbcDatastoreUtils.resolveExpression(context, filter.getComposition().get(0), SQLToken.class, context)
-				.getValue());
+		sb.append(context.resolveExpression(filter.getComposition().get(0), SQLToken.class).getValue());
 		sb.append(")");
 		return SQLToken.create(sb.toString());
 	}
@@ -349,7 +346,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 			throws InvalidExpressionException {
 		List<String> resolved = new LinkedList<>();
 		filters.forEach(f -> {
-			resolved.add(JdbcDatastoreUtils.resolveExpression(context, f, SQLToken.class, context).getValue());
+			resolved.add(context.resolveExpression(f, SQLToken.class).getValue());
 		});
 		return resolved.stream().collect(Collectors.joining(separator));
 	}
@@ -363,7 +360,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 	 */
 	private static String resolve(Expression expression, JdbcResolutionContext context)
 			throws InvalidExpressionException {
-		return JdbcDatastoreUtils.resolveExpression(context, expression, SQLToken.class, context).getValue();
+		return context.resolveExpression(expression, SQLToken.class).getValue();
 	}
 
 	/**
@@ -377,7 +374,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 			throws InvalidExpressionException {
 		QueryExpression<?> operand = filter.getRightOperand()
 				.orElseThrow(() -> new InvalidExpressionException("Missing right operand in filter [" + filter + "]"));
-		return JdbcDatastoreUtils.resolveExpression(context, operand, SQLToken.class, context).getValue();
+		return context.resolveExpression(operand, SQLToken.class).getValue();
 	}
 
 }

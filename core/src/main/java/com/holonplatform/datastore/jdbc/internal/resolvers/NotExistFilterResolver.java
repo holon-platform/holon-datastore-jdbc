@@ -23,7 +23,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.internal.datastore.relational.NotExistsFilter;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * {@link NotExistsFilter} expression resolver.
@@ -67,12 +67,14 @@ public enum NotExistFilterResolver implements ExpressionResolver<NotExistsFilter
 
 		// validate
 		expression.validate();
+		
+		final JdbcResolutionContext jdbcContext = JdbcResolutionContext.checkContext(context);
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("NOT EXISTS (");
 
 		// resolve sub query
-		sb.append(JdbcDatastoreUtils.resolveExpression(context, expression.getSubQuery(), SQLToken.class, context)
+		sb.append(jdbcContext.resolveExpression(expression.getSubQuery(), SQLToken.class)
 				.getValue());
 
 		sb.append(")");

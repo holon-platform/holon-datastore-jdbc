@@ -32,7 +32,6 @@ import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
 
@@ -82,8 +81,7 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 		final JdbcResolutionContext context = JdbcResolutionContext.checkContext(resolutionContext);
 
 		// from
-		final RelationalTarget<?> target = JdbcDatastoreUtils.resolveExpression(context, expression.getTarget(),
-				RelationalTarget.class, context);
+		final RelationalTarget<?> target = context.resolveExpression(expression.getTarget(), RelationalTarget.class);
 
 		context.setTarget(target);
 
@@ -120,7 +118,7 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 		operation.append(" ");
 
 		// target
-		operation.append(JdbcDatastoreUtils.resolveExpression(context, target, SQLToken.class, context).getValue());
+		operation.append(context.resolveExpression(target, SQLToken.class).getValue());
 
 		// values
 		if (type == OperationType.INSERT || type == OperationType.UPDATE) {
@@ -163,7 +161,7 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 		if (type != OperationType.INSERT) {
 			expression.getFilter().ifPresent(f -> {
 				operation.append(" WHERE ");
-				operation.append(JdbcDatastoreUtils.resolveExpression(context, f, SQLToken.class, context).getValue());
+				operation.append(context.resolveExpression(f, SQLToken.class).getValue());
 			});
 		}
 
@@ -208,13 +206,13 @@ public enum OperationStructureResolver implements ExpressionResolver<OperationSt
 
 			// check converter
 			if (path instanceof Property) {
-				return JdbcDatastoreUtils.resolveExpression(context,
-						ConstantExpression.create(((Property<Object>) path).getConvertedValue(value)), SQLToken.class,
-						context).getValue();
+				return context.resolveExpression(
+						ConstantExpression.create(((Property<Object>) path).getConvertedValue(value)), SQLToken.class)
+						.getValue();
 			}
 		}
 
-		return JdbcDatastoreUtils.resolveExpression(context, expression, SQLToken.class, context).getValue();
+		return context.resolveExpression(expression, SQLToken.class).getValue();
 	}
 
 }

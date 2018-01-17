@@ -66,9 +66,12 @@ public class JdbcBulkDelete extends AbstractBulkOperation<BulkDelete, JdbcStatem
 	@Override
 	public OperationResult execute() {
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getExecutionContext().getDialect(),
+		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(),
 				getExecutionContext().getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO
 						: AliasMode.UNSUPPORTED);
+		
+		// add operation specific resolvers
+		context.addExpressionResolvers(getExpressionResolvers());
 
 		final String sql;
 		try {
@@ -77,7 +80,7 @@ public class JdbcBulkDelete extends AbstractBulkOperation<BulkDelete, JdbcStatem
 			getFilter().ifPresent(f -> builder.withFilter(f));
 
 			// resolve OperationStructure
-			sql = JdbcDatastoreUtils.resolveExpression(this, builder.build(), SQLToken.class, context).getValue();
+			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
 
 		} catch (InvalidExpressionException e) {
 			throw new DataAccessException("Failed to configure delete operation", e);

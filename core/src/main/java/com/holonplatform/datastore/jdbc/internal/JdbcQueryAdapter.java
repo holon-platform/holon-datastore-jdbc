@@ -22,11 +22,10 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import com.holonplatform.core.internal.query.QueryAdapter;
-import com.holonplatform.core.internal.query.QueryStructure;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.core.query.QueryConfiguration;
-import com.holonplatform.core.query.QueryProjection;
+import com.holonplatform.core.query.QueryExecution;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
@@ -66,25 +65,27 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.query.QueryAdapter#stream(com.holonplatform.core.query.QueryConfiguration,
-	 * com.holonplatform.core.query.QueryProjection)
+	 * @see com.holonplatform.core.internal.query.QueryAdapter#stream(com.holonplatform.core.query.QueryExecution)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <R> Stream<R> stream(QueryConfiguration configuration, QueryProjection<R> projection)
-			throws QueryExecutionException {
+	public <R> Stream<R> stream(QueryExecution<QueryConfiguration, R> queryExecution) throws QueryExecutionException {
+
+		// validate
+		queryExecution.validate();
 
 		// context
-		final JdbcResolutionContext context = JdbcResolutionContext.create(configuration,
-				getExecutionContext().getDialect(), AliasMode.AUTO);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(), AliasMode.AUTO);
+
+		// add query specific resolvers
+		context.addExpressionResolvers(queryExecution.getConfiguration().getExpressionResolvers());
 
 		final JdbcQueryComposition<R> query;
 		final PreparedSql preparedSql;
 		try {
 
 			// resolve query
-			query = context
-					.resolve(QueryStructure.create(configuration, projection), JdbcQueryComposition.class, context)
+			query = context.resolve(queryExecution, JdbcQueryComposition.class, context)
 					.orElseThrow(() -> new QueryBuildException("Failed to resolve query"));
 
 			query.validate();

@@ -27,7 +27,7 @@ import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * {@link QueryFunction} resolver.
@@ -73,8 +73,10 @@ public enum QueryFunctionResolver implements ExpressionResolver<QueryFunction, S
 		// validate
 		expression.validate();
 
+		final JdbcResolutionContext jdbcContext = JdbcResolutionContext.checkContext(context);
+
 		// resolve to a SQLFunction
-		SQLFunction function = JdbcDatastoreUtils.resolveExpression(context, expression, SQLFunction.class, context);
+		SQLFunction function = jdbcContext.resolveExpression(expression, SQLFunction.class);
 		// validate function
 		function.validate();
 
@@ -83,8 +85,7 @@ public enum QueryFunctionResolver implements ExpressionResolver<QueryFunction, S
 		if (expression.getExpressionArguments() != null) {
 			for (QueryExpression<?> argument : ((QueryFunction<?, ?>) expression).getExpressionArguments()) {
 				// resolve argument
-				arguments.add(
-						JdbcDatastoreUtils.resolveExpression(context, argument, SQLToken.class, context).getValue());
+				arguments.add(jdbcContext.resolveExpression(argument, SQLToken.class).getValue());
 			}
 		}
 

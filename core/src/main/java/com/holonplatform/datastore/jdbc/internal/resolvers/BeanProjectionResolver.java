@@ -32,7 +32,6 @@ import com.holonplatform.core.beans.BeanPropertySet;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.converters.BeanResultSetConverter;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultProjectionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
@@ -73,8 +72,8 @@ public enum BeanProjectionResolver implements ExpressionResolver<BeanProjection,
 				.orElse(bps.stream().map(p -> (Path) p).collect(Collectors.toList()));
 		for (Path<?> path : selection) {
 			if (QueryExpression.class.isAssignableFrom(path.getClass())) {
-				final String alias = ctx.addSelection(JdbcDatastoreUtils
-						.resolveExpression(context, (QueryExpression<?>) path, SQLToken.class, context).getValue());
+				final String alias = ctx.addSelection(jdbcContext
+						.resolveExpression((QueryExpression<?>) path, SQLToken.class).getValue());
 				pathSelection.put(alias, path);
 			}
 		}

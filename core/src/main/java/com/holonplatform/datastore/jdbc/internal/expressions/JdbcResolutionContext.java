@@ -18,21 +18,24 @@ package com.holonplatform.datastore.jdbc.internal.expressions;
 import java.util.Map;
 import java.util.Optional;
 
+import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler;
+import com.holonplatform.core.ExpressionResolver;
+import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
+import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 
 /**
  * JDBC {@link ResolutionContext}.
  *
  * @since 5.0.0
  */
-public interface JdbcResolutionContext extends ResolutionContext {
+public interface JdbcResolutionContext extends ResolutionContext, ExpressionResolverSupport {
 
 	/**
 	 * Data target alias handling mode
@@ -120,15 +123,30 @@ public interface JdbcResolutionContext extends ResolutionContext {
 	JdbcResolutionContext childContext(AliasMode aliasMode);
 
 	/**
+	 * Resolve given <code>expression</code> to obtain a <code>resolutionType</code>
+	 * type expression. If no {@link ExpressionResolver} is available to resolve given expression, an
+	 * {@link InvalidExpressionException} is thrown. The resolved expression is validate using
+	 * {@link Expression#validate()} before returning it to caller.
+	 * @param <E> Expression type
+	 * @param <R> Resolution type
+	 * @param expression Expression to resolve
+	 * @param resolutionType Expression type to obtain
+	 * @return Resolved expression
+	 * @throws InvalidExpressionException If an error occurred during resolution, or if no {@link ExpressionResolver} is
+	 *         available to resolve given expression or if expression validation failed
+	 */
+	<E extends Expression, R extends Expression> R resolveExpression(E expression, Class<R> resolutionType)
+			throws InvalidExpressionException;
+
+	/**
 	 * Create a new {@link JdbcResolutionContext}.
 	 * @param expressionResolverHandler Expression resolver handler (not null)
 	 * @param dialect Dialect (not null)
 	 * @param aliasMode Alias handling mode
 	 * @return A new {@link JdbcResolutionContext} instance
 	 */
-	static JdbcResolutionContext create(ExpressionResolverHandler expressionResolverHandler, JdbcDialect dialect,
-			AliasMode aliasMode) {
-		return new DefaultJdbcResolutionContext(expressionResolverHandler, dialect, aliasMode);
+	static JdbcResolutionContext create(JdbcStatementExecutionContext context, AliasMode aliasMode) {
+		return new DefaultJdbcResolutionContext(context, aliasMode);
 	}
 
 	/**

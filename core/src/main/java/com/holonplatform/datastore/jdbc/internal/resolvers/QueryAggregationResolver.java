@@ -25,7 +25,7 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 /**
  * {@link QueryAggregation} expression resolver.
@@ -69,18 +69,20 @@ public enum QueryAggregationResolver implements ExpressionResolver<QueryAggregat
 		// validate
 		expression.validate();
 
+		final JdbcResolutionContext jdbcContext = JdbcResolutionContext.checkContext(context);
+
 		final StringBuilder sb = new StringBuilder();
 
 		// group by
 		List<String> groupBys = new ArrayList<>(expression.getAggregationPaths().length);
 		for (Path<?> path : expression.getAggregationPaths()) {
-			groupBys.add(JdbcDatastoreUtils.resolveExpression(context, path, SQLToken.class, context).getValue());
+			groupBys.add(jdbcContext.resolveExpression(path, SQLToken.class).getValue());
 		}
 		sb.append(groupBys.stream().collect(Collectors.joining(",")));
 		// having
 		expression.getAggregationFilter().ifPresent(f -> {
 			sb.append(" HAVING ");
-			sb.append(JdbcDatastoreUtils.resolveExpression(context, f, SQLToken.class, context).getValue());
+			sb.append(jdbcContext.resolveExpression(f, SQLToken.class).getValue());
 		});
 
 		return Optional.of(SQLToken.create(sb.toString()));

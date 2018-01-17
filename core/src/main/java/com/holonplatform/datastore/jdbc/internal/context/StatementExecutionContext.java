@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.internal.context;
 
+import com.holonplatform.core.ExpressionResolver.ExpressionResolverHandler;
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
@@ -26,7 +27,7 @@ import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionConte
  * 
  * @since 5.1.0
  */
-public interface StatementExecutionContext extends ExpressionResolverSupport {
+public interface StatementExecutionContext extends ExpressionResolverSupport, ExpressionResolverHandler {
 
 	/**
 	 * Get the dialect.

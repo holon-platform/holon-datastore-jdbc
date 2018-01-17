@@ -105,8 +105,11 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate, JdbcStatem
 			throw new DataAccessException("No values to update");
 		}
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, getExecutionContext().getDialect(),
+		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(),
 				AliasMode.UNSUPPORTED);
+
+		// add operation specific resolvers
+		context.addExpressionResolvers(getExpressionResolvers());
 
 		final String sql;
 		try {
@@ -116,7 +119,7 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate, JdbcStatem
 			getFilter().ifPresent(f -> builder.withFilter(f));
 
 			// resolve OperationStructure
-			sql = JdbcDatastoreUtils.resolveExpression(this, builder.build(), SQLToken.class, context).getValue();
+			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
 
 		} catch (InvalidExpressionException e) {
 			throw new DataAccessException("Failed to configure update operation", e);
@@ -133,7 +136,7 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate, JdbcStatem
 				int count = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(count).build();
 			}
-			
+
 		});
 	}
 
