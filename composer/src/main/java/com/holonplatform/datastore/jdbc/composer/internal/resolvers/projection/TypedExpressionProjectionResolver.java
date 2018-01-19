@@ -1,0 +1,89 @@
+/*
+ * Copyright 2016-2017 Axioma srl.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection;
+
+import java.util.Optional;
+
+import javax.annotation.Priority;
+
+import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.TypedExpression;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection.MutableSQLProjection;
+import com.holonplatform.datastore.jdbc.composer.internal.converters.TypedExpressionSQLResultConverter;
+import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
+
+/**
+ * Generic {@link TypedExpression} projection resolver.
+ *
+ * @since 5.1.0
+ */
+@SuppressWarnings("rawtypes")
+@Priority(Integer.MAX_VALUE - 10)
+public enum TypedExpressionProjectionResolver implements SQLContextExpressionResolver<TypedExpression, SQLProjection> {
+
+	/**
+	 * Singleton instance
+	 */
+	INSTANCE;
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
+	 */
+	@Override
+	public Class<? extends TypedExpression> getExpressionType() {
+		return TypedExpression.class;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
+	 */
+	@Override
+	public Class<? extends SQLProjection> getResolvedType() {
+		return SQLProjection.class;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver#resolve(com.holonplatform.core.
+	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Optional<SQLProjection> resolve(TypedExpression expression, SQLCompositionContext context)
+			throws InvalidExpressionException {
+
+		// validate
+		expression.validate();
+
+		// resolve expression
+		final String sql = context.resolveOrFail(expression, SQLExpression.class).getValue();
+
+		// build projection
+		MutableSQLProjection<?> projection = SQLProjection.create((Class<?>) expression.getType(), context);
+		
+		// set selection and converter
+		projection.setConverter(new TypedExpressionSQLResultConverter<>(expression, projection.addSelection(sql)));
+
+		return Optional.of(projection);
+	}
+
+}
