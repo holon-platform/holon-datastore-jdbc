@@ -44,16 +44,17 @@ public interface SQLCompositionContext extends SQLContext, ResolutionContext, Ex
 
 	/**
 	 * Declare a named parameter and add it to this context.
+	 * @param <T> Parameter expression type
 	 * @param parameter Parameter definition (not null)
 	 * @return Generated parameter SQL
 	 */
-	String addNamedParameter(SQLParameter parameter);
+	<T> String addNamedParameter(SQLParameter<T> parameter);
 
 	/**
 	 * Get the context named parameters.
 	 * @return A map of parameters name and {@link SQLParameter}, empty if none
 	 */
-	Map<String, SQLParameter> getNamedParameters();
+	Map<String, SQLParameter<?>> getNamedParameters();
 
 	/**
 	 * Prepare given SQL statement, replacing named parameters with the default <code>?</code> parameter placeholder.

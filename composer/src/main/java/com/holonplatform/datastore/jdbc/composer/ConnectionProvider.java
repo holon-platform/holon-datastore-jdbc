@@ -16,18 +16,21 @@
 package com.holonplatform.datastore.jdbc.composer;
 
 /**
- * TODO
+ * JDBC connection provider.
+ * <p>
+ * The concrete provider should manage connection lifecycle, including connection retrieving and releasing. 
+ * </p>
  *
  * @since 5.1.0
  */
-public interface SQLExecutionContext extends SQLContext, ConnectionProvider {
+public interface ConnectionProvider {
 
 	/**
-	 * Get the {@link SQLStatementConfigurator}.
-	 * @return the {@link SQLStatementConfigurator}
+	 * Execute given {@link ConnectionOperation} using a managed connection.
+	 * @param <R> Operation result type
+	 * @param operation Operation to execute (not null)
+	 * @return Operation result
 	 */
-	default SQLStatementConfigurator getStatementConfigurator() {
-		return SQLStatementConfigurator.getDefault();
-	}
-
+	<R> R withConnection(ConnectionOperation<R> operation);
+	
 }

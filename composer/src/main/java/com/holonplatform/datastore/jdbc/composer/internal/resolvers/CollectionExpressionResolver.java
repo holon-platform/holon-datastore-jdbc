@@ -16,10 +16,12 @@
 package com.holonplatform.datastore.jdbc.composer.internal.resolvers;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.query.CollectionExpression;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
@@ -27,13 +29,13 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
- * {@link ConstantExpression} resolver.
+ * {@link CollectionExpression} resolver.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE)
-public enum ConstantExpressionResolver implements SQLExpressionResolver<ConstantExpression> {
+@Priority(Integer.MAX_VALUE - 100)
+public enum CollectionExpressionResolver implements SQLExpressionResolver<CollectionExpression> {
 
 	/**
 	 * Singleton instance.
@@ -45,25 +47,28 @@ public enum ConstantExpressionResolver implements SQLExpressionResolver<Constant
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends ConstantExpression> getExpressionType() {
-		return ConstantExpression.class;
+	public Class<? extends CollectionExpression> getExpressionType() {
+		return CollectionExpression.class;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLExpressionResolver#resolve(com.holonplatform.core.Expression,
-	 * com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver#resolve(com.holonplatform.core.
+	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(ConstantExpression expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(CollectionExpression expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		// resolve as a named parameter
-		return Optional.of(SQLExpression
-				.create(context.addNamedParameter(SQLParameter.create((ConstantExpression<?>) expression))));
-	}
+		// add a named parameter for each value
+		final String serialized = ((CollectionExpression<?>) expression).getValue().stream()
+				.map(value -> context.addNamedParameter(SQLParameter.create(ConstantExpression.create(value))))
+				.collect(Collectors.joining(","));
 
+		return Optional.of(SQLExpression.create(serialized));
+	}
 }

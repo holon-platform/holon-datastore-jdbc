@@ -25,12 +25,33 @@ import java.util.Optional;
  */
 public interface SQLResult {
 
+	/**
+	 * Get the value at given index.
+	 * @param index Result value index, starting from <code>1</code>.
+	 * @return The result value
+	 * @throws SQLException Error retrieving the result value
+	 */
 	Object getValue(int index) throws SQLException;
 
+	/**
+	 * Get the value with given name.
+	 * @param name Resut value name (not null)
+	 * @return The result value
+	 * @throws SQLException Error retrieving the result value
+	 */
 	Object getValue(String name) throws SQLException;
 
-	int getColumnCount();
+	/**
+	 * Get the number of available result values.
+	 * @return the number of available result values
+	 */
+	int getValueCount();
 
-	Optional<String> getColumnName(int index);
+	/**
+	 * Get the result value name at given index, if available.
+	 * @param index Result value index, starting from <code>1</code>.
+	 * @return Optional result value name
+	 */
+	Optional<String> getValueName(int index);
 
 }

@@ -17,15 +17,13 @@ package com.holonplatform.datastore.jdbc.composer;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Optional;
-import java.util.function.Function;
 
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DefaultLimitHandler;
-import com.holonplatform.datastore.jdbc.composer.internal.dialect.DefaultSQLProcessedParameter;
 
 /**
  * Represents a dialect of SQL implemented by a particular database.
@@ -36,10 +34,10 @@ public interface SQLDialect extends Serializable {
 
 	/**
 	 * Dialect initialization hook at parent datastore initialization.
-	 * @param context Execution context
+	 * @param context Dialect context
 	 * @throws SQLException An error occurred during dialect initialization
 	 */
-	void init(SQLExecutionContext context) throws SQLException;
+	void init(SQLDialectContext context) throws SQLException;
 
 	/**
 	 * Resolve given <code>function</code> into a dialect-specific {@link SQLFunction}.
@@ -94,10 +92,30 @@ public interface SQLDialect extends Serializable {
 	}
 
 	/**
-	 * Get the dialect {@link SQLParameterProcessor}.
-	 * @return Optional SQLParameterProcessor
+	 * Get whether given SQL type is supported by this dialect.
+	 * @param sqlType The SQL type id
+	 * @return <code>true</code> if type is supported, <code>false</code> otherwise
+	 * @see Types
 	 */
-	default Optional<SQLParameterProcessor> getParameterProcessor() {
+	default boolean supportsSqlType(int sqlType) {
+		return true;
+	}
+
+	/**
+	 * Get the Java type which corresponds to given SQL type for this dialect.
+	 * @param sqlType The sql type (not null)
+	 * @return Optional Java type, empty to use default
+	 */
+	default Optional<Class<?>> getJavaType(SQLType sqlType) {
+		return Optional.empty();
+	}
+	
+	/**
+	 * Get the SQL type which corresponds to given Java type for this dialect.
+	 * @param javaType The sql type (not null)
+	 * @return Optional SQL type, empty to use default
+	 */
+	default Optional<SQLType> getSqlType(Class<?> javaType) {
 		return Optional.empty();
 	}
 
@@ -136,62 +154,6 @@ public interface SQLDialect extends Serializable {
 	 */
 	default Optional<LimitHandler> getLimitHandler() {
 		return Optional.of(DefaultLimitHandler.INSTANCE);
-	}
-
-	// ------- types
-
-	/**
-	 * Represents a {@link SQLParameter} processed by a {@link SQLParameterProcessor}.
-	 */
-	public interface SQLProcessedParameter {
-
-		/**
-		 * Get the processed SQL parameter
-		 * @return the SQL parameter
-		 */
-		SQLParameter getParameter();
-
-		/**
-		 * Get the function to apply when the parameter is serialized in the SQL statement.
-		 * @return Optional function to apply when the parameter is serialized in the SQL statement
-		 */
-		Optional<Function<String, String>> getParameterSerializer();
-
-		/**
-		 * Create a new {@link SQLProcessedParameter}.
-		 * @param parameter Processed parameter (not null)
-		 * @return A new {@link SQLProcessedParameter}
-		 */
-		static SQLProcessedParameter create(SQLParameter parameter) {
-			return new DefaultSQLProcessedParameter(parameter);
-		}
-
-		/**
-		 * Create a new {@link SQLProcessedParameter}.
-		 * @param parameter Processed parameter (not null)
-		 * @param parameterSerializer The function to apply when the parameter is serialized in the SQL statement
-		 * @return A new {@link SQLProcessedParameter}
-		 */
-		static SQLProcessedParameter create(SQLParameter parameter, Function<String, String> parameterSerializer) {
-			return new DefaultSQLProcessedParameter(parameter, parameterSerializer);
-		}
-
-	}
-
-	/**
-	 * Parameter processor for SQL query parameters manipulation.
-	 */
-	@FunctionalInterface
-	public interface SQLParameterProcessor {
-
-		/**
-		 * Process given parameter definition.
-		 * @param context Context
-		 * @param parameter Parameter definition
-		 * @return Processed parameter definition (not null)
-		 */
-		SQLProcessedParameter processParameter(SQLContext context, SQLParameter parameter);
-
 	}
 
 	/**

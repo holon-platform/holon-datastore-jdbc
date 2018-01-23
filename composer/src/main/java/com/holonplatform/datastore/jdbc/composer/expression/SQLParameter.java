@@ -15,87 +15,44 @@
  */
 package com.holonplatform.datastore.jdbc.composer.expression;
 
-import java.util.Optional;
-
-import com.holonplatform.core.Expression;
-import com.holonplatform.core.temporal.TemporalType;
+import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLParameter;
 
 /**
  * SQL statement parameter definition.
+ * 
+ * @param <T> Parameter type
  *
  * @since 5.1.0
  */
-public interface SQLParameter extends Expression {
+public interface SQLParameter<T> extends TypedExpression<T> {
 
 	/**
-	 * Get the value type
-	 * @return the value type, {@link Void} if value is null
+	 * Get the parameter expression.
+	 * @return the the parameter expression
 	 */
-	Class<?> getType();
+	TypedExpression<T> getExpression();
 
 	/**
-	 * Get the value {@link TemporalType}, if available and applicable
-	 * @return Optional value temporal type
-	 */
-	Optional<TemporalType> getTemporalType();
-
-	/**
-	 * Get the parameter value
-	 * @return the parameter value
-	 */
-	Object getValue();
-
-	/**
-	 * Create a new {@link SQLParameter} using given parameter value.
-	 * @param value Parameter value
-	 * @param type Value type
+	 * Create a new {@link SQLParameter} using given expression.
+	 * @param <T> Parameter expression type
+	 * @param expression Parameter expresion (not null)
 	 * @return A new {@link SQLParameter}
 	 */
-	static SQLParameter create(Object value, Class<?> type) {
-		return new DefaultSQLParameter(value, type, null);
+	static <T> SQLParameter<T> create(TypedExpression<T> expression) {
+		return new DefaultSQLParameter<>(expression);
 	}
 
 	/**
-	 * Create a new {@link SQLParameter} using given parameter value and providing temporal type.
-	 * @param <T> Parameter value type
-	 * @param value Parameter value
-	 * @param type Value type
-	 * @param temporalType Parameter value temporal type
+	 * Create a new {@link SQLParameter} using given constant value.
+	 * @param value Parameter value (not null)
 	 * @return A new {@link SQLParameter}
 	 */
-	static SQLParameter create(Object value, Class<?> type, TemporalType temporalType) {
-		return new DefaultSQLParameter(value, type, temporalType);
-	}
-
-	/**
-	 * Create a new {@link SQLParameter} using given parameter value. The value type will be the <code>value</code>
-	 * class, or {@link Void} if value is null.
-	 * @param value Parameter value
-	 * @return A new {@link SQLParameter}
-	 */
-	static SQLParameter create(Object value) {
-		return new DefaultSQLParameter(value, (value != null) ? value.getClass() : Void.class, null);
-	}
-
-	/**
-	 * Create a new {@link SQLParameter} using given parameter value and providing temporal type. The value type will be
-	 * the <code>value</code> class, or {@link Void} if value is null.
-	 * @param <T> Parameter value type
-	 * @param value Parameter value
-	 * @param temporalType Parameter value temporal type
-	 * @return A new {@link SQLParameter}
-	 */
-	static SQLParameter create(Object value, TemporalType temporalType) {
-		return new DefaultSQLParameter(value, (value != null) ? value.getClass() : Void.class, temporalType);
-	}
-
-	/**
-	 * Create a new {@link SQLParameter} which represents a <code>null</code> parameter value.
-	 * @return A new {@link SQLParameter}
-	 */
-	static SQLParameter ofNull() {
-		return new DefaultSQLParameter(null, Void.class, null);
+	static <T> SQLParameter<T> create(T value) {
+		ObjectUtils.argumentNotNull(value, "Parameter value must be not null");
+		return new DefaultSQLParameter<>(ConstantExpression.create(value));
 	}
 
 }

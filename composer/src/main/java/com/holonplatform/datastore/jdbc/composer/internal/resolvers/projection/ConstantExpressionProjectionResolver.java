@@ -20,7 +20,7 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.internal.query.ConstantExpressionProjection;
+import com.holonplatform.core.query.ConstantExpressionProjection;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLLiteral;

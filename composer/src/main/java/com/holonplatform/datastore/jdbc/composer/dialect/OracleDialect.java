@@ -22,11 +22,8 @@ import java.util.Optional;
 
 import com.holonplatform.core.Provider;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.temporal.TemporalType;
-import com.holonplatform.datastore.jdbc.composer.SQLContext;
-import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer.ValueProcessor;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 
 import oracle.jdbc.OracleConnection;
@@ -43,8 +40,6 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	private static final long serialVersionUID = 7693711472395387628L;
 
 	private static final String ANSI_DATE_FORMAT = "yyyy-MM-dd";
-
-	private static final OracleParameterProcessor PARAMETER_PROCESSOR = new OracleParameterProcessor();
 
 	private static final OracleValueDeserializer DESERIALIZER = new OracleValueDeserializer();
 
@@ -67,7 +62,7 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	 * holonplatform.datastore.jdbc.composer. SQLExecutionContext)
 	 */
 	@Override
-	public void init(SQLExecutionContext context) throws SQLException {
+	public void init(SQLDialectContext context) throws SQLException {
 		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
 
 		int driverMajorVersion = databaseMetaData.getDriverMajorVersion();
@@ -122,15 +117,6 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	@Override
 	public String getColumnName(String columnName) {
 		return (columnName != null) ? columnName.toUpperCase() : null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#getParameterProcessor()
-	 */
-	@Override
-	public Optional<SQLParameterProcessor> getParameterProcessor() {
-		return Optional.of(PARAMETER_PROCESSOR);
 	}
 
 	/*
@@ -200,6 +186,8 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 
 	}
 
+	// TODO
+	/*
 	private static final class OracleParameterProcessor implements SQLParameterProcessor {
 
 		@Override
@@ -216,6 +204,6 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 			return SQLProcessedParameter.create(parameter);
 		}
 
-	}
+	}*/
 
 }

@@ -28,7 +28,7 @@ import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
-import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
@@ -71,7 +71,7 @@ public class DerbyDialect implements SQLDialect {
 	 * SQLExecutionContext)
 	 */
 	@Override
-	public void init(SQLExecutionContext context) throws SQLException {
+	public void init(SQLDialectContext context) throws SQLException {
 		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
 		try {
 			supportsGeneratedKeys = true;

@@ -33,12 +33,12 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
-import com.holonplatform.datastore.jdbc.composer.SQLDialect.SQLProcessedParameter;
 import com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
 import com.holonplatform.datastore.jdbc.composer.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 
 /**
@@ -66,7 +66,7 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 	/**
 	 * Named parameters
 	 */
-	private final Map<String, SQLParameter> namedParameters = new HashMap<>();
+	private final Map<String, SQLParameter<?>> namedParameters = new HashMap<>();
 
 	/**
 	 * Default constructor.
@@ -152,15 +152,9 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 	 * jdbc.composer.expression.SQLParameter)
 	 */
 	@Override
-	public String addNamedParameter(SQLParameter parameter) {
+	public <T> String addNamedParameter(SQLParameter<T> parameter) {
 		ObjectUtils.argumentNotNull(parameter, "Parameter must be not null");
-		// dialect parameter processor
-		SQLProcessedParameter processed = getDialect().getParameterProcessor()
-				.map(p -> p.processParameter(this, parameter)).orElse(SQLProcessedParameter.create(parameter));
-		// generate parameter name
-		final String name = generateAndAddParameter(processed.getParameter());
-		// check serializer function
-		return processed.getParameterSerializer().map(serializer -> serializer.apply(name)).orElse(name);
+		return generateAndAddParameter(parameter);
 	}
 
 	/*
@@ -168,7 +162,7 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 	 * @see com.holonplatform.datastore.jdbc.composer.SQLCompositionContext#getNamedParameters()
 	 */
 	@Override
-	public Map<String, SQLParameter> getNamedParameters() {
+	public Map<String, SQLParameter<?>> getNamedParameters() {
 		return Collections.unmodifiableMap(namedParameters);
 	}
 
@@ -181,29 +175,37 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 		ObjectUtils.argumentNotNull(sql, "SQL statement must be not null");
 
 		final StringBuilder sb = new StringBuilder();
-		final List<SQLParameter> parameters = new ArrayList<>(getNamedParameters().size());
+		final List<SQLParameterValue<?>> parameters = new ArrayList<>(getNamedParameters().size());
 
 		// check named parameters
-		final Map<String, SQLParameter> namedParameters = getNamedParameters();
+		final Map<String, SQLParameter<?>> namedParameters = getNamedParameters();
 
 		final char[] chars = sql.toCharArray();
 		for (int i = 0; i < chars.length; i++) {
 			if (chars[i] == ':' && (chars.length - i) >= 7) {
 				String namedParameterPlaceholder = String.valueOf(Arrays.copyOfRange(chars, i, i + 7));
-				if (!namedParameters.containsKey(namedParameterPlaceholder)) {
+
+				SQLParameter<?> parameter = namedParameters.get(namedParameterPlaceholder);
+				if (parameter == null) {
 					throw new SQLStatementPreparationException("The named parameter " + namedParameterPlaceholder
 							+ " at index " + i + " was not found in SQL composition context");
 				}
+
+				// resolve parameter
+				SQLParameterValue<?> parameterValue = resolve(parameter, SQLParameterValue.class).orElseThrow(
+						() -> new InvalidExpressionException("Failed to resolve parameter [" + parameter + "]"));
+
 				// replace parameter
-				sb.append('?');
-				parameters.add(namedParameters.get(namedParameterPlaceholder));
+				sb.append(parameterValue.getSql());
+				parameters.add(parameterValue);
+
 				i = i + 6;
 				continue;
 			}
 			sb.append(chars[i]);
 		}
 
-		return SQLStatement.create(sb.toString(), parameters.toArray(new SQLParameter[parameters.size()]));
+		return SQLStatement.create(sb.toString(), parameters.toArray(new SQLParameterValue[parameters.size()]));
 	}
 
 	/*
@@ -281,7 +283,7 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 	 * @param parameter Parameter definition
 	 * @return Generated parameter name
 	 */
-	protected String generateAndAddParameter(SQLParameter parameter) {
+	protected String generateAndAddParameter(SQLParameter<?> parameter) {
 		synchronized (namedParameters) {
 			// generate name
 			final String name = generateParameterName(namedParameters.size() + 1);

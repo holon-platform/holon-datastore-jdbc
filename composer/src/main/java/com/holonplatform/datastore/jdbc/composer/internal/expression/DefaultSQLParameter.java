@@ -17,6 +17,8 @@ package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
 import java.util.Optional;
 
+import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 
@@ -25,55 +27,44 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
  *
  * @since 5.1.0
  */
-public class DefaultSQLParameter implements SQLParameter {
+public class DefaultSQLParameter<T> implements SQLParameter<T> {
 
 	/**
-	 * Parameter value
+	 * Parameter expression
 	 */
-	private final Object value;
+	private final TypedExpression<T> expression;
 
-	/**
-	 * Value type
-	 */
-	private final Class<?> type;
-
-	/**
-	 * Optional temporal type
-	 */
-	private final TemporalType temporalType;
-
-	public DefaultSQLParameter(Object value, Class<?> type, TemporalType temporalType) {
+	public DefaultSQLParameter(TypedExpression<T> expression) {
 		super();
-		this.value = value;
-		this.type = (type != null) ? type : ((value != null) ? value.getClass() : Void.class);
-		this.temporalType = temporalType;
+		ObjectUtils.argumentNotNull(expression, "Parameter expression must be not null");
+		this.expression = expression;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition#getType()
+	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLParameter#getExpression()
 	 */
 	@Override
-	public Class<?> getType() {
-		return type;
+	public TypedExpression<T> getExpression() {
+		return expression;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition#getTemporalType()
+	 * @see com.holonplatform.core.TypedExpression#getType()
+	 */
+	@Override
+	public Class<? extends T> getType() {
+		return expression.getType();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.TypedExpression#getTemporalType()
 	 */
 	@Override
 	public Optional<TemporalType> getTemporalType() {
-		return Optional.ofNullable(temporalType);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition#getValue()
-	 */
-	@Override
-	public Object getValue() {
-		return value;
+		return expression.getTemporalType();
 	}
 
 	/*
@@ -82,15 +73,9 @@ public class DefaultSQLParameter implements SQLParameter {
 	 */
 	@Override
 	public void validate() throws InvalidExpressionException {
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "DefaultSQLParameterDefinition [value=" + value + ", temporalType=" + temporalType + "]";
+		if (getExpression() == null) {
+			throw new InvalidExpressionException("Null parameter expression");
+		}
 	}
 
 }

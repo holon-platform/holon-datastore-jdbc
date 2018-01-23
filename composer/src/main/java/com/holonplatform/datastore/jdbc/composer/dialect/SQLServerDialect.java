@@ -20,6 +20,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Priority;
+
+import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.core.query.TemporalFunction.CurrentDate;
@@ -29,13 +33,15 @@ import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.core.temporal.TemporalType;
-import com.holonplatform.datastore.jdbc.composer.SQLContext;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
-import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
+import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
  * MSSQL {@link SQLDialect}.
@@ -48,7 +54,7 @@ public class SQLServerDialect implements SQLDialect {
 
 	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
 
-	private static final SQLServerParameterProcessor PARAMETER_PROCESSOR = new SQLServerParameterProcessor();
+	private static final TimeParameterResolver TIME_PARAMETER_RESOLVER = new TimeParameterResolver();
 
 	private static final SQLServer2012LimitHandler LIMIT_HANDLER_2012 = new SQLServer2012LimitHandler();
 
@@ -75,13 +81,15 @@ public class SQLServerDialect implements SQLDialect {
 	 * SQLExecutionContext)
 	 */
 	@Override
-	public void init(SQLExecutionContext context) throws SQLException {
+	public void init(SQLDialectContext context) throws SQLException {
 		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
 		supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
 		generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
 		supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 		int version = databaseMetaData.getDatabaseMajorVersion();
 		version2012orHigher = version >= 0 && version >= 11;
+
+		context.addExpressionResolver(TIME_PARAMETER_RESOLVER);
 	}
 
 	/*
@@ -92,11 +100,6 @@ public class SQLServerDialect implements SQLDialect {
 	@Override
 	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {
 		return functions.getFunction(function);
-	}
-
-	@Override
-	public Optional<SQLParameterProcessor> getParameterProcessor() {
-		return Optional.of(PARAMETER_PROCESSOR);
 	}
 
 	/*
@@ -207,25 +210,36 @@ public class SQLServerDialect implements SQLDialect {
 
 	}
 
-	private static final class SQLServerParameterProcessor implements SQLParameterProcessor {
+	@SuppressWarnings({ "rawtypes", "serial" })
+	@Priority(Integer.MAX_VALUE - 10000)
+	private static final class TimeParameterResolver
+			implements SQLContextExpressionResolver<SQLParameter, SQLParameterValue> {
 
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.jdbc.composer.SQLDialect.SQLParameterProcessor#processParameter(com.holonplatform
-		 * .datastore.jdbc.composer.SQLContext,
-		 * com.holonplatform.datastore.jdbc.composer.expression.SQLParameterDefinition)
-		 */
 		@Override
-		public SQLProcessedParameter processParameter(SQLContext context, SQLParameter parameter) {
-			return SQLProcessedParameter
-					.create(parameter.getTemporalType().filter(temporalType -> TemporalType.TIME == temporalType)
-							.flatMap(temporalType -> context.getValueSerializer()
-									.serializeTemporal(parameter.getValue(), temporalType)
-									.map(value -> SQLParameter.create(value)))
-							.orElse(parameter));
+		public Class<? extends SQLParameter> getExpressionType() {
+			return SQLParameter.class;
 		}
 
+		@Override
+		public Class<? extends SQLParameterValue> getResolvedType() {
+			return SQLParameterValue.class;
+		}
+
+		@Override
+		public Optional<SQLParameterValue> resolve(SQLParameter expression, SQLCompositionContext context)
+				throws InvalidExpressionException {
+			expression.validate();
+
+			if (expression.getExpression() instanceof ConstantExpression) {
+				return ((SQLParameter<?>) expression).getTemporalType()
+						.filter(temporalType -> TemporalType.TIME == temporalType)
+						.flatMap(temporalType -> context.getValueSerializer()
+								.serializeTemporal(((ConstantExpression<?>) expression).getValue(), temporalType))
+						.map(serialized -> SQLParameterValue.create(serialized, String.class));
+			}
+
+			return Optional.empty();
+		}
 	}
 
 	@SuppressWarnings("serial")

@@ -19,7 +19,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
-import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 
 /**
  * Default {@link SQLDialect} implementation.
@@ -44,7 +44,7 @@ public class DefaultDialect implements SQLDialect {
 	 * SQLExecutionContext)
 	 */
 	@Override
-	public void init(SQLExecutionContext context) throws SQLException {
+	public void init(SQLDialectContext context) throws SQLException {
 		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
 		supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
 		generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();

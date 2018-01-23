@@ -13,31 +13,30 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection;
+package com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate;
 
 import java.util.Optional;
 
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.query.ConstantExpressionProjection;
-import com.holonplatform.core.query.CountAllProjection;
-import com.holonplatform.core.query.QueryFunction.Count;
+import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
- * {@link CountAllProjection} resolver.
+ * {@link SQLParameter} expression resolver.
  *
  * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE - 100)
-public enum CountAllProjectionResolver implements SQLContextExpressionResolver<CountAllProjection, SQLProjection> {
+@Priority(Integer.MAX_VALUE)
+public enum SQLParameterResolver implements SQLContextExpressionResolver<SQLParameter, SQLParameterValue> {
 
 	/**
-	 * Singleton instance
+	 * Singleton instance.
 	 */
 	INSTANCE;
 
@@ -46,8 +45,8 @@ public enum CountAllProjectionResolver implements SQLContextExpressionResolver<C
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends CountAllProjection> getExpressionType() {
-		return CountAllProjection.class;
+	public Class<? extends SQLParameter> getExpressionType() {
+		return SQLParameter.class;
 	}
 
 	/*
@@ -55,8 +54,8 @@ public enum CountAllProjectionResolver implements SQLContextExpressionResolver<C
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends SQLProjection> getResolvedType() {
-		return SQLProjection.class;
+	public Class<? extends SQLParameterValue> getResolvedType() {
+		return SQLParameterValue.class;
 	}
 
 	/*
@@ -66,14 +65,20 @@ public enum CountAllProjectionResolver implements SQLContextExpressionResolver<C
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLProjection> resolve(CountAllProjection expression, SQLCompositionContext context)
+	public Optional<SQLParameterValue> resolve(SQLParameter expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		// use Count(*)
-		return context.resolve(Count.create(ConstantExpressionProjection.create("*")), SQLProjection.class);
+		// ConstantExpression
+		if (expression.getExpression() instanceof ConstantExpression) {
+			final ConstantExpression<?> constant = (ConstantExpression<?>) expression.getExpression();
+			return Optional.of(SQLParameterValue.create(constant.getModelValue(), constant.getModelType(),
+					constant.getTemporalType().orElse(null)));
+		}
+
+		return Optional.empty();
 	}
 
 }

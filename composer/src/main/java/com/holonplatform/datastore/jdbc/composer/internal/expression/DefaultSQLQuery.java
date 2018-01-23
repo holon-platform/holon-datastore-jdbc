@@ -17,7 +17,7 @@ package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
 
 /**
@@ -39,7 +39,7 @@ public class DefaultSQLQuery<T> extends DefaultSQLStatement implements SQLQuery<
 	 * @param resultConverter Query result converter
 	 */
 	public DefaultSQLQuery(String sql, Class<? extends T> resultType, SQLResultConverter<T> resultConverter) {
-		this(sql, resultType, resultConverter, new SQLParameter[0]);
+		this(sql, resultType, resultConverter, new SQLParameterValue[0]);
 	}
 
 	/**
@@ -50,7 +50,7 @@ public class DefaultSQLQuery<T> extends DefaultSQLStatement implements SQLQuery<
 	 * @param parameters SQL statement parameters
 	 */
 	public DefaultSQLQuery(String sql, Class<? extends T> resultType, SQLResultConverter<T> resultConverter,
-			SQLParameter[] parameters) {
+			SQLParameterValue<?>[] parameters) {
 		super(sql, parameters);
 		ObjectUtils.argumentNotNull(resultType, "Result type must be not null");
 		this.resultType = resultType;

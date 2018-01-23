@@ -39,14 +39,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.ConverterExpression;
+import com.holonplatform.core.ExpressionValueConverter;
 import com.holonplatform.core.Provider;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
-import com.holonplatform.core.query.ConverterExpression;
-import com.holonplatform.core.query.ExpressionValueConverter;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
 
 /**

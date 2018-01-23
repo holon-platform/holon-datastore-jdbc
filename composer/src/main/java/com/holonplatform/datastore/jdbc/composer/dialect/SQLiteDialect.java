@@ -15,8 +15,6 @@
  */
 package com.holonplatform.datastore.jdbc.composer.dialect;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -29,24 +27,30 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Priority;
+
+import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Provider;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
+import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.core.temporal.TemporalType;
-import com.holonplatform.datastore.jdbc.composer.SQLContext;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
-import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer.ValueProcessor;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
+import com.holonplatform.datastore.jdbc.composer.internal.dialect.ReaderToStringParameterResolver;
+import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
  * SQLite {@link SQLDialect}.
@@ -61,7 +65,7 @@ public class SQLiteDialect implements SQLDialect {
 
 	private static final SQLiteLimitHandler LIMIT_HANDLER = new SQLiteLimitHandler();
 
-	private static final SQLiteParameterProcessor PARAMETER_PROCESSOR = new SQLiteParameterProcessor();
+	private static final TemporalParameterResolver TEMPORAL_PARAMETER_RESOLVER = new TemporalParameterResolver();
 
 	private static final SQLiteValueDeserializer DESERIALIZER = new SQLiteValueDeserializer();
 
@@ -83,13 +87,15 @@ public class SQLiteDialect implements SQLDialect {
 	 * SQLExecutionContext)
 	 */
 	@Override
-	public void init(SQLExecutionContext context) throws SQLException {
+	public void init(SQLDialectContext context) throws SQLException {
 		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
 		supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
 		generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
 		supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 
 		context.getValueDeserializer().addValueProcessor(DESERIALIZER);
+		context.addExpressionResolver(ReaderToStringParameterResolver.INSTANCE);
+		context.addExpressionResolver(TEMPORAL_PARAMETER_RESOLVER);
 	}
 
 	/*
@@ -100,15 +106,6 @@ public class SQLiteDialect implements SQLDialect {
 	@Override
 	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {
 		return functions.getFunction(function);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#getParameterProcessor()
-	 */
-	@Override
-	public Optional<SQLParameterProcessor> getParameterProcessor() {
-		return Optional.of(PARAMETER_PROCESSOR);
 	}
 
 	/*
@@ -244,36 +241,6 @@ public class SQLiteDialect implements SQLDialect {
 		return null;
 	}
 
-	private static final class SQLiteParameterProcessor implements SQLParameterProcessor {
-
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.jdbc.composer.SQLDialect.SQLParameterProcessor#processParameter(com.holonplatform
-		 * .datastore.jdbc.composer.SQLContext,
-		 * com.holonplatform.datastore.jdbc.composer.expression.SQLParameterDefinition)
-		 */
-		@Override
-		public SQLProcessedParameter processParameter(SQLContext context, SQLParameter parameter) {
-			// Reader type serialization
-			if (Reader.class.isAssignableFrom(parameter.getType())) {
-				try {
-					return SQLProcessedParameter
-							.create(SQLParameter.create(ConversionUtils.readerToString((Reader) parameter.getValue())));
-				} catch (IOException e) {
-					throw new RuntimeException("Failed to convert Reader to String [" + parameter.getValue() + "]", e);
-				}
-			}
-			// check temporals
-			return SQLProcessedParameter.create(parameter.getTemporalType()
-					.flatMap(temporalType -> context.getValueSerializer()
-							.serializeTemporal(parameter.getValue(), temporalType)
-							.map(value -> SQLParameter.create(value)))
-					.orElse(parameter));
-		}
-
-	}
-
 	private static final class ExtractTemporalPartFunction implements SQLFunction {
 
 		private final String part;
@@ -302,6 +269,43 @@ public class SQLiteDialect implements SQLDialect {
 
 		@Override
 		public void validate() throws InvalidExpressionException {
+		}
+
+	}
+
+	@SuppressWarnings({ "rawtypes", "serial" })
+	@Priority(Integer.MAX_VALUE - 10000)
+	private static final class TemporalParameterResolver
+			implements SQLContextExpressionResolver<SQLParameter, SQLParameterValue> {
+
+		@Override
+		public Class<? extends SQLParameter> getExpressionType() {
+			return SQLParameter.class;
+		}
+
+		@Override
+		public Class<? extends SQLParameterValue> getResolvedType() {
+			return SQLParameterValue.class;
+		}
+
+		@Override
+		public Optional<SQLParameterValue> resolve(SQLParameter expression, SQLCompositionContext context)
+				throws InvalidExpressionException {
+			expression.validate();
+
+			if (expression.getExpression().getTemporalType().isPresent()
+					&& expression.getExpression() instanceof ConstantExpression) {
+				Object value = ((ConstantExpression<?>) expression).getValue();
+				if (value != null) {
+					return context.getValueSerializer()
+							.serializeTemporal(value,
+									((SQLParameter<?>) expression).getExpression().getTemporalType().get())
+							.map(serialized -> {
+								return SQLParameterValue.create(serialized, String.class);
+							});
+				}
+			}
+			return Optional.empty();
 		}
 
 	}

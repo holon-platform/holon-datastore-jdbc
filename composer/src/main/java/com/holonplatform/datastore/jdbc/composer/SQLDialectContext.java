@@ -15,19 +15,13 @@
  */
 package com.holonplatform.datastore.jdbc.composer;
 
+import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
+
 /**
  * TODO
  *
  * @since 5.1.0
  */
-public interface SQLExecutionContext extends SQLContext, ConnectionProvider {
-
-	/**
-	 * Get the {@link SQLStatementConfigurator}.
-	 * @return the {@link SQLStatementConfigurator}
-	 */
-	default SQLStatementConfigurator getStatementConfigurator() {
-		return SQLStatementConfigurator.getDefault();
-	}
+public interface SQLDialectContext extends SQLContext, ConnectionProvider, ExpressionResolverSupport {
 
 }

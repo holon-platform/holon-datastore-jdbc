@@ -45,6 +45,14 @@ public interface SQLContext {
 	default SQLValueDeserializer getValueDeserializer() {
 		return SQLValueDeserializer.getDefault();
 	}
+	
+	/**
+	 * Get the {@link SQLTypeConverter}.
+	 * @return the {@link SQLTypeConverter}
+	 */
+	default SQLTypeConverter getTypeConverter() {
+		return SQLTypeConverter.getDefault();
+	}
 
 	/**
 	 * Get all the registered {@link ExpressionResolver}s.

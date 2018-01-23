@@ -20,6 +20,7 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.SQLWhereFilter;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
@@ -72,7 +73,8 @@ public enum SQLWhereFilterResolver implements SQLExpressionResolver<SQLWhereFilt
 					throw new InvalidExpressionException("Cannot replace parameter [" + parameter + "] in sql ["
 							+ expression.getSQL() + "]: no placeholder found at index [" + (i + 1) + "]");
 				}
-				sql = sql.replaceFirst("\\?", context.addNamedParameter(SQLParameter.create(parameter)));
+				sql = sql.replaceFirst("\\?",
+						context.addNamedParameter(SQLParameter.create(ConstantExpression.create(parameter))));
 			}
 		}
 
