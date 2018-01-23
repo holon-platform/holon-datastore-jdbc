@@ -22,7 +22,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.relational.SubQuery;
-import com.holonplatform.core.query.QueryExecution;
+import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcQueryComposition;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
@@ -76,7 +76,7 @@ public enum SubQueryResolver implements ExpressionResolver<SubQuery, SQLToken> {
 
 			// resolve query
 			final JdbcQueryComposition<?> query = subQueryContext.resolveExpression(
-					QueryExecution.create(expression.getQueryConfiguration(), expression.getSelection()),
+					QueryOperation.create(expression.getQueryConfiguration(), expression.getSelection()),
 					JdbcQueryComposition.class);
 
 			// return subquery expression

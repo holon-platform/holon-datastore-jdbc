@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.holonplatform.core.internal.query.QueryAdapter;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
-import com.holonplatform.core.query.QueryExecution;
+import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
@@ -62,29 +62,25 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 		return executionContext;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.query.QueryAdapter#stream(com.holonplatform.core.query.QueryExecution)
+	/* (non-Javadoc)
+	 * @see com.holonplatform.core.query.QueryAdapter#stream(com.holonplatform.core.query.QueryOperation)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <R> Stream<R> stream(QueryExecution<QueryConfiguration, R> queryExecution) throws QueryExecutionException {
-
-		// validate
-		queryExecution.validate();
-
+	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws QueryExecutionException {
+		
 		// context
 		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(), AliasMode.AUTO);
 
 		// add query specific resolvers
-		context.addExpressionResolvers(queryExecution.getConfiguration().getExpressionResolvers());
+		context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 
 		final JdbcQueryComposition<R> query;
 		final PreparedSql preparedSql;
 		try {
 
 			// resolve query
-			query = context.resolve(queryExecution, JdbcQueryComposition.class, context)
+			query = context.resolve(queryOperation, JdbcQueryComposition.class, context)
 					.orElseThrow(() -> new QueryExecutionException("Failed to resolve query"));
 
 			query.validate();

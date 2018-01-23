@@ -22,7 +22,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.query.QueryConfiguration;
-import com.holonplatform.core.query.QueryExecution;
+import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultJdbcQueryComposition;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcQueryComposition;
@@ -30,12 +30,12 @@ import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionConte
 import com.holonplatform.datastore.jdbc.internal.expressions.ProjectionContext;
 
 /**
- * {@link QueryExecution} expression resolver.
+ * {@link QueryOperation} expression resolver.
  *
  * @since 5.0.0
  */
 @SuppressWarnings("rawtypes")
-public enum QueryStructureResolver implements ExpressionResolver<QueryExecution, JdbcQueryComposition> {
+public enum QueryStructureResolver implements ExpressionResolver<QueryOperation, JdbcQueryComposition> {
 
 	/**
 	 * Singleton instance.
@@ -47,8 +47,8 @@ public enum QueryStructureResolver implements ExpressionResolver<QueryExecution,
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends QueryExecution> getExpressionType() {
-		return QueryExecution.class;
+	public Class<? extends QueryOperation> getExpressionType() {
+		return QueryOperation.class;
 	}
 
 	/*
@@ -67,7 +67,7 @@ public enum QueryStructureResolver implements ExpressionResolver<QueryExecution,
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<JdbcQueryComposition> resolve(QueryExecution expression, ResolutionContext resolutionContext)
+	public Optional<JdbcQueryComposition> resolve(QueryOperation expression, ResolutionContext resolutionContext)
 			throws InvalidExpressionException {
 
 		// validate

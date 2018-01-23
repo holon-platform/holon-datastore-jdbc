@@ -23,7 +23,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.query.QueryConfiguration;
-import com.holonplatform.core.query.QueryExecution;
+import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext.AliasMode;
@@ -35,13 +35,13 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
- * {@link QueryExecution} to {@link SQLQuery} resolver.
+ * {@link QueryOperation} to {@link SQLQuery} resolver.
  *
  * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum QueryExecutionResolver implements SQLContextExpressionResolver<QueryExecution, SQLQuery> {
+public enum QueryOperationResolver implements SQLContextExpressionResolver<QueryOperation, SQLQuery> {
 
 	/**
 	 * Singleton instance.
@@ -53,8 +53,8 @@ public enum QueryExecutionResolver implements SQLContextExpressionResolver<Query
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends QueryExecution> getExpressionType() {
-		return QueryExecution.class;
+	public Class<? extends QueryOperation> getExpressionType() {
+		return QueryOperation.class;
 	}
 
 	/*
@@ -74,7 +74,7 @@ public enum QueryExecutionResolver implements SQLContextExpressionResolver<Query
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<SQLQuery> resolve(QueryExecution expression, SQLCompositionContext context)
+	public Optional<SQLQuery> resolve(QueryOperation expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
