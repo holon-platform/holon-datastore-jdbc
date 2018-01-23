@@ -18,7 +18,6 @@ package com.holonplatform.datastore.jdbc.internal.expressions;
 import java.util.Optional;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 
 /**
@@ -236,14 +235,14 @@ public class DefaultJdbcQueryComposition<T> implements JdbcQueryComposition<T> {
 	 * @see com.holonplatform.datastore.jdbc.internal.JdbcSerializedQuery#serialize()
 	 */
 	@Override
-	public String serialize() throws QueryBuildException {
+	public String serialize() throws InvalidExpressionException {
 		final StringBuilder query = new StringBuilder();
 
 		if (getSelect() == null || getSelect().trim().equals("")) {
-			throw new QueryBuildException("Missing query SELECT clause");
+			throw new InvalidExpressionException("Missing query SELECT clause");
 		}
 		if (getFrom() == null || getFrom().trim().equals("")) {
-			throw new QueryBuildException("Missing query FROM clause");
+			throw new InvalidExpressionException("Missing query FROM clause");
 		}
 
 		query.append("SELECT ");
@@ -271,7 +270,7 @@ public class DefaultJdbcQueryComposition<T> implements JdbcQueryComposition<T> {
 		// limit and offset
 		if (getLimit().isPresent()) {
 			sql = dialect.getLimitHandler()
-					.orElseThrow(() -> new QueryBuildException(
+					.orElseThrow(() -> new InvalidExpressionException(
 							"The dialect [" + dialect.getClass().getName() + "] does not supports query limit/offset"))
 					.limitResults(this, sql, getLimit().orElse(0), getOffset().orElse(0));
 		}

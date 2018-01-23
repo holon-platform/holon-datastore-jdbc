@@ -25,6 +25,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.query.QueryFilterVisitor;
 import com.holonplatform.core.internal.query.QueryFilterVisitor.VisitableQueryFilter;
 import com.holonplatform.core.internal.query.filter.AndFilter;
@@ -42,7 +43,6 @@ import com.holonplatform.core.internal.query.filter.OperationQueryFilter;
 import com.holonplatform.core.internal.query.filter.OrFilter;
 import com.holonplatform.core.internal.query.filter.StringMatchFilter;
 import com.holonplatform.core.query.ConstantExpression;
-import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.StringFunction.Lower;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
@@ -240,7 +240,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 			throw new InvalidExpressionException(
 					"Invalid right operand expression for StringMatchFilter: [" + filter.getRightOperand().get() + "]");
 		}
-		Object resolved = ((ConstantExpression<?, ?>) filter.getRightOperand().get()).getModelValue();
+		Object resolved = ((ConstantExpression<?>) filter.getRightOperand().get()).getModelValue();
 		if (resolved == null) {
 			throw new InvalidExpressionException(
 					"Invalid right operand value for StringMatchFilter: [" + resolved + "]");
@@ -270,7 +270,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 		}
 
 		// check ignore case
-		QueryExpression<String> left = (filter.isIgnoreCase()) ? Lower.create(filter.getLeftOperand())
+		TypedExpression<String> left = (filter.isIgnoreCase()) ? Lower.create(filter.getLeftOperand())
 				: filter.getLeftOperand();
 		if (filter.isIgnoreCase()) {
 			value = value.toLowerCase();
@@ -372,7 +372,7 @@ public enum VisitableQueryFilterResolver implements ExpressionResolver<Visitable
 	 */
 	private static String resolveRightOperand(OperationQueryFilter<?> filter, JdbcResolutionContext context)
 			throws InvalidExpressionException {
-		QueryExpression<?> operand = filter.getRightOperand()
+		TypedExpression<?> operand = filter.getRightOperand()
 				.orElseThrow(() -> new InvalidExpressionException("Missing right operand in filter [" + filter + "]"));
 		return context.resolveExpression(operand, SQLToken.class).getValue();
 	}

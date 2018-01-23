@@ -30,9 +30,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
-import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
@@ -197,7 +197,7 @@ public class SQLiteDialect implements JdbcDialect {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value) {
+		public <T> T deserializeValue(Connection connection, TypedExpression<T> expression, Object value) {
 			if (value != null) {
 
 				// date and times
@@ -281,7 +281,8 @@ public class SQLiteDialect implements JdbcDialect {
 			// Reader type serialization
 			if (Reader.class.isAssignableFrom(parameter.getType())) {
 				try {
-					return SQLParameterDefinition.create(ConversionUtils.readerToString((Reader) parameter.getValue()));
+					return SQLParameterDefinition.create(ConversionUtils.readerToString((Reader) parameter.getValue()),
+							String.class);
 				} catch (IOException e) {
 					throw new RuntimeException("Failed to convert Reader to String [" + parameter.getValue() + "]", e);
 				}
@@ -289,7 +290,7 @@ public class SQLiteDialect implements JdbcDialect {
 			// check temporals
 			return parameter.getTemporalType()
 					.flatMap(temporalType -> SQLValueSerializer.serializeDate(parameter.getValue(), temporalType)
-							.map(value -> SQLParameterDefinition.create(value)))
+							.map(value -> SQLParameterDefinition.create(value, String.class)))
 					.orElse(parameter);
 		}
 

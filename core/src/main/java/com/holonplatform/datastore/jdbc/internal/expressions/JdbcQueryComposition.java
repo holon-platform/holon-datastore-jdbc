@@ -18,7 +18,6 @@ package com.holonplatform.datastore.jdbc.internal.expressions;
 import java.util.Optional;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
 
 /**
@@ -52,8 +51,8 @@ public interface JdbcQueryComposition<T> extends SQLQueryClauses, Expression {
 	/**
 	 * Serialize the query cluases into a SQL query
 	 * @return SQL query
-	 * @throws QueryBuildException Error serializing query
+	 * @throws InvalidExpressionException Error serializing query
 	 */
-	String serialize() throws QueryBuildException;
+	String serialize() throws InvalidExpressionException;
 
 }

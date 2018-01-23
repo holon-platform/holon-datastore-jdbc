@@ -19,14 +19,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
-import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryResults.QueryResultConversionException;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 
 /**
- * {@link QueryExpression} result set converter.
+ * Query expression result set converter.
  * 
  * @param <T> Expression type
  * 
@@ -42,7 +42,7 @@ public class QueryExpressionResultSetConverter<T> extends AbstractResultSetConve
 	/**
 	 * Selection query expression
 	 */
-	private final QueryExpression<T> expression;
+	private final TypedExpression<T> expression;
 
 	/**
 	 * Selection label
@@ -55,7 +55,7 @@ public class QueryExpressionResultSetConverter<T> extends AbstractResultSetConve
 	 * @param expression Selection query expression (not null)
 	 * @param selection Selection label (not null)
 	 */
-	public QueryExpressionResultSetConverter(JdbcDialect dialect, QueryExpression<T> expression, String selection) {
+	public QueryExpressionResultSetConverter(JdbcDialect dialect, TypedExpression<T> expression, String selection) {
 		super();
 
 		ObjectUtils.argumentNotNull(dialect, "Dialect must be not null");
@@ -71,8 +71,10 @@ public class QueryExpressionResultSetConverter<T> extends AbstractResultSetConve
 	public T convert(Connection connection, ResultSet resultSet) throws QueryResultConversionException {
 
 		try {
-			final T value = dialect.getValueDeserializer().deserializeValue(connection, expression,
-					getResult(dialect, resultSet, selection));
+			Object result = (selection != null) ? getResult(dialect, resultSet, selection)
+					: getResult(dialect, resultSet, 1);
+
+			final T value = dialect.getValueDeserializer().deserializeValue(connection, expression, result);
 
 			// check type
 			if (value != null && !TypeUtils.isAssignable(value.getClass(), expression.getType())) {

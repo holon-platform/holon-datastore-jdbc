@@ -69,15 +69,10 @@ public enum ConstantExpressionResolver implements ExpressionResolver<ConstantExp
 		// validate
 		expression.validate();
 
-		// check NULL
-		if (expression.getValue() == null) {
-			return Optional.of(SQLToken.create("NULL"));
-		}
-
 		// resolve
 		return context.resolve(
-				LiteralValue.create(expression.getModelValue(),
-						((ConstantExpression<?, ?>) expression).getTemporalType().orElse(null)),
+				LiteralValue.create(expression.getModelValue(), expression.getModelType(),
+						((ConstantExpression<?>) expression).getTemporalType().orElse(null)),
 				SQLToken.class, context);
 	}
 

@@ -81,9 +81,8 @@ public enum LiteralValueResolver implements ExpressionResolver<LiteralValue, SQL
 			// collection of values
 			final List<String> tokens = new ArrayList<>(((Collection<?>) expression.getValue()).size());
 			for (Object value : (Collection<?>) expression.getValue()) {
-				tokens.add(serialize(
-						LiteralValue.create(value, expression.getTemporalType().orElse(null)),
-						ctx));
+				tokens.add(serialize(LiteralValue.create(value, (value != null) ? value.getClass() : Object.class,
+						expression.getTemporalType().orElse(null)), ctx));
 			}
 			serialized = tokens.stream().collect(Collectors.joining(","));
 		} else {
@@ -102,7 +101,7 @@ public enum LiteralValueResolver implements ExpressionResolver<LiteralValue, SQL
 	 */
 	private static String serialize(LiteralValue value, JdbcResolutionContext context) {
 		return context.addNamedParameter(
-				SQLParameterDefinition.create(value.getValue(), value.getTemporalType().orElse(null)));
+				SQLParameterDefinition.create(value.getValue(), value.getType(), value.getTemporalType().orElse(null)));
 	}
 
 }

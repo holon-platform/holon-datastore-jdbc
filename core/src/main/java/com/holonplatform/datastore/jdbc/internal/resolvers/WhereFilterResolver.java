@@ -82,7 +82,7 @@ public enum WhereFilterResolver implements ExpressionResolver<JdbcWhereFilter, S
 					throw new InvalidExpressionException("Cannot replace parameter [" + parameter + "] in sql ["
 							+ expression.getSQL() + "]: no placeholder found at index [" + (i + 1) + "]");
 				}
-				String named = jdbcContext.addNamedParameter(SQLParameterDefinition.create(parameter));
+				String named = jdbcContext.addNamedParameter(SQLParameterDefinition.create(parameter, (parameter != null) ? parameter.getClass() : Object.class));
 				sql = sql.replaceFirst("\\?", named);
 			}
 		}

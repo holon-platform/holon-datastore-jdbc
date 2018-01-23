@@ -20,7 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
@@ -162,7 +162,7 @@ public interface JdbcDialect extends Serializable {
 		 * @param value Value to deserialize
 		 * @return Deserialized value
 		 */
-		<T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value);
+		<T> T deserializeValue(Connection connection, TypedExpression<T> expression, Object value);
 
 		/**
 		 * Get the default SQLValueDeserializer.

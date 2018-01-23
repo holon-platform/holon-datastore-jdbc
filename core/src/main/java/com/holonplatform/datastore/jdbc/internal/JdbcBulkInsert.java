@@ -15,74 +15,94 @@
  */
 package com.holonplatform.datastore.jdbc.internal;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Optional;
 
-import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
+import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.bulk.BulkInsert;
-import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.core.property.Property;
+import com.holonplatform.core.internal.Logger;
+import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsertOperation;
+import com.holonplatform.core.property.PathPropertyBoxAdapter;
+import com.holonplatform.core.property.PathPropertySetAdapter.PathMatcher;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.core.property.PropertySet;
-import com.holonplatform.core.property.PropertyValueConverter;
 import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
+import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurator;
+import com.holonplatform.datastore.jdbc.internal.context.StatementConfigurationException;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
+import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 
 /**
  * JDBC datastore {@link BulkInsert} implementation.
  * 
  * @since 5.0.0
  */
-public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert, JdbcStatementExecutionContext>
-		implements BulkInsert {
+public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> implements BulkInsert {
 
-	/**
-	 * Property set to use
-	 */
-	private final PropertySet<?> propertySet;
+	private static final long serialVersionUID = 1L;
 
-	/**
-	 * Values to insert
-	 */
-	private final List<PropertyBox> values = new ArrayList<>();
+	private static final Logger LOGGER = JdbcDatastoreLogger.create();
 
-	/**
-	 * Constructor.
-	 * @param executionContext Execution context
-	 * @param target Operation data target
-	 * @param traceEnabled Whether tracing is enabled
-	 * @param propertySet Property set to use (not null)
-	 */
-	public JdbcBulkInsert(JdbcStatementExecutionContext executionContext, DataTarget<?> target, boolean traceEnabled,
-			PropertySet<?> propertySet) {
-		super(executionContext, target, traceEnabled);
-		ObjectUtils.argumentNotNull(propertySet, "PropertySet must be not null");
-		this.propertySet = propertySet;
+	private final JdbcStatementExecutionContext executionContext;
+
+	private PropertyBox singleValue;
+
+	private final PathMatcher generatedKeysPathMatcher;
+
+	public JdbcBulkInsert(JdbcStatementExecutionContext executionContext) {
+		super();
+		this.executionContext = executionContext;
+		this.generatedKeysPathMatcher = new DialectPathMatcher(executionContext.getDialect());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.bulk.BulkInsert#add(com.holonplatform.core.property.PropertyBox)
+	 * @see com.holonplatform.core.datastore.bulk.BulkInsert#singleValue(com.holonplatform.core.property.PropertyBox)
 	 */
 	@Override
-	public BulkInsert add(PropertyBox propertyBox) {
-		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox to insert must be not null");
-		values.add(propertyBox);
+	public BulkInsert singleValue(PropertyBox propertyBox) {
+		this.singleValue = propertyBox;
+		return add(propertyBox);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsertOperation#getActualOperation()
+	 */
+	@Override
+	protected BulkInsert getActualOperation() {
 		return this;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.Expression#validate()
+	 */
+	@Override
+	public void validate() throws InvalidExpressionException {
+		if (getConfiguration().getTarget() == null) {
+			throw new InvalidExpressionException("Missing data target");
+		}
+		if (getConfiguration().getValues().isEmpty()) {
+			throw new InvalidExpressionException("No value to insert was declared");
+		}
 	}
 
 	/*
@@ -92,83 +112,178 @@ public class JdbcBulkInsert extends AbstractBulkOperation<BulkInsert, JdbcStatem
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public OperationResult execute() {
-		if (values.isEmpty()) {
-			throw new DataAccessException("No values to insert");
-		}
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(),
-				AliasMode.UNSUPPORTED);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext, AliasMode.UNSUPPORTED);
 
 		// add operation specific resolvers
-		context.addExpressionResolvers(getExpressionResolvers());
+		context.addExpressionResolvers(getDefinition().getExpressionResolvers());
 
-		final List<Property> pathProperties = propertySet.stream()
-				.filter(property -> Path.class.isAssignableFrom(property.getClass())).collect(Collectors.toList());
+		final String sql = context.resolveExpression(this, SQLToken.class).getValue();
 
-		final String sql;
-		try {
+		// prepare SQL
+		final PreparedSql preparedSql = executionContext.prepareSql(sql, context);
+		executionContext.trace(preparedSql.getSql());
 
-			OperationStructure.Builder builder = OperationStructure.builder(OperationType.INSERT, getTarget());
-			// valid Paths with not null value
-			pathProperties.forEach(p -> {
-				builder.withValue((Path<?>) p, ConstantExpression.create("?"));
-			});
+		// check multi value
+		if (getConfiguration().getValues().size() == 1) {
 
-			// resolve OperationStructure
-			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
+			// get primary key for generated keys parsing
+			Optional<Path<?>[]> pk = getPrimaryKeys(context, getConfiguration().getTarget());
+			// pk names
+			final Path<?>[] keys;
+			final String[] pkNames;
 
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Failed to configure insert operation", e);
-		}
-
-		trace(sql);
-
-		return getExecutionContext().withConnection(c -> {
-
-			try (PreparedStatement stmt = c.prepareStatement(sql)) {
-
-				final SQLStatementConfigurator<PreparedStatement> configurator = getExecutionContext()
-						.getStatementConfigurator();
-
-				for (PropertyBox value : values) {
-					// resolve parameter values
-					List<SQLParameterDefinition> parameterValues = new ArrayList<>();
-					pathProperties.forEach(p -> {
-						parameterValues.add(getParameterValue(p, value.getValue(p)));
-					});
-					configurator.configureStatement(stmt, sql, parameterValues);
-					// add batch
-					stmt.addBatch();
+			if (pk.isPresent() && pk.get().length > 0) {
+				keys = pk.get();
+				pkNames = new String[keys.length];
+				for (int i = 0; i < keys.length; i++) {
+					pkNames[i] = executionContext.getDialect().getColumnName(keys[i].getName());
 				}
+			} else {
+				keys = null;
+				pkNames = null;
+			}
 
-				// execute batch insert
-				int[] results = stmt.executeBatch();
-				long count = 0;
-				if (results != null) {
-					for (int result : results) {
-						if (result >= 0 || result == Statement.SUCCESS_NO_INFO) {
-							count++;
+			final boolean isBringBackGeneratedIds = (singleValue != null)
+					&& getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+
+			return executionContext.withConnection(c -> {
+
+				try (PreparedStatement stmt = createInsertStatement(c, executionContext, preparedSql, pkNames)) {
+
+					// execute
+					int count = stmt.executeUpdate();
+
+					OperationResult.Builder result = OperationResult.builder().type(OperationType.INSERT)
+							.affectedCount(count);
+
+					// generated keys
+					if (keys != null) {
+
+						final PathPropertyBoxAdapter adapter = isBringBackGeneratedIds ? PathPropertyBoxAdapter
+								.builder(singleValue).pathMatcher(generatedKeysPathMatcher).build() : null;
+
+						// get generated keys
+						try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+							if (generatedKeys.next()) {
+								final int columns = generatedKeys.getMetaData().getColumnCount();
+								for (int i = 0; i < keys.length; i++) {
+									if (i < columns) {
+										final Object keyValue = generatedKeys.getObject(i + 1);
+										final Path keyPath = keys[i];
+										result.withInsertedKey(keyPath, keyValue);
+										if (adapter != null && keyValue != null) {
+											// set in propertybox
+											adapter.getProperty(keyPath).ifPresent(property -> {
+												TypedExpression valueExpression = (property instanceof QueryExpression)
+														? (QueryExpression) property
+														: ConstantExpression.create(keyValue);
+												adapter.setValue(keyPath,
+														executionContext.getDialect().getValueDeserializer()
+																.deserializeValue(c, valueExpression, keyValue));
+											});
+
+										}
+									}
+								}
+							}
+						} catch (SQLException e) {
+							LOGGER.warn("Failed to retrieve generated keys", e);
 						}
 					}
+
+					return result.build();
 				}
-				return OperationResult.builder().type(OperationType.INSERT).affectedCount(count).build();
-			}
-		});
+
+			});
+		} else {
+
+			final Path<?>[] operationPaths = getConfiguration().getOperationPaths()
+					.orElseThrow(() -> new InvalidExpressionException("Missing operation value paths"));
+
+			return executionContext.withConnection(c -> {
+
+				try (PreparedStatement stmt = c.prepareStatement(sql)) {
+
+					final SQLStatementConfigurator<PreparedStatement> configurator = executionContext
+							.getStatementConfigurator();
+
+					for (Map<Path<?>, TypedExpression<?>> value : getConfiguration().getValues()) {
+						// resolve parameter values
+						List<SQLParameterDefinition> parameterValues = new ArrayList<>();
+
+						for (Path<?> path : operationPaths) {
+							TypedExpression<?> pathExpression = value.get(path);
+							if (pathExpression != null) {
+								// TODO
+								parameterValues.add(SQLParameterDefinition.create(
+										((ConstantExpression) pathExpression).getModelValue(),
+										((ConstantExpression) pathExpression).getModelType(),
+										pathExpression.getTemporalType().orElse(null)));
+							} else {
+								parameterValues.add(SQLParameterDefinition.ofNull(path.getType()));
+							}
+						}
+
+						configurator.configureStatement(stmt, sql, parameterValues);
+						// add batch
+						stmt.addBatch();
+					}
+
+					// execute batch insert
+					int[] results = stmt.executeBatch();
+					long count = 0;
+					if (results != null) {
+						for (int result : results) {
+							if (result >= 0 || result == Statement.SUCCESS_NO_INFO) {
+								count++;
+							}
+						}
+					}
+					return OperationResult.builder().type(OperationType.INSERT).affectedCount(count).build();
+				}
+			});
+
+		}
+	}
+
+	private static Optional<Path<?>[]> getPrimaryKeys(JdbcResolutionContext context, DataTarget<?> target) {
+		return context.getDialect().supportsGetGeneratedKeys()
+				? context.resolve(target, TablePrimaryKey.class, context).map(k -> k.getKeys()) : Optional.empty();
 	}
 
 	/**
-	 * Get the {@link SQLParameterDefinition<?>} which represents the value of given property, converting the value to
-	 * the model value type is a {@link PropertyValueConverter} is bound to given property.
-	 * @param property Property
-	 * @param value Property value
-	 * @return Parameter value definition
+	 * Create a {@link PreparedStatement} for an INSERT operation configuring generated keys.
+	 * @param connection Connection
+	 * @param dialect Dialect
+	 * @param sql SQL statement
+	 * @param pkNames Optional primary key column names
+	 * @return Configured statement
+	 * @throws SQLException If an error occurred
 	 */
-	private static SQLParameterDefinition getParameterValue(Property<Object> property, Object value) {
-		return property.getConverter()
-				.map(c -> SQLParameterDefinition.create(c.toModel(value, property),
-						property.getConfiguration().getTemporalType().orElse(null)))
-				.orElse(SQLParameterDefinition.create(value,
-						property.getConfiguration().getTemporalType().orElse(null)));
+	@SuppressWarnings("resource")
+	private static PreparedStatement createInsertStatement(Connection connection, JdbcStatementExecutionContext context,
+			PreparedSql preparedSql, String[] pkNames) throws SQLException {
+		PreparedStatement stmt;
+		if (context.getDialect().supportsGetGeneratedKeys()) {
+			if (context.getDialect().supportGetGeneratedKeyByName() && pkNames != null && pkNames.length > 0) {
+				stmt = connection.prepareStatement(preparedSql.getSql(), pkNames);
+			} else {
+				stmt = connection.prepareStatement(preparedSql.getSql(), Statement.RETURN_GENERATED_KEYS);
+			}
+		} else {
+			stmt = connection.prepareStatement(preparedSql.getSql());
+		}
+
+		// configure parameters
+		try {
+			context.getStatementConfigurator().configureStatement(stmt, preparedSql.getSql(),
+					preparedSql.getParameters());
+		} catch (StatementConfigurationException e) {
+			throw new SQLException(e);
+		}
+
+		return stmt;
 	}
 
 }

@@ -20,8 +20,8 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.query.ConstantExpressionProjection;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.internal.query.ConstantExpressionProjection;
 import com.holonplatform.datastore.jdbc.internal.converters.QueryExpressionResultSetConverter;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.internal.expressions.DefaultProjectionContext;

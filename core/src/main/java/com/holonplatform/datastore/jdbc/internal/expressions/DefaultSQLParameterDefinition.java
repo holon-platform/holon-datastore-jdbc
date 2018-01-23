@@ -32,6 +32,8 @@ public class DefaultSQLParameterDefinition implements SQLParameterDefinition {
 	 * Parameter value
 	 */
 	private final Object value;
+	
+	private final Class<?> type;
 
 	/**
 	 * Optional temporal type
@@ -43,10 +45,11 @@ public class DefaultSQLParameterDefinition implements SQLParameterDefinition {
 	 */
 	private final Function<String, String> parameterSerializer;
 
-	public DefaultSQLParameterDefinition(Object value, TemporalType temporalType,
+	public DefaultSQLParameterDefinition(Object value, Class<?> type, TemporalType temporalType,
 			Function<String, String> parameterSerializer) {
 		super();
 		this.value = value;
+		this.type = type;
 		this.temporalType = temporalType;
 		this.parameterSerializer = parameterSerializer;
 	}
@@ -57,7 +60,7 @@ public class DefaultSQLParameterDefinition implements SQLParameterDefinition {
 	 */
 	@Override
 	public Class<?> getType() {
-		return (value != null) ? value.getClass() : Void.class;
+		return type;
 	}
 
 	/*

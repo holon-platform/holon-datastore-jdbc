@@ -68,7 +68,7 @@ public class TestJdbcDatastoreHSQL extends AbstractJdbcDatastoreTest {
 		public JdbcDatastore datastore() {
 			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.HSQL)
 					.withExpressionResolver(KeyIs.RESOLVER)
-					// .traceEnabled(true)
+					.traceEnabled(true)
 					.build();
 		}
 

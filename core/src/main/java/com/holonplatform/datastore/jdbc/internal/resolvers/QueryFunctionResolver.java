@@ -23,7 +23,7 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
@@ -83,7 +83,7 @@ public enum QueryFunctionResolver implements ExpressionResolver<QueryFunction, S
 		// resolve arguments
 		List<String> arguments = new LinkedList<>();
 		if (expression.getExpressionArguments() != null) {
-			for (QueryExpression<?> argument : ((QueryFunction<?, ?>) expression).getExpressionArguments()) {
+			for (TypedExpression<?> argument : ((QueryFunction<?,?>)expression).getExpressionArguments()) {
 				// resolve argument
 				arguments.add(jdbcContext.resolveExpression(argument, SQLToken.class).getValue());
 			}

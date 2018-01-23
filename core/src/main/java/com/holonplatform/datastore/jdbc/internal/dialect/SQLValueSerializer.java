@@ -36,7 +36,6 @@ import java.util.Optional;
 
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
-import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.internal.expressions.LiteralValue;
 
@@ -116,7 +115,7 @@ public final class SQLValueSerializer implements Serializable {
 					sb.append("'");
 					return sb.toString();
 				} catch (IOException e) {
-					throw new QueryBuildException("Failed to read value from the Reader [" + value + "]", e);
+					throw new RuntimeException("Failed to read value from the Reader [" + value + "]", e);
 				}
 			}
 

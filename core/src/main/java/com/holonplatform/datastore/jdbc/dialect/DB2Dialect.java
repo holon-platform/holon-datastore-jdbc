@@ -163,7 +163,7 @@ public class DB2Dialect implements JdbcDialect {
 			// Reader type serialization
 			if (Reader.class.isAssignableFrom(parameter.getType())) {
 				try {
-					return SQLParameterDefinition.create(ConversionUtils.readerToString((Reader) parameter.getValue()));
+					return SQLParameterDefinition.create(ConversionUtils.readerToString((Reader) parameter.getValue()), String.class);
 				} catch (IOException e) {
 					throw new RuntimeException("Failed to convert Reader to String [" + parameter.getValue() + "]", e);
 				}

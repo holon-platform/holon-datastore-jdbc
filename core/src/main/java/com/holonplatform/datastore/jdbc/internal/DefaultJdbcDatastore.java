@@ -20,7 +20,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,9 +37,6 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
-import com.holonplatform.core.datastore.bulk.BulkDelete;
-import com.holonplatform.core.datastore.bulk.BulkInsert;
-import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.AbstractDatastore;
@@ -50,9 +46,7 @@ import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.Query;
-import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
@@ -74,7 +68,6 @@ import com.holonplatform.datastore.jdbc.dialect.PostgreSQLDialect;
 import com.holonplatform.datastore.jdbc.dialect.SQLServerDialect;
 import com.holonplatform.datastore.jdbc.dialect.SQLiteDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
-import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.context.DefaultPreparedSql;
 import com.holonplatform.datastore.jdbc.internal.context.DefaultSQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
@@ -82,13 +75,17 @@ import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurato
 import com.holonplatform.datastore.jdbc.internal.context.StatementConfigurationException;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
 import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeyInspector;
 import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeysCache;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BeanProjectionResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.BulkDeleteResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.BulkInsertResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.BulkUpdateResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.CollectionExpressionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.ConstantExpressionProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.ConstantExpressionResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.CountAllExpressionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.CountAllProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.DataTargetResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.DefaultQueryFunctionResolver;
@@ -96,7 +93,7 @@ import com.holonplatform.datastore.jdbc.internal.resolvers.DialectQueryFunctionR
 import com.holonplatform.datastore.jdbc.internal.resolvers.ExistFilterResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.LiteralValueResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.NotExistFilterResolver;
-import com.holonplatform.datastore.jdbc.internal.resolvers.OperationStructureResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.NullExpressionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.OrderBySortResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PathExpressionProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PathResolver;
@@ -193,8 +190,11 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		addExpressionResolver(RelationalTargetResolver.INSTANCE);
 		addExpressionResolver(DataTargetResolver.INSTANCE);
 		addExpressionResolver(PathResolver.INSTANCE);
+		addExpressionResolver(NullExpressionResolver.INSTANCE);
 		addExpressionResolver(ConstantExpressionResolver.INSTANCE);
+		addExpressionResolver(CollectionExpressionResolver.INSTANCE);
 		addExpressionResolver(LiteralValueResolver.INSTANCE);
+		addExpressionResolver(CountAllExpressionResolver.INSTANCE);
 		addExpressionResolver(QueryFunctionResolver.INSTANCE);
 		addExpressionResolver(DialectQueryFunctionResolver.INSTANCE);
 		addExpressionResolver(DefaultQueryFunctionResolver.INSTANCE);
@@ -216,10 +216,15 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		addExpressionResolver(QueryProjectionResolver.INSTANCE);
 		addExpressionResolver(QueryAggregationResolver.INSTANCE);
 		addExpressionResolver(QueryStructureResolver.INSTANCE);
-		addExpressionResolver(OperationStructureResolver.INSTANCE);
+		addExpressionResolver(BulkInsertResolver.INSTANCE);
+		addExpressionResolver(BulkUpdateResolver.INSTANCE);
+		addExpressionResolver(BulkDeleteResolver.INSTANCE);
 
-		// Query commodity factory
+		// commodity factories
 		registerCommodity(new JdbcQueryFactory());
+		registerCommodity(new JdbcBulkInsertFactory());
+		registerCommodity(new JdbcBulkUpdateFactory());
+		registerCommodity(new JdbcBulkDeleteFactory());
 	}
 
 	/*
@@ -608,129 +613,13 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 * @see com.holonplatform.core.datastore.Datastore#insert(com.holonplatform.core.datastore.DataTarget,
 	 * com.holonplatform.core.property.PropertyBox, com.holonplatform.core.datastore.Datastore.WriteOption[])
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public OperationResult insert(DataTarget<?> target, PropertyBox propertyBox, WriteOption... options) {
 
 		ObjectUtils.argumentNotNull(target, "Data target must be not null");
 		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, AliasMode.UNSUPPORTED);
-
-		final String sql;
-		try {
-
-			OperationStructure.Builder builder = OperationStructure.builder(OperationType.INSERT, target);
-			// valid Paths with not null value
-			propertyBox.stream().filter(property -> Path.class.isAssignableFrom(property.getClass()))
-					.filter(path -> propertyBox.containsValue(path)).forEach(p -> {
-						builder.withValue((Path) p,
-								ConstantExpression.create(getPathValue((Path) p, propertyBox, false)));
-					});
-
-			// resolve OperationStructure
-			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
-
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Failed to configure insert operation", e);
-		}
-
-		// prepare SQL
-		final PreparedSql preparedSql = prepareSql(sql, context);
-		trace(preparedSql.getSql());
-
-		// execute
-		return withConnection(c -> {
-
-			// primary key
-			Optional<Path<?>[]> pk = Optional.empty();
-			if (getDialect().supportsGetGeneratedKeys()) {
-				try {
-					pk = resolvePrimaryKey(context, target).map(k -> k.getKeys());
-				} catch (Exception ex) {
-					LOGGER.warn("Failed to obtain primary key of target [" + target + "]", ex);
-				}
-			}
-
-			final Path<?>[] keys;
-			final String[] pkNames;
-
-			if (pk.isPresent() && pk.get().length > 0) {
-				keys = pk.get();
-				pkNames = new String[keys.length];
-				for (int i = 0; i < keys.length; i++) {
-					pkNames[i] = getDialect().getColumnName(keys[i].getName());
-				}
-			} else {
-				keys = null;
-				pkNames = null;
-			}
-
-			try (PreparedStatement stmt = createInsertStatement(c, context.getDialect(), preparedSql.getSql(),
-					pkNames)) {
-
-				// configure parameters
-				getStatementConfigurator().configureStatement(stmt, preparedSql.getSql(), preparedSql.getParameters());
-
-				int inserted = stmt.executeUpdate();
-
-				OperationResult.Builder result = OperationResult.builder().type(OperationType.INSERT)
-						.affectedCount(inserted);
-
-				if (keys != null) {
-					// get generated keys
-					try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-						if (generatedKeys.next()) {
-							boolean bringBackGeneratedIds = JdbcDatastoreUtils.isBringBackGeneratedIds(options);
-							final int columns = generatedKeys.getMetaData().getColumnCount();
-							for (int i = 0; i < keys.length; i++) {
-								if (i < columns) {
-									final Object keyValue = generatedKeys.getObject(i + 1);
-									result.withInsertedKey(keys[i], keyValue);
-									if (bringBackGeneratedIds && keyValue != null) {
-										// set in propertybox
-										Property property = getPropertyForPath(keys[i], propertyBox);
-										if (property != null) {
-											// deserialize and set
-											QueryExpression propertyExpression = (property instanceof QueryExpression)
-													? (QueryExpression) property : null;
-											propertyBox.setValue(property, getDialect().getValueDeserializer()
-													.deserializeValue(c, propertyExpression, keyValue));
-										}
-									}
-								}
-							}
-						}
-					} catch (SQLException e) {
-						LOGGER.warn("Failed to retrieve generated keys", e);
-					}
-				}
-
-				return result.build();
-			}
-		});
-
-	}
-
-	/**
-	 * Create a {@link PreparedStatement} for an INSERT operation configuring generated keys.
-	 * @param connection Connection
-	 * @param dialect Dialect
-	 * @param sql SQL statement
-	 * @param pkNames Optional primary key column names
-	 * @return Configured statement
-	 * @throws SQLException If an error occurred
-	 */
-	private PreparedStatement createInsertStatement(Connection connection, JdbcDialect dialect, String sql,
-			String[] pkNames) throws SQLException {
-		if (dialect.supportsGetGeneratedKeys()) {
-			if (getDialect().supportGetGeneratedKeyByName() && pkNames != null && pkNames.length > 0) {
-				return connection.prepareStatement(sql, pkNames);
-			} else {
-				return connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-			}
-		}
-		return connection.prepareStatement(sql);
+		return bulkInsert(target, propertyBox, options).singleValue(propertyBox).execute();
 	}
 
 	/*
@@ -746,37 +635,8 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 
 		final JdbcResolutionContext context = JdbcResolutionContext.create(this, AliasMode.UNSUPPORTED);
 
-		final String sql;
-		try {
-
-			OperationStructure.Builder builder = OperationStructure.builder(OperationType.UPDATE, target);
-			// valid Paths
-			propertyBox.stream().filter(p -> Path.class.isAssignableFrom(p.getClass())).map(p -> (Path<?>) p)
-					.collect(Collectors.toList()).forEach(p -> {
-						builder.withValue(p, ConstantExpression.create(getPathValue(p, propertyBox, false)));
-					});
-			// primary key filter
-			builder.withFilter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox));
-
-			// resolve OperationStructure
-			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
-
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Failed to configure update operation", e);
-		}
-
-		// prepare SQL
-		final PreparedSql preparedSql = prepareSql(sql, context);
-		trace(preparedSql.getSql());
-
-		return withConnection(c -> {
-
-			try (PreparedStatement stmt = createStatement(c, preparedSql)) {
-				int result = stmt.executeUpdate();
-				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(result).build();
-			}
-
-		});
+		return bulkUpdate(target, options).set(propertyBox)
+				.filter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox)).execute();
 	}
 
 	/*
@@ -793,65 +653,9 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		final JdbcResolutionContext context = JdbcResolutionContext.create(this,
 				getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO : AliasMode.UNSUPPORTED);
 
-		final String sql;
-		try {
+		return bulkDelete(target, options).filter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox))
+				.execute();
 
-			OperationStructure.Builder builder = OperationStructure.builder(OperationType.DELETE, target);
-			// primary key filter
-			builder.withFilter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox));
-
-			// resolve OperationStructure
-			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
-
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Failed to configure delete operation", e);
-		}
-
-		// prepare SQL
-		final PreparedSql preparedSql = prepareSql(sql, context);
-		trace(preparedSql.getSql());
-
-		// execute
-		return withConnection(c -> {
-
-			try (PreparedStatement stmt = createStatement(c, preparedSql)) {
-				int deleted = stmt.executeUpdate();
-				return OperationResult.builder().type(OperationType.DELETE).affectedCount(deleted).build();
-			}
-		});
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.Datastore#bulkInsert(com.holonplatform.core.datastore.DataTarget,
-	 * com.holonplatform.core.property.PropertySet, com.holonplatform.core.datastore.Datastore.WriteOption[])
-	 */
-	@Override
-	public BulkInsert bulkInsert(DataTarget<?> target, PropertySet<?> propertySet, WriteOption... options) {
-		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		return new JdbcBulkInsert(this, target, isTraceEnabled(), propertySet);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.Datastore#bulkUpdate(com.holonplatform.core.datastore.DataTarget,
-	 * com.holonplatform.core.datastore.Datastore.WriteOption[])
-	 */
-	@Override
-	public BulkUpdate bulkUpdate(DataTarget<?> target, WriteOption... options) {
-		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		return new JdbcBulkUpdate(this, target, isTraceEnabled());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.Datastore#bulkDelete(com.holonplatform.core.datastore.DataTarget,
-	 * com.holonplatform.core.datastore.Datastore.WriteOption[])
-	 */
-	@Override
-	public BulkDelete bulkDelete(DataTarget<?> target, WriteOption... options) {
-		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		return new JdbcBulkDelete(this, target, isTraceEnabled());
 	}
 
 	// ------- Execution context

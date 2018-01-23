@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
-import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryExecution;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
@@ -89,7 +88,7 @@ public enum QueryStructureResolver implements ExpressionResolver<QueryExecution,
 		// from
 
 		RelationalTarget<?> target = context.resolveExpression(
-				configuration.getTarget().orElseThrow(() -> new QueryBuildException("Missing query target")),
+				configuration.getTarget().orElseThrow(() -> new InvalidExpressionException("Missing query target")),
 				RelationalTarget.class);
 
 		context.setTarget(target);

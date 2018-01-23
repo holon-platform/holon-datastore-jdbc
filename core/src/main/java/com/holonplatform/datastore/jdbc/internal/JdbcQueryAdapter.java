@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 
 import com.holonplatform.core.internal.query.QueryAdapter;
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.core.query.Query.QueryBuildException;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryExecution;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
@@ -86,7 +85,7 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 
 			// resolve query
 			query = context.resolve(queryExecution, JdbcQueryComposition.class, context)
-					.orElseThrow(() -> new QueryBuildException("Failed to resolve query"));
+					.orElseThrow(() -> new QueryExecutionException("Failed to resolve query"));
 
 			query.validate();
 

@@ -34,7 +34,7 @@ import java.util.Optional;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Path;
-import com.holonplatform.core.datastore.Datastore.WriteOption;
+import com.holonplatform.core.datastore.DatastoreOperations.WriteOption;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.property.Property;
@@ -214,7 +214,7 @@ public final class JdbcDatastoreUtils implements Serializable {
 	 * @return SQL type
 	 */
 	public static int classToJdbcType(Class<?> type) {
-		if (type == null) {
+		if (type == null || Void.class.isAssignableFrom(type)) {
 			return Types.NULL;
 		}
 

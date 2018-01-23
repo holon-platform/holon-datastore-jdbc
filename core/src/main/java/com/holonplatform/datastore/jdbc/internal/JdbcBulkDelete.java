@@ -17,46 +17,50 @@ package com.holonplatform.datastore.jdbc.internal;
 
 import java.sql.PreparedStatement;
 
-import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.bulk.BulkDelete;
-import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.query.QueryFilter;
+import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDeleteOperation;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
 
 /**
  * JDBC datastore {@link BulkDelete} implementation.
  * 
  * @since 5.0.0
  */
-public class JdbcBulkDelete extends AbstractBulkOperation<BulkDelete, JdbcStatementExecutionContext>
-		implements BulkDelete {
+public class JdbcBulkDelete extends AbstractBulkDeleteOperation<BulkDelete> implements BulkDelete {
 
-	/**
-	 * Constructor.
-	 * @param executionContext Execution context
-	 * @param target Operation data target
-	 * @param traceEnabled Whether tracing is enabled
-	 */
-	public JdbcBulkDelete(JdbcStatementExecutionContext executionContext, DataTarget<?> target, boolean traceEnabled) {
-		super(executionContext, target, traceEnabled);
+	private static final long serialVersionUID = 1L;
+
+	private final JdbcStatementExecutionContext executionContext;
+
+	public JdbcBulkDelete(JdbcStatementExecutionContext executionContext) {
+		super();
+		this.executionContext = executionContext;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.query.QueryFilter.QueryFilterSupport#filter(com.holonplatform.core.query.QueryFilter)
+	 * @see com.holonplatform.core.internal.datastore.bulk.AbstractBulkDeleteOperation#getActualOperation()
 	 */
 	@Override
-	public BulkDelete filter(QueryFilter filter) {
-		addFilter(filter);
+	protected JdbcBulkDelete getActualOperation() {
 		return this;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.Expression#validate()
+	 */
+	@Override
+	public void validate() throws InvalidExpressionException {
+		if (getConfiguration().getTarget() == null) {
+			throw new InvalidExpressionException("Missing data target");
+		}
 	}
 
 	/*
@@ -66,34 +70,22 @@ public class JdbcBulkDelete extends AbstractBulkOperation<BulkDelete, JdbcStatem
 	@Override
 	public OperationResult execute() {
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(),
-				getExecutionContext().getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO
-						: AliasMode.UNSUPPORTED);
-		
+		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext,
+				executionContext.getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO : AliasMode.UNSUPPORTED);
+
 		// add operation specific resolvers
-		context.addExpressionResolvers(getExpressionResolvers());
+		context.addExpressionResolvers(getDefinition().getExpressionResolvers());
 
-		final String sql;
-		try {
-
-			OperationStructure.Builder builder = OperationStructure.builder(OperationType.DELETE, getTarget());
-			getFilter().ifPresent(f -> builder.withFilter(f));
-
-			// resolve OperationStructure
-			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
-
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Failed to configure delete operation", e);
-		}
+		final String sql = context.resolveExpression(this, SQLToken.class).getValue();
 
 		// prepare SQL
-		final PreparedSql preparedSql = getExecutionContext().prepareSql(sql, context);
-		trace(preparedSql.getSql());
+		final PreparedSql preparedSql = executionContext.prepareSql(sql, context);
+		executionContext.trace(preparedSql.getSql());
 
 		// execute
-		return getExecutionContext().withConnection(c -> {
+		return executionContext.withConnection(c -> {
 
-			try (PreparedStatement stmt = getExecutionContext().createStatement(c, preparedSql)) {
+			try (PreparedStatement stmt = executionContext.createStatement(c, preparedSql)) {
 				int count = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.DELETE).affectedCount(count).build();
 			}

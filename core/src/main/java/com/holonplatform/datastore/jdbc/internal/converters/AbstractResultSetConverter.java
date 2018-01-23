@@ -42,5 +42,9 @@ public abstract class AbstractResultSetConverter<R> implements ResultSetConverte
 	protected Object getResult(JdbcDialect dialect, ResultSet resultSet, String label) throws SQLException {
 		return resultSet.getObject(label);
 	}
+	
+	protected Object getResult(JdbcDialect dialect, ResultSet resultSet, int index) throws SQLException {
+		return resultSet.getObject(index);
+	}
 
 }

@@ -16,83 +16,54 @@
 package com.holonplatform.datastore.jdbc.internal;
 
 import java.sql.PreparedStatement;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.Path;
-import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
-import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.core.query.ConstantExpression;
-import com.holonplatform.core.query.QueryExpression;
-import com.holonplatform.core.query.QueryFilter;
+import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.OperationStructure;
 
 /**
  * JDBC datastore {@link BulkUpdate} implementation.
  * 
  * @since 5.0.0
  */
-@SuppressWarnings("rawtypes")
-public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate, JdbcStatementExecutionContext>
-		implements BulkUpdate {
+public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> implements BulkUpdate {
 
-	/**
-	 * Path values to update
-	 */
-	private final Map<Path<?>, QueryExpression<?>> values = new HashMap<>();
+	private static final long serialVersionUID = 1L;
 
-	/**
-	 * Constructor.
-	 * @param executionContext Execution context
-	 * @param target Operation data target
-	 * @param traceEnabled Whether tracing is enabled
-	 */
-	public JdbcBulkUpdate(JdbcStatementExecutionContext executionContext, DataTarget<?> target, boolean traceEnabled) {
-		super(executionContext, target, traceEnabled);
+	private final JdbcStatementExecutionContext executionContext;
+
+	public JdbcBulkUpdate(JdbcStatementExecutionContext executionContext) {
+		super();
+		this.executionContext = executionContext;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.bulk.BulkClause#set(com.holonplatform.core.Path,
-	 * com.holonplatform.core.query.QueryExpression)
+	 * @see com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation#getActualOperation()
 	 */
 	@Override
-	public <T> BulkUpdate set(Path<T> path, QueryExpression<? super T> expression) {
-		ObjectUtils.argumentNotNull(path, "Path must be not null");
-		ObjectUtils.argumentNotNull(expression, "Expression must be not null");
-		values.put(path, expression);
+	protected BulkUpdate getActualOperation() {
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.bulk.BulkClause#setNull(com.holonplatform.core.Path)
+	 * @see com.holonplatform.core.Expression#validate()
 	 */
 	@Override
-	public BulkUpdate setNull(Path path) {
-		ObjectUtils.argumentNotNull(path, "Path must be not null");
-		values.put(path, ConstantExpression.nullValue());
-		return this;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.query.QueryFilter.QueryFilterSupport#filter(com.holonplatform.core.query.QueryFilter)
-	 */
-	@Override
-	public BulkUpdate filter(QueryFilter filter) {
-		addFilter(filter);
-		return this;
+	public void validate() throws InvalidExpressionException {
+		if (getConfiguration().getTarget() == null) {
+			throw new InvalidExpressionException("Missing data target");
+		}
+		if (getConfiguration().getValues().isEmpty()) {
+			throw new InvalidExpressionException("No value to update was declared");
+		}
 	}
 
 	/*
@@ -101,38 +72,22 @@ public class JdbcBulkUpdate extends AbstractBulkOperation<BulkUpdate, JdbcStatem
 	 */
 	@Override
 	public OperationResult execute() {
-		if (values.isEmpty()) {
-			throw new DataAccessException("No values to update");
-		}
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(),
-				AliasMode.UNSUPPORTED);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext, AliasMode.UNSUPPORTED);
 
 		// add operation specific resolvers
-		context.addExpressionResolvers(getExpressionResolvers());
+		context.addExpressionResolvers(getDefinition().getExpressionResolvers());
 
-		final String sql;
-		try {
-
-			OperationStructure.Builder builder = OperationStructure.builder(OperationType.UPDATE, getTarget());
-			values.forEach((p, v) -> builder.withValue(p, v));
-			getFilter().ifPresent(f -> builder.withFilter(f));
-
-			// resolve OperationStructure
-			sql = context.resolveExpression(builder.build(), SQLToken.class).getValue();
-
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Failed to configure update operation", e);
-		}
+		final String sql = context.resolveExpression(this, SQLToken.class).getValue();
 
 		// prepare SQL
-		final PreparedSql preparedSql = getExecutionContext().prepareSql(sql, context);
-		trace(preparedSql.getSql());
+		final PreparedSql preparedSql = executionContext.prepareSql(sql, context);
+		executionContext.trace(preparedSql.getSql());
 
 		// execute
-		return getExecutionContext().withConnection(c -> {
+		return executionContext.withConnection(c -> {
 
-			try (PreparedStatement stmt = getExecutionContext().createStatement(c, preparedSql)) {
+			try (PreparedStatement stmt = executionContext.createStatement(c, preparedSql)) {
 				int count = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(count).build();
 			}

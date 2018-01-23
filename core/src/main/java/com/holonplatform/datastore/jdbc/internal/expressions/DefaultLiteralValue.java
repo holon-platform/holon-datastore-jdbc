@@ -32,6 +32,8 @@ public class DefaultLiteralValue implements LiteralValue {
 	 * Value
 	 */
 	private final Object value;
+	
+	private final Class<?> type;
 
 	/**
 	 * Optional temporal value type
@@ -44,9 +46,10 @@ public class DefaultLiteralValue implements LiteralValue {
 	 * @param type Value type
 	 * @param temporalType Optional temporal value type
 	 */
-	public DefaultLiteralValue(Object value, TemporalType temporalType) {
+	public DefaultLiteralValue(Object value, Class<?> type, TemporalType temporalType) {
 		super();
 		this.value = value;
+		this.type = type;
 		this.temporalType = temporalType;
 	}
 
@@ -65,6 +68,14 @@ public class DefaultLiteralValue implements LiteralValue {
 	@Override
 	public Object getValue() {
 		return value;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.internal.expressions.LiteralValue#getType()
+	 */
+	@Override
+	public Class<?> getType() {
+		return type;
 	}
 
 	/*

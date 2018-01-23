@@ -18,16 +18,17 @@ package com.holonplatform.datastore.jdbc.test.function;
 import java.util.Arrays;
 import java.util.List;
 
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
 
 public class IfNullFunction<T> implements QueryFunction<T, T> {
 
-	private final QueryExpression<T> nullableValue;
-	private final QueryExpression<T> fallbackValue;
+	private final TypedExpression<T> nullableValue;
+	private final TypedExpression<T> fallbackValue;
 
-	public IfNullFunction(QueryExpression<T> nullableValue, QueryExpression<T> fallbackValue) {
+	public IfNullFunction(TypedExpression<T> nullableValue, TypedExpression<T> fallbackValue) {
 		super();
 		this.nullableValue = nullableValue;
 		this.fallbackValue = fallbackValue;
@@ -53,7 +54,7 @@ public class IfNullFunction<T> implements QueryFunction<T, T> {
 	}
 
 	@Override
-	public List<QueryExpression<? extends T>> getExpressionArguments() {
+	public List<TypedExpression<? extends T>> getExpressionArguments() {
 		return Arrays.asList(nullableValue, fallbackValue);
 	}
 

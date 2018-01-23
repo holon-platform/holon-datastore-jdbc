@@ -57,8 +57,8 @@ public interface SQLParameterDefinition {
 	 * @param value Parameter value
 	 * @return A new {@link SQLParameterDefinition}
 	 */
-	static SQLParameterDefinition create(Object value) {
-		return new DefaultSQLParameterDefinition(value, null, null);
+	static SQLParameterDefinition create(Object value, Class<?> type) {
+		return new DefaultSQLParameterDefinition(value, type, null, null);
 	}
 
 	/**
@@ -68,8 +68,8 @@ public interface SQLParameterDefinition {
 	 * @param temporalType Parameter value temporal type
 	 * @return A new {@link SQLParameterDefinition}
 	 */
-	static SQLParameterDefinition create(Object value, TemporalType temporalType) {
-		return new DefaultSQLParameterDefinition(value, temporalType, null);
+	static SQLParameterDefinition create(Object value, Class<?> type, TemporalType temporalType) {
+		return new DefaultSQLParameterDefinition(value, type, temporalType, null);
 	}
 
 	/**
@@ -79,8 +79,8 @@ public interface SQLParameterDefinition {
 	 * @param parameterSerializer The function to apply when the parameter is serialized in the SQL statement
 	 * @return A new {@link SQLParameterDefinition}
 	 */
-	static SQLParameterDefinition create(Object value, Function<String, String> parameterSerializer) {
-		return new DefaultSQLParameterDefinition(value, null, parameterSerializer);
+	static SQLParameterDefinition create(Object value, Class<?> type, Function<String, String> parameterSerializer) {
+		return new DefaultSQLParameterDefinition(value, type, null, parameterSerializer);
 	}
 
 	/**
@@ -91,17 +91,17 @@ public interface SQLParameterDefinition {
 	 * @param parameterSerializer The function to apply when the parameter is serialized in the SQL statement
 	 * @return A new {@link SQLParameterDefinition}
 	 */
-	static SQLParameterDefinition create(Object value, TemporalType temporalType,
+	static SQLParameterDefinition create(Object value, Class<?> type, TemporalType temporalType,
 			Function<String, String> parameterSerializer) {
-		return new DefaultSQLParameterDefinition(value, temporalType, parameterSerializer);
+		return new DefaultSQLParameterDefinition(value, type, temporalType, parameterSerializer);
 	}
 
 	/**
 	 * Create a new {@link SQLParameterDefinition} which represents a <code>null</code> parameter value.
 	 * @return A new {@link SQLParameterDefinition}
 	 */
-	static SQLParameterDefinition ofNull() {
-		return new DefaultSQLParameterDefinition(null, null, null);
+	static SQLParameterDefinition ofNull(Class<?> type) {
+		return new DefaultSQLParameterDefinition(null, type, null, null);
 	}
 
 }

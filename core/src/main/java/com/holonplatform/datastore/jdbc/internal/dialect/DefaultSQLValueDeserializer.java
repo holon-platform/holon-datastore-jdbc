@@ -36,12 +36,12 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.Calendar;
 
+import com.holonplatform.core.ConverterExpression;
+import com.holonplatform.core.ExpressionValueConverter;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
-import com.holonplatform.core.query.ConverterExpression;
-import com.holonplatform.core.query.ExpressionValueConverter;
-import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryResults.QueryResultConversionException;
 import com.holonplatform.datastore.jdbc.JdbcDialect.SQLValueDeserializer;
 
@@ -59,7 +59,7 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value) {
+	public <T> T deserializeValue(Connection connection, TypedExpression<T> expression, Object value) {
 		if (value != null) {
 
 			// check converter

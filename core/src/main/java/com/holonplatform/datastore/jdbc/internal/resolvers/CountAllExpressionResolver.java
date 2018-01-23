@@ -21,20 +21,11 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.query.CountAllProjection;
-import com.holonplatform.core.query.QueryFunction.Count;
+import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.CountAllExpression;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.ProjectionContext;
 
-/**
- * {@link CountAllProjection} resolver.
- *
- * @since 5.1.0
- */
-@SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum CountAllProjectionResolver implements ExpressionResolver<CountAllProjection, ProjectionContext> {
+public enum CountAllExpressionResolver implements ExpressionResolver<CountAllExpression, SQLToken> {
 
 	INSTANCE;
 
@@ -44,16 +35,9 @@ public enum CountAllProjectionResolver implements ExpressionResolver<CountAllPro
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<ProjectionContext> resolve(CountAllProjection expression, ResolutionContext context)
-			throws InvalidExpressionException {
-
-		// validate
-		expression.validate();
-
-		final JdbcResolutionContext jdbcContext = JdbcResolutionContext.checkContext(context);
-
-		return Optional.ofNullable(
-				jdbcContext.resolveExpression(Count.create(new CountAllExpression()), ProjectionContext.class));
+	public Optional<SQLToken> resolve(CountAllExpression expression,
+			com.holonplatform.core.ExpressionResolver.ResolutionContext context) throws InvalidExpressionException {
+		return Optional.of(SQLToken.create("*"));
 	}
 
 	/*
@@ -61,8 +45,8 @@ public enum CountAllProjectionResolver implements ExpressionResolver<CountAllPro
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends CountAllProjection> getExpressionType() {
-		return CountAllProjection.class;
+	public Class<? extends CountAllExpression> getExpressionType() {
+		return CountAllExpression.class;
 	}
 
 	/*
@@ -70,8 +54,8 @@ public enum CountAllProjectionResolver implements ExpressionResolver<CountAllPro
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends ProjectionContext> getResolvedType() {
-		return ProjectionContext.class;
+	public Class<? extends SQLToken> getResolvedType() {
+		return SQLToken.class;
 	}
 
 }

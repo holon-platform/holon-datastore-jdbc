@@ -217,7 +217,7 @@ public class SQLServerDialect implements JdbcDialect {
 		public SQLParameterDefinition processParameter(SQLParameterDefinition parameter) {
 			return parameter.getTemporalType().filter(temporalType -> TemporalType.TIME == temporalType)
 					.flatMap(temporalType -> SQLValueSerializer.serializeDate(parameter.getValue(), temporalType)
-							.map(value -> SQLParameterDefinition.create(value)))
+							.map(value -> SQLParameterDefinition.create(value, String.class)))
 					.orElse(parameter);
 		}
 

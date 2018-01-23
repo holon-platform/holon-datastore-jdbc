@@ -26,6 +26,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +85,7 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 
 	}
 	
-	/*private static long ms;
+	private static long ms;
 	
 	@BeforeClass
 	public static void before() {
@@ -93,7 +95,7 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 	@AfterClass
 	public static void after() {
 	 System.err.println(System.currentTimeMillis() - ms);
-	}*/
+	}
 
 	@Autowired
 	private Datastore datastore;

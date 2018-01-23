@@ -20,7 +20,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
@@ -193,7 +193,7 @@ public class OracleDialect implements JdbcDialect {
 	private static final class OracleValueDeserializer implements SQLValueDeserializer {
 
 		@Override
-		public <T> T deserializeValue(Connection connection, QueryExpression<T> expression, Object value) {
+		public <T> T deserializeValue(Connection connection, TypedExpression<T> expression, Object value) {
 			try {
 				Object valueToDeserialize = value;
 				if (value != null) {
@@ -223,7 +223,7 @@ public class OracleDialect implements JdbcDialect {
 			if (temporalType != null && TemporalType.DATE == temporalType) {
 				Optional<String> value = SQLValueSerializer.serializeDate(parameter.getValue(), temporalType);
 				if (value.isPresent()) {
-					return SQLParameterDefinition.create(value.get(),
+					return SQLParameterDefinition.create(value.get(), String.class,
 							p -> "to_date(" + p + ", '" + SQLValueSerializer.ANSI_DATE_FORMAT.toUpperCase() + "')");
 				}
 			}
