@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.DataTarget;
@@ -93,20 +94,6 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.Expression#validate()
-	 */
-	@Override
-	public void validate() throws InvalidExpressionException {
-		if (getConfiguration().getTarget() == null) {
-			throw new InvalidExpressionException("Missing data target");
-		}
-		if (getConfiguration().getValues().isEmpty()) {
-			throw new InvalidExpressionException("No value to insert was declared");
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.bulk.DMLClause#execute()
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -116,9 +103,9 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext, AliasMode.UNSUPPORTED);
 
 		// add operation specific resolvers
-		context.addExpressionResolvers(getDefinition().getExpressionResolvers());
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		final String sql = context.resolveExpression(this, SQLToken.class).getValue();
+		final String sql = context.resolveExpression(getConfiguration(), SQLToken.class).getValue();
 
 		// prepare SQL
 		final PreparedSql preparedSql = executionContext.prepareSql(sql, context);

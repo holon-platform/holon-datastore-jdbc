@@ -20,13 +20,14 @@ import java.util.Optional;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.relational.Aliasable;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
-import com.holonplatform.datastore.jdbc.composer.internal.DefaultSQLQueryCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.internal.DefaultSQLStatementCompositionContext;
 
 /**
- * TODO
+ * A {@link SQLCompositionContext} extension which supports statement alias generation and inspection.
  *
+ * @since 5.1.0
  */
-public interface SQLQueryCompositionContext extends SQLCompositionContext {
+public interface SQLStatementCompositionContext extends SQLCompositionContext {
 
 	/**
 	 * Alias handling mode
@@ -95,27 +96,25 @@ public interface SQLQueryCompositionContext extends SQLCompositionContext {
 	// builders
 
 	/**
-	 * Create a new default {@link SQLQueryCompositionContext}.
+	 * Create a new default {@link SQLStatementCompositionContext}.
 	 * @param context SQL context to use (not null)
 	 * @param rootTarget Root query target (not null)
 	 * @param aliasMode Alias handling mode (not null)
-	 * @return A new {@link SQLQueryCompositionContext}
+	 * @return A new {@link SQLStatementCompositionContext}
 	 */
-	static SQLQueryCompositionContext create(SQLContext context, RelationalTarget<?> rootTarget, AliasMode aliasMode) {
-		return new DefaultSQLQueryCompositionContext(context, rootTarget, aliasMode);
+	static SQLStatementCompositionContext create(SQLContext context, RelationalTarget<?> rootTarget, AliasMode aliasMode) {
+		return new DefaultSQLStatementCompositionContext(context, rootTarget, aliasMode);
 	}
-
+	
 	/**
-	 * Create a new default {@link SQLQueryCompositionContext}.
-	 * @param context SQL context to use (not null)
+	 * Create a new {@link SQLStatementCompositionContext} as a child of given {@link SQLCompositionContext}.
+	 * @param parent Parent context (not null)
 	 * @param rootTarget Root query target (not null)
 	 * @param aliasMode Alias handling mode (not null)
-	 * @param parent Parent context
-	 * @return A new {@link SQLQueryCompositionContext}
+	 * @return A new {@link SQLStatementCompositionContext}
 	 */
-	static SQLQueryCompositionContext create(SQLContext context, RelationalTarget<?> rootTarget, AliasMode aliasMode,
-			SQLCompositionContext parent) {
-		return new DefaultSQLQueryCompositionContext(context, rootTarget, aliasMode, parent);
+	static SQLStatementCompositionContext asChild(SQLCompositionContext parent, RelationalTarget<?> rootTarget, AliasMode aliasMode) {
+		return new DefaultSQLStatementCompositionContext(parent, rootTarget, aliasMode);
 	}
 
 }

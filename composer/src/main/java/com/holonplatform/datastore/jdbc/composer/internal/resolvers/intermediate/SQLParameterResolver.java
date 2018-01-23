@@ -20,6 +20,7 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.NullExpression;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
@@ -71,6 +72,11 @@ public enum SQLParameterResolver implements SQLContextExpressionResolver<SQLPara
 		// validate
 		expression.validate();
 
+		// Null expression
+		if (expression.getExpression() instanceof NullExpression) {
+			final NullExpression<?> nullExpression = (NullExpression<?>) expression.getExpression();
+			return Optional.of(SQLParameterValue.create(nullExpression.getModelValue(), nullExpression.getModelType()));
+		}
 		// ConstantExpression
 		if (expression.getExpression() instanceof ConstantExpression) {
 			final ConstantExpression<?> constant = (ConstantExpression<?>) expression.getExpression();

@@ -28,13 +28,10 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.ExpressionResolverRegistry;
-import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
-import com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext;
-import com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
 import com.holonplatform.datastore.jdbc.composer.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
@@ -74,7 +71,12 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 	 * @param aliasMode Alias handling mode
 	 */
 	public DefaultSQLCompositionContext(SQLContext context) {
-		this(context, null);
+		super();
+		ObjectUtils.argumentNotNull(context, "SQL context must be not null");
+		this.context = context;
+		this.parent = null;
+		// inherit resolvers
+		addExpressionResolvers(context.getExpressionResolvers());
 	}
 
 	/**
@@ -83,13 +85,13 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 	 * @param aliasMode Alias handling mode
 	 * @param parent Parent composition context
 	 */
-	public DefaultSQLCompositionContext(SQLContext context, SQLCompositionContext parent) {
+	public DefaultSQLCompositionContext(SQLCompositionContext parent) {
 		super();
-		ObjectUtils.argumentNotNull(context, "SQLContext must be not null");
-		this.context = context;
+		ObjectUtils.argumentNotNull(parent, "Parent context must be not null");
+		this.context = parent;
 		this.parent = parent;
 		// inherit resolvers
-		addExpressionResolvers(context.getExpressionResolvers());
+		addExpressionResolvers(parent.getExpressionResolvers());
 	}
 
 	/**
@@ -216,18 +218,7 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 	 */
 	@Override
 	public SQLCompositionContext childContext() {
-		return new DefaultSQLCompositionContext(this, this);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLCompositionContext#childQueryContext(com.holonplatform.core.
-	 * datastore.relational.RelationalTarget,
-	 * com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext.AliasMode)
-	 */
-	@Override
-	public SQLQueryCompositionContext childQueryContext(RelationalTarget<?> rootTarget, AliasMode aliasMode) {
-		return SQLQueryCompositionContext.create(this, rootTarget, aliasMode, this);
+		return new DefaultSQLCompositionContext(this);
 	}
 
 	// Expression resolvers

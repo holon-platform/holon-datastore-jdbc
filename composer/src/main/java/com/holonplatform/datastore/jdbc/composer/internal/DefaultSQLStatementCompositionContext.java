@@ -26,15 +26,15 @@ import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
-import com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 
 /**
- * Default {@link SQLQueryCompositionContext} implementation.
+ * Default {@link SQLStatementCompositionContext} implementation.
  *
  * @since 5.1.0
  */
-public class DefaultSQLQueryCompositionContext extends DefaultSQLCompositionContext
-		implements SQLQueryCompositionContext {
+public class DefaultSQLStatementCompositionContext extends DefaultSQLCompositionContext
+		implements SQLStatementCompositionContext {
 
 	private static final String ALIAS_CHARS = "abcdefghijklmnopqrstuvwxyw0123456789_";
 
@@ -63,27 +63,36 @@ public class DefaultSQLQueryCompositionContext extends DefaultSQLCompositionCont
 	 * @param context SQL context (not null)
 	 * @param rootTarget Root query target (not null)
 	 * @param aliasMode Alias handling mode (not null)
-	 * @param parent Parent composition context
 	 */
-	public DefaultSQLQueryCompositionContext(SQLContext context, RelationalTarget<?> rootTarget, AliasMode aliasMode) {
-		this(context, rootTarget, aliasMode, null);
-	}
-
-	/**
-	 * Constructor with parent composition context.
-	 * @param context SQL context (not null)
-	 * @param rootTarget Root query target (not null)
-	 * @param aliasMode Alias handling mode (not null)
-	 * @param parent Parent composition context
-	 */
-	public DefaultSQLQueryCompositionContext(SQLContext context, RelationalTarget<?> rootTarget, AliasMode aliasMode,
-			SQLCompositionContext parent) {
-		super(context, parent);
+	public DefaultSQLStatementCompositionContext(SQLContext context, RelationalTarget<?> rootTarget, AliasMode aliasMode) {
+		super(context);
 		ObjectUtils.argumentNotNull(rootTarget, "Root query target must be not null");
 		ObjectUtils.argumentNotNull(aliasMode, "AliasMode must be not null");
 		this.rootTarget = rootTarget;
 		this.aliasMode = aliasMode;
+		init();
+	}
 
+	/**
+	 * Constructor with parent composition context.
+	 * @param parent Parent composition context (not null)
+	 * @param rootTarget Root query target (not null)
+	 * @param aliasMode Alias handling mode (not null)
+	 */
+	public DefaultSQLStatementCompositionContext(SQLCompositionContext parent, RelationalTarget<?> rootTarget,
+			AliasMode aliasMode) {
+		super(parent);
+		ObjectUtils.argumentNotNull(rootTarget, "Root query target must be not null");
+		ObjectUtils.argumentNotNull(aliasMode, "AliasMode must be not null");
+		this.rootTarget = rootTarget;
+		this.aliasMode = aliasMode;
+		init();
+	}
+
+	/**
+	 * Init context
+	 */
+	protected void init() {
 		// target alias
 		parsePathAlias(rootTarget);
 		// check joins
@@ -115,7 +124,7 @@ public class DefaultSQLQueryCompositionContext extends DefaultSQLCompositionCont
 		int sequence = -1;
 		SQLCompositionContext ctx = this;
 		while (ctx != null) {
-			if (ctx instanceof SQLQueryCompositionContext) {
+			if (ctx instanceof SQLStatementCompositionContext) {
 				sequence++;
 			}
 			ctx = ctx.getParent().orElse(null);
@@ -143,8 +152,8 @@ public class DefaultSQLQueryCompositionContext extends DefaultSQLCompositionCont
 		Optional<String> alias = getPathAlias(path);
 		if (!alias.isPresent() && useParentContext) {
 			// check parent
-			return getParent().filter(parent -> (parent instanceof SQLQueryCompositionContext))
-					.flatMap(parent -> ((SQLQueryCompositionContext) parent).getAlias(path, true));
+			return getParent().filter(parent -> (parent instanceof SQLStatementCompositionContext))
+					.flatMap(parent -> ((SQLStatementCompositionContext) parent).getAlias(path, true));
 		}
 		return alias;
 	}

@@ -25,8 +25,8 @@ import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryExecution;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
-import com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext;
-import com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext.AliasMode;
+import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.expression.DefaultSQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
@@ -90,8 +90,9 @@ public enum QueryExecutionResolver implements SQLContextExpressionResolver<Query
 				configuration.getTarget().orElseThrow(() -> new InvalidExpressionException("Missing query target")),
 				RelationalTarget.class);
 
-		// build a query context
-		final SQLQueryCompositionContext queryContext = context.childQueryContext(target, AliasMode.AUTO);
+		// build a statement context
+		final SQLStatementCompositionContext queryContext = SQLStatementCompositionContext.asChild(context, target,
+				AliasMode.AUTO);
 
 		// from
 		clauses.setFrom(queryContext.resolveOrFail(target, SQLExpression.class).getValue());

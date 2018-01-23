@@ -80,7 +80,7 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 	 */
 	public DefaultSQLProjection(Class<? extends R> projectionType, SQLCompositionContext context) {
 		this(projectionType, (context != null)
-				? context.isQueryCompositionContext().map(ctx -> ctx.getContextSequence()).orElse(0) : 0);
+				? context.isStatementCompositionContext().map(ctx -> ctx.getContextSequence()).orElse(0) : 0);
 	}
 
 	/**

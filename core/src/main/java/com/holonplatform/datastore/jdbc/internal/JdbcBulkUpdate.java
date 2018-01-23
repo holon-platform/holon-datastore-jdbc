@@ -54,20 +54,6 @@ public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> impl
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.Expression#validate()
-	 */
-	@Override
-	public void validate() throws InvalidExpressionException {
-		if (getConfiguration().getTarget() == null) {
-			throw new InvalidExpressionException("Missing data target");
-		}
-		if (getConfiguration().getValues().isEmpty()) {
-			throw new InvalidExpressionException("No value to update was declared");
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.bulk.DMLClause#execute()
 	 */
 	@Override
@@ -76,9 +62,9 @@ public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> impl
 		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext, AliasMode.UNSUPPORTED);
 
 		// add operation specific resolvers
-		context.addExpressionResolvers(getDefinition().getExpressionResolvers());
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		final String sql = context.resolveExpression(this, SQLToken.class).getValue();
+		final String sql = context.resolveExpression(getConfiguration(), SQLToken.class).getValue();
 
 		// prepare SQL
 		final PreparedSql preparedSql = executionContext.prepareSql(sql, context);

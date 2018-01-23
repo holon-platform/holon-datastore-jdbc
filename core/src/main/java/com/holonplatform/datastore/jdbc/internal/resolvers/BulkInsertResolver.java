@@ -28,13 +28,13 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.datastore.bulk.BulkInsert;
+import com.holonplatform.core.datastore.bulk.BulkInsertConfiguration;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 @Priority(Integer.MAX_VALUE)
-public enum BulkInsertResolver implements ExpressionResolver<BulkInsert, SQLToken> {
+public enum BulkInsertResolver implements ExpressionResolver<BulkInsertConfiguration, SQLToken> {
 
 	INSTANCE;
 
@@ -44,7 +44,7 @@ public enum BulkInsertResolver implements ExpressionResolver<BulkInsert, SQLToke
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<SQLToken> resolve(BulkInsert expression,
+	public Optional<SQLToken> resolve(BulkInsertConfiguration expression,
 			com.holonplatform.core.ExpressionResolver.ResolutionContext resolutionContext)
 			throws InvalidExpressionException {
 
@@ -55,7 +55,7 @@ public enum BulkInsertResolver implements ExpressionResolver<BulkInsert, SQLToke
 		final JdbcResolutionContext context = JdbcResolutionContext.checkContext(resolutionContext);
 
 		// target
-		final RelationalTarget<?> target = context.resolveExpression(expression.getConfiguration().getTarget(),
+		final RelationalTarget<?> target = context.resolveExpression(expression.getTarget(),
 				RelationalTarget.class);
 		context.setTarget(target);
 
@@ -68,14 +68,14 @@ public enum BulkInsertResolver implements ExpressionResolver<BulkInsert, SQLToke
 		operation.append(context.resolveExpression(target, SQLToken.class).getValue());
 
 		// values (the first map only)
-		final Map<Path<?>, TypedExpression<?>> pathValues = expression.getConfiguration().getValues().get(0);
+		final Map<Path<?>, TypedExpression<?>> pathValues = expression.getValues().get(0);
 
-		boolean singleValue = expression.getConfiguration().getValues().size() == 1;
+		boolean singleValue = expression.getValues().size() == 1;
 
 		final List<String> paths = new ArrayList<>(pathValues.size());
 		final List<String> values = new ArrayList<>(pathValues.size());
 
-		expression.getConfiguration().getOperationPaths().map(ops -> Arrays.asList(ops).stream())
+		expression.getOperationPaths().map(ops -> Arrays.asList(ops).stream())
 				.orElse(pathValues.keySet().stream()).forEach(path -> {
 					if (singleValue) {
 						// single value
@@ -105,8 +105,8 @@ public enum BulkInsertResolver implements ExpressionResolver<BulkInsert, SQLToke
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends BulkInsert> getExpressionType() {
-		return BulkInsert.class;
+	public Class<? extends BulkInsertConfiguration> getExpressionType() {
+		return BulkInsertConfiguration.class;
 	}
 
 	/*

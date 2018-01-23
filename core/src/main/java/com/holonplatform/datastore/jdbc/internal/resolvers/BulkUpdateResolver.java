@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.jdbc.internal.resolvers;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,13 +26,13 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.datastore.bulk.BulkUpdate;
+import com.holonplatform.core.datastore.bulk.BulkUpdateConfiguration;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 @Priority(Integer.MAX_VALUE)
-public enum BulkUpdateResolver implements ExpressionResolver<BulkUpdate, SQLToken> {
+public enum BulkUpdateResolver implements ExpressionResolver<BulkUpdateConfiguration, SQLToken> {
 
 	INSTANCE;
 
@@ -43,7 +42,7 @@ public enum BulkUpdateResolver implements ExpressionResolver<BulkUpdate, SQLToke
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<SQLToken> resolve(BulkUpdate expression,
+	public Optional<SQLToken> resolve(BulkUpdateConfiguration expression,
 			com.holonplatform.core.ExpressionResolver.ResolutionContext resolutionContext)
 			throws InvalidExpressionException {
 
@@ -54,7 +53,7 @@ public enum BulkUpdateResolver implements ExpressionResolver<BulkUpdate, SQLToke
 		final JdbcResolutionContext context = JdbcResolutionContext.checkContext(resolutionContext);
 
 		// target
-		final RelationalTarget<?> target = context.resolveExpression(expression.getConfiguration().getTarget(),
+		final RelationalTarget<?> target = context.resolveExpression(expression.getTarget(),
 				RelationalTarget.class);
 		context.setTarget(target);
 
@@ -66,20 +65,19 @@ public enum BulkUpdateResolver implements ExpressionResolver<BulkUpdate, SQLToke
 		// target
 		operation.append(context.resolveExpression(target, SQLToken.class).getValue());
 
-		// values (the first map only)
-		final Map<Path<?>, TypedExpression<?>> pathValues = expression.getConfiguration().getValues().get(0);
+		// values
+		final Map<Path<?>, TypedExpression<?>> pathValues = expression.getValues();
 
 		final List<String> paths = new ArrayList<>(pathValues.size());
 		final List<String> values = new ArrayList<>(pathValues.size());
-
-		expression.getConfiguration().getOperationPaths().map(ops -> Arrays.asList(ops).stream())
-				.orElse(pathValues.keySet().stream()).forEach(path -> {
-					TypedExpression<?> pathExpression = pathValues.get(path);
-					if (pathExpression != null) {
-						paths.add(context.resolveExpression(path, SQLToken.class).getValue());
-						values.add(context.resolveExpression(pathExpression, SQLToken.class).getValue());
-					}
-				});
+		
+		for (Path<?> path : pathValues.keySet()) {
+			TypedExpression<?> pathExpression = pathValues.get(path);
+			if (pathExpression != null) {
+				paths.add(context.resolveExpression(path, SQLToken.class).getValue());
+				values.add(context.resolveExpression(pathExpression, SQLToken.class).getValue());
+			}
+		}
 
 		operation.append(" SET ");
 		for (int i = 0; i < paths.size(); i++) {
@@ -92,7 +90,7 @@ public enum BulkUpdateResolver implements ExpressionResolver<BulkUpdate, SQLToke
 		}
 
 		// filter
-		expression.getConfiguration().getFilter().ifPresent(f -> {
+		expression.getFilter().ifPresent(f -> {
 			operation.append(" WHERE ");
 			operation.append(context.resolveExpression(f, SQLToken.class).getValue());
 		});
@@ -105,8 +103,8 @@ public enum BulkUpdateResolver implements ExpressionResolver<BulkUpdate, SQLToke
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends BulkUpdate> getExpressionType() {
-		return BulkUpdate.class;
+	public Class<? extends BulkUpdateConfiguration> getExpressionType() {
+		return BulkUpdateConfiguration.class;
 	}
 
 	/*

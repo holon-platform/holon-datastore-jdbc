@@ -23,14 +23,23 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
-import com.holonplatform.core.datastore.relational.RelationalTarget;
-import com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.internal.DefaultSQLCompositionContext;
 
 /**
- * TODO
+ * SQL compostion context.
+ * <p>
+ * Supports {@link ExpressionResolver}s to resolve SQL expressions and extends {@link ResolutionContext}.
+ * </p>
+ * <p>
+ * Supports named parameters definitions, which can be added using {@link #addNamedParameter(SQLParameter)}. The named
+ * parameters can be normalized as SQL statement parameters through the {@link #prepareStatement(String)} method.
+ * </p>
+ * <p>
+ * SQL compostion contexts are hierarchical and provides methods to get the parent context and to create children using
+ * {@link #childContext()}.
+ * </p>
  *
  * @since 5.1.0
  */
@@ -117,22 +126,13 @@ public interface SQLCompositionContext extends SQLContext, ResolutionContext, Ex
 	SQLCompositionContext childContext();
 
 	/**
-	 * Create a new {@link SQLQueryCompositionContext} as child of this context. This context will be setted as parent
-	 * of the new context.
-	 * @param rootTarget Root query target (not null)
-	 * @param aliasMode Alias handling mode (not null)
-	 * @return @return A new {@link SQLQueryCompositionContext} with this context as parent
+	 * Checks whether this context is a {@link SQLStatementCompositionContext}.
+	 * @return If this context is a {@link SQLStatementCompositionContext} returns the context itself as
+	 *         {@link SQLStatementCompositionContext}, otherwise returns an empty Optional
 	 */
-	SQLQueryCompositionContext childQueryContext(RelationalTarget<?> rootTarget, AliasMode aliasMode);
-
-	/**
-	 * Checks whether this context is a {@link SQLQueryCompositionContext}.
-	 * @return If this context is a {@link SQLQueryCompositionContext} returns the context itself as
-	 *         {@link SQLQueryCompositionContext}, otherwise returns an empty Optional
-	 */
-	default Optional<SQLQueryCompositionContext> isQueryCompositionContext() {
+	default Optional<SQLStatementCompositionContext> isStatementCompositionContext() {
 		return Optional
-				.ofNullable((this instanceof SQLQueryCompositionContext) ? (SQLQueryCompositionContext) this : null);
+				.ofNullable((this instanceof SQLStatementCompositionContext) ? (SQLStatementCompositionContext) this : null);
 	}
 
 	/**

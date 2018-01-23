@@ -21,13 +21,13 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.datastore.bulk.BulkDelete;
+import com.holonplatform.core.datastore.bulk.BulkDeleteConfiguration;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 
 @Priority(Integer.MAX_VALUE)
-public enum BulkDeleteResolver implements ExpressionResolver<BulkDelete, SQLToken> {
+public enum BulkDeleteResolver implements ExpressionResolver<BulkDeleteConfiguration, SQLToken> {
 
 	INSTANCE;
 
@@ -37,7 +37,7 @@ public enum BulkDeleteResolver implements ExpressionResolver<BulkDelete, SQLToke
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<SQLToken> resolve(BulkDelete expression,
+	public Optional<SQLToken> resolve(BulkDeleteConfiguration expression,
 			com.holonplatform.core.ExpressionResolver.ResolutionContext resolutionContext)
 			throws InvalidExpressionException {
 
@@ -48,7 +48,7 @@ public enum BulkDeleteResolver implements ExpressionResolver<BulkDelete, SQLToke
 		final JdbcResolutionContext context = JdbcResolutionContext.checkContext(resolutionContext);
 
 		// target
-		final RelationalTarget<?> target = context.resolveExpression(expression.getConfiguration().getTarget(),
+		final RelationalTarget<?> target = context.resolveExpression(expression.getTarget(),
 				RelationalTarget.class);
 		context.setTarget(target);
 		
@@ -70,7 +70,7 @@ public enum BulkDeleteResolver implements ExpressionResolver<BulkDelete, SQLToke
 		operation.append(context.resolveExpression(target, SQLToken.class).getValue());
 		
 		// filter
-		expression.getConfiguration().getFilter().ifPresent(f -> {
+		expression.getFilter().ifPresent(f -> {
 			operation.append(" WHERE ");
 			operation.append(context.resolveExpression(f, SQLToken.class).getValue());
 		});
@@ -83,8 +83,8 @@ public enum BulkDeleteResolver implements ExpressionResolver<BulkDelete, SQLToke
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends BulkDelete> getExpressionType() {
-		return BulkDelete.class;
+	public Class<? extends BulkDeleteConfiguration> getExpressionType() {
+		return BulkDeleteConfiguration.class;
 	}
 
 	/*

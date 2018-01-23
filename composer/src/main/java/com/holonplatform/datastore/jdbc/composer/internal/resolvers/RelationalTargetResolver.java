@@ -83,7 +83,7 @@ public enum RelationalTargetResolver implements SQLExpressionResolver<Relational
 	 * @return SQL expression
 	 */
 	private static String getSQLPath(SQLCompositionContext context, final Path<?> path) {
-		return context.isQueryCompositionContext().flatMap(ctx -> ctx.getAlias(path, false).map(a -> {
+		return context.isStatementCompositionContext().flatMap(ctx -> ctx.getAlias(path, false).map(a -> {
 			StringBuilder pb = new StringBuilder();
 			pb.append(path.getName());
 			pb.append(" ");
