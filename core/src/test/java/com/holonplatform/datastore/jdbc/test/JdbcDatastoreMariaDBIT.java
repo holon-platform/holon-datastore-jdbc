@@ -46,8 +46,8 @@ import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestJdbcDatastoreMySQLIT.Config.class)
-public class TestJdbcDatastoreMySQLIT extends AbstractDatastoreIntegrationTest {
+@ContextConfiguration(classes = JdbcDatastoreMariaDBIT.Config.class)
+public class JdbcDatastoreMariaDBIT extends AbstractDatastoreIntegrationTest {
 
 	@Configuration
 	@EnableTransactionManagement
@@ -56,9 +56,9 @@ public class TestJdbcDatastoreMySQLIT extends AbstractDatastoreIntegrationTest {
 		@Bean
 		public DataSource dataSource() {
 			DataSource ds = DataSourceBuilder.create().build(
-					DataSourceConfigProperties.builder().withPropertySource("mysql/datasource.properties").build());
+					DataSourceConfigProperties.builder().withPropertySource("mariadb/datasource.properties").build());
 			// init
-			initSQL(ds, "mysql/schema.sql", "mysql/data.sql");
+			initSQL(ds, "mariadb/schema.sql", "mariadb/data.sql");
 			return ds;
 		}
 
@@ -69,7 +69,7 @@ public class TestJdbcDatastoreMySQLIT extends AbstractDatastoreIntegrationTest {
 
 		@Bean
 		public JdbcDatastore datastore() {
-			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.MYSQL)
+			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.MARIADB)
 					.withExpressionResolver(KeyIs.RESOLVER)
 					// .traceEnabled(true)
 					.build();

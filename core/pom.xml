@@ -384,23 +384,11 @@
 
 	<dependencies>
 
-		<!-- Holon core -->
-		<dependency>
-			<groupId>com.holon-platform.core</groupId>
-			<artifactId>holon-core</artifactId>
-			<version>${holon.core.version}</version>
-		</dependency>
-		<!-- Holon jdbc -->
+		<!-- Holon jdbc composer -->
 		<dependency>
 			<groupId>com.holon-platform.jdbc</groupId>
-			<artifactId>holon-jdbc</artifactId>
-			<version>${holon.jdbc.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.holon-platform.core</groupId>
-					<artifactId>holon-core</artifactId>
-				</exclusion>
-			</exclusions>
+			<artifactId>holon-datastore-jdbc-composer</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- Test -->

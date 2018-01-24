@@ -1,0 +1,1 @@
+INSERT INTO testtx VALUES (1, 'TheOne');
