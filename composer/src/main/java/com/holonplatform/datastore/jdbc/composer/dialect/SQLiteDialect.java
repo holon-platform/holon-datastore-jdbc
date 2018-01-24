@@ -88,11 +88,12 @@ public class SQLiteDialect implements SQLDialect {
 	 */
 	@Override
 	public void init(SQLDialectContext context) throws SQLException {
-		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
-		supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-		generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
-		supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
-
+		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
+		if (databaseMetaData != null) {
+			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
+			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
+			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+		}
 		context.getValueDeserializer().addValueProcessor(DESERIALIZER);
 		context.addExpressionResolver(ReaderToStringParameterResolver.INSTANCE);
 		context.addExpressionResolver(TEMPORAL_PARAMETER_RESOLVER);

@@ -23,6 +23,7 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
@@ -40,6 +41,7 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
@@ -51,6 +53,8 @@ import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionR
 public class SQLServerDialect implements SQLDialect {
 
 	private static final long serialVersionUID = -3585193712573424374L;
+	
+	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
 
@@ -82,13 +86,16 @@ public class SQLServerDialect implements SQLDialect {
 	 */
 	@Override
 	public void init(SQLDialectContext context) throws SQLException {
-		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
-		supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-		generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
-		supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
-		int version = databaseMetaData.getDatabaseMajorVersion();
-		version2012orHigher = version >= 0 && version >= 11;
-
+		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
+		if (databaseMetaData != null) {
+			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
+			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
+			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+			int version = databaseMetaData.getDatabaseMajorVersion();
+			version2012orHigher = version >= 0 && version >= 11;
+		} else {
+			LOGGER.warn("Failed to detect SQLServer database version - a limit handler will not be available");
+		}
 		context.addExpressionResolver(TIME_PARAMETER_RESOLVER);
 	}
 

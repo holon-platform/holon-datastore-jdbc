@@ -41,8 +41,8 @@ public class H2Dialect implements SQLDialect {
 
 	private static final H2LimitHandler LIMIT_HANDLER = new H2LimitHandler();
 
-	private boolean supportsGeneratedKeys;
-	private boolean generatedKeyAlwaysReturned;
+	private boolean supportsGeneratedKeys = true;
+	private boolean generatedKeyAlwaysReturned = true;
 	private boolean supportsLikeEscapeClause;
 
 	public H2Dialect() {
@@ -57,15 +57,18 @@ public class H2Dialect implements SQLDialect {
 	 */
 	@Override
 	public void init(SQLDialectContext context) throws SQLException {
-		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
-		supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-		generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
-		supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
+		if (databaseMetaData != null) {
+			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
+			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
+			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
 	 */
 	@Override
 	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {

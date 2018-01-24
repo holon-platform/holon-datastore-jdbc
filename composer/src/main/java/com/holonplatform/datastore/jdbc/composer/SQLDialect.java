@@ -21,9 +21,23 @@ import java.sql.Types;
 import java.util.Optional;
 
 import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.datastore.jdbc.composer.dialect.DB2Dialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.DefaultDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.DerbyDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.H2Dialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.HANADialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.HSQLDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.InformixDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.MariaDBDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.MySQLDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.OracleDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.PostgreSQLDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.SQLServerDialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.SQLiteDialect;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DefaultLimitHandler;
+import com.holonplatform.jdbc.DatabasePlatform;
 
 /**
  * Represents a dialect of SQL implemented by a particular database.
@@ -109,7 +123,7 @@ public interface SQLDialect extends Serializable {
 	default Optional<Class<?>> getJavaType(SQLType sqlType) {
 		return Optional.empty();
 	}
-	
+
 	/**
 	 * Get the SQL type which corresponds to given Java type for this dialect.
 	 * @param javaType The sql type (not null)
@@ -172,6 +186,49 @@ public interface SQLDialect extends Serializable {
 		 */
 		String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset);
 
+	}
+
+	/**
+	 * Detect a suitable {@link SQLDialect} to use with given database platform, if available.
+	 * @param database Database platform
+	 * @return Optional {@link SQLDialect} for given database platform
+	 */
+	static Optional<SQLDialect> detect(DatabasePlatform database) {
+		if (database != null) {
+			switch (database) {
+			case DB2:
+				return Optional.of(new DB2Dialect());
+			case DB2_AS400:
+				return Optional.of(new DB2Dialect());
+			case DERBY:
+				return Optional.of(new DerbyDialect());
+			case H2:
+				return Optional.of(new H2Dialect());
+			case HANA:
+				return Optional.of(new HANADialect());
+			case HSQL:
+				return Optional.of(new HSQLDialect());
+			case INFORMIX:
+				return Optional.of(new InformixDialect());
+			case MARIADB:
+				return Optional.of(new MariaDBDialect());
+			case MYSQL:
+				return Optional.of(new MySQLDialect());
+			case ORACLE:
+				return Optional.of(new OracleDialect());
+			case POSTGRESQL:
+				return Optional.of(new PostgreSQLDialect());
+			case SQLITE:
+				return Optional.of(new SQLiteDialect());
+			case SQL_SERVER:
+				return Optional.of(new SQLServerDialect());
+			case NONE:
+				return Optional.of(new DefaultDialect());
+			default:
+				break;
+			}
+		}
+		return Optional.empty();
 	}
 
 }

@@ -56,8 +56,10 @@ public class DB2Dialect implements SQLDialect {
 	 */
 	@Override
 	public void init(SQLDialectContext context) throws SQLException {
-		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
-		supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
+		if (databaseMetaData != null) {
+			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+		}
 		
 		context.addExpressionResolver(ReaderToStringParameterResolver.INSTANCE);
 	}

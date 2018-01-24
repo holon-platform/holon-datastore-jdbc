@@ -63,14 +63,15 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	 */
 	@Override
 	public void init(SQLDialectContext context) throws SQLException {
-		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
-
-		int driverMajorVersion = databaseMetaData.getDriverMajorVersion();
-		oracleVersion = databaseMetaData.getDatabaseMajorVersion();
-		supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-		generatedKeyAlwaysReturned = (driverMajorVersion < 12) ? false : databaseMetaData.generatedKeyAlwaysReturned();
-		supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
-
+		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
+		if (databaseMetaData != null) {
+			int driverMajorVersion = databaseMetaData.getDriverMajorVersion();
+			oracleVersion = databaseMetaData.getDatabaseMajorVersion();
+			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
+			generatedKeyAlwaysReturned = (driverMajorVersion < 12) ? false
+					: databaseMetaData.generatedKeyAlwaysReturned();
+			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+		}
 		context.getValueDeserializer().addValueProcessor(DESERIALIZER);
 	}
 
@@ -188,22 +189,13 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 
 	// TODO
 	/*
-	private static final class OracleParameterProcessor implements SQLParameterProcessor {
-
-		@Override
-		public SQLProcessedParameter processParameter(SQLContext context, SQLParameter parameter) {
-			TemporalType temporalType = parameter.getTemporalType().orElse(null);
-			if (temporalType != null && TemporalType.DATE == temporalType) {
-				Optional<String> value = context.getValueSerializer().serializeTemporal(parameter.getValue(),
-						temporalType);
-				if (value.isPresent()) {
-					return SQLProcessedParameter.create(SQLParameter.create(value.get()),
-							p -> "to_date(" + p + ", '" + ANSI_DATE_FORMAT.toUpperCase() + "')");
-				}
-			}
-			return SQLProcessedParameter.create(parameter);
-		}
-
-	}*/
+	 * private static final class OracleParameterProcessor implements SQLParameterProcessor {
+	 * @Override public SQLProcessedParameter processParameter(SQLContext context, SQLParameter parameter) {
+	 * TemporalType temporalType = parameter.getTemporalType().orElse(null); if (temporalType != null &&
+	 * TemporalType.DATE == temporalType) { Optional<String> value =
+	 * context.getValueSerializer().serializeTemporal(parameter.getValue(), temporalType); if (value.isPresent()) {
+	 * return SQLProcessedParameter.create(SQLParameter.create(value.get()), p -> "to_date(" + p + ", '" +
+	 * ANSI_DATE_FORMAT.toUpperCase() + "')"); } } return SQLProcessedParameter.create(parameter); } }
+	 */
 
 }

@@ -50,11 +50,12 @@ public class PostgreSQLDialect implements SQLDialect {
 	 */
 	@Override
 	public void init(SQLDialectContext context) throws SQLException {
-		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
-		supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-		generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
-		supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
-
+		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
+		if (databaseMetaData != null) {
+			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
+			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
+			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+		}
 		context.addExpressionResolver(ReaderToStringParameterResolver.INSTANCE);
 	}
 

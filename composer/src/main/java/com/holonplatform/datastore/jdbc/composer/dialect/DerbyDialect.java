@@ -49,8 +49,8 @@ public class DerbyDialect implements SQLDialect {
 
 	private static final DerbyLimitHandler LIMIT_HANDLER = new DerbyLimitHandler();
 
-	private boolean supportsGeneratedKeys;
-	private boolean generatedKeyAlwaysReturned;
+	private boolean supportsGeneratedKeys = true;
+	private boolean generatedKeyAlwaysReturned = false;
 	private boolean supportsLikeEscapeClause;
 
 	private Integer databaseMajorVersion = null;
@@ -72,20 +72,16 @@ public class DerbyDialect implements SQLDialect {
 	 */
 	@Override
 	public void init(SQLDialectContext context) throws SQLException {
-		DatabaseMetaData databaseMetaData = context.withConnection(c -> c.getMetaData());
-		try {
-			supportsGeneratedKeys = true;
-			generatedKeyAlwaysReturned = false;
+		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
+		if (databaseMetaData != null) {
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
-			String version = databaseMetaData.getDatabaseProductVersion();
-			if (version != null) {
-				databaseMajorVersion = databaseMetaData.getDatabaseMajorVersion();
-				databaseMinorVersion = databaseMetaData.getDatabaseMinorVersion();
-				LOGGER.info("Detected Derby database version: " + version + " [" + databaseMajorVersion + "."
-						+ databaseMinorVersion + "]");
-			}
-		} catch (Exception e) {
-			LOGGER.warn("Failed to detect Derby database version", e);
+			databaseMajorVersion = databaseMetaData.getDatabaseMajorVersion();
+			databaseMinorVersion = databaseMetaData.getDatabaseMinorVersion();
+		}
+		if (databaseMajorVersion != null && databaseMinorVersion != null) {
+			LOGGER.info("Detected Derby database version: " + databaseMajorVersion + "." + databaseMinorVersion + ".x");
+		} else {
+			LOGGER.warn("Failed to detect Derby database version - a limit handler will not be available");
 		}
 	}
 
@@ -98,7 +94,8 @@ public class DerbyDialect implements SQLDialect {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
 	 */
 	@Override
 	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {

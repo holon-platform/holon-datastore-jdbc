@@ -15,13 +15,42 @@
  */
 package com.holonplatform.datastore.jdbc.composer;
 
+import java.sql.DatabaseMetaData;
+import java.util.Optional;
+
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
 
 /**
- * TODO
+ * Context which can be used for {@link SQLDialect} initialization.
  *
  * @since 5.1.0
  */
-public interface SQLDialectContext extends SQLContext, ConnectionProvider, ExpressionResolverSupport {
+public interface SQLDialectContext extends SQLContext, ExpressionResolverSupport {
+
+	/**
+	 * Get the database metadata information, if available.
+	 * @return Optional database metadata information
+	 */
+	Optional<DatabaseMetaData> getDatabaseMetaData();
+
+	/**
+	 * Get the JDBC connection provider, if available.
+	 * @return Optional the JDBC connection provider
+	 */
+	Optional<ConnectionProvider> getConnectionProvider();
+
+	/**
+	 * Get the database metadata information, using {@link #getDatabaseMetaData()} if available or try to obtain it from
+	 * a JDBC connection if a {@link ConnectionProvider} is available.
+	 * @return Optional database metadata information
+	 */
+	default Optional<DatabaseMetaData> getOrRetrieveDatabaseMetaData() {
+		Optional<DatabaseMetaData> metadata = getDatabaseMetaData();
+		if (metadata.isPresent()) {
+			return metadata;
+		}
+		return getConnectionProvider()
+				.map(connectionProvider -> connectionProvider.withConnection(c -> c.getMetaData()));
+	}
 
 }
