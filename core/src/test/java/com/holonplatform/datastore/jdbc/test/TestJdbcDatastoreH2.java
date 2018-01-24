@@ -84,17 +84,17 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		}
 
 	}
-	
+
 	private static long ms;
-	
+
 	@BeforeClass
 	public static void before() {
 		ms = System.currentTimeMillis();
 	}
-	
+
 	@AfterClass
 	public static void after() {
-	 System.err.println(System.currentTimeMillis() - ms);
+		System.err.println(System.currentTimeMillis() - ms);
 	}
 
 	@Autowired

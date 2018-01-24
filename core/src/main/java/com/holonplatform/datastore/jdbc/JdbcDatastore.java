@@ -22,6 +22,7 @@ import javax.sql.DataSource;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
+import com.holonplatform.core.datastore.transaction.Transactional;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
@@ -34,7 +35,8 @@ import com.holonplatform.jdbc.JdbcConnectionHandler;
  * 
  * @since 5.0.0
  */
-public interface JdbcDatastore extends Datastore, DatastoreCommodityRegistrar<JdbcDatastoreCommodityContext> {
+public interface JdbcDatastore
+		extends Datastore, Transactional, DatastoreCommodityRegistrar<JdbcDatastoreCommodityContext> {
 
 	/**
 	 * Execute given <code>operation</code> using a new {@link Connection} provided by the Datastore and return the
@@ -138,9 +140,12 @@ public interface JdbcDatastore extends Datastore, DatastoreCommodityRegistrar<Jd
 		 * Set whether the auto-commit mode has to be setted for connections. (default is <code>true</code>)
 		 * @param autoCommit Whether to set connections auto-commit
 		 * @return this
+		 * @deprecated Use transaction operations to manage connection auto-commit or provide a custom
+		 *             {@link JdbcConnectionHandler} for more complex situations
 		 */
+		@Deprecated
 		Builder<D> autoCommit(boolean autoCommit);
-		
+
 		/**
 		 * Set a custom {@link JdbcConnectionHandler} to be used for Datastore JDBC connections handling.
 		 * @param connectionHandler The connection handler to set (not null)

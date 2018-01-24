@@ -37,6 +37,9 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
+import com.holonplatform.core.datastore.transaction.Transaction.TransactionException;
+import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
+import com.holonplatform.core.datastore.transaction.TransactionalOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.AbstractDatastore;
@@ -132,6 +135,8 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	protected static final Logger LOGGER = JdbcDatastoreLogger.create();
 
+	static final ThreadLocal<JdbcTransaction> CURRENT_TRANSACTION = new ThreadLocal<>();
+
 	/**
 	 * Data source configuration
 	 */
@@ -156,11 +161,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 * Dialect
 	 */
 	protected JdbcDialect dialect;
-
-	/**
-	 * Auto-commit
-	 */
-	private boolean autoCommit = true;
 
 	/**
 	 * Whether to auto-initialize the Datastore at DataSource/Dialect setup
@@ -258,7 +258,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	public void initialize(ClassLoader classLoader) throws IllegalStateException {
 		if (!initialized) {
-			
+
 			// auto detect platform if not setted
 			if (getDatabase().orElse(DatabasePlatform.NONE) == DatabasePlatform.NONE) {
 				// get from metadata
@@ -438,22 +438,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * Get whether the auto-commit mode has to be setted for connections.
-	 * @return the autoCommit Whether the connections auto-commit mode is enabled
-	 */
-	public boolean isAutoCommit() {
-		return autoCommit;
-	}
-
-	/**
-	 * Set whether the auto-commit mode has to be setted for connections.
-	 * @param autoCommit Whether to set connections auto-commit
-	 */
-	public void setAutoCommit(boolean autoCommit) {
-		this.autoCommit = autoCommit;
-	}
-
-	/**
 	 * Execute given <code>operation</code> with a JDBC {@link Connection} handled by current
 	 * {@link JdbcConnectionHandler} and return the operation result.
 	 * @param connectionType The connection type (not null)
@@ -464,46 +448,70 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	protected <R> R withConnection(ConnectionType connectionType, ConnectionOperation<R> operation) {
 		ObjectUtils.argumentNotNull(operation, "Operation must be not null");
 
-		// check DataSource
-		final DataSource dataSource = getDataSource();
-		if (dataSource == null) {
-			throw new IllegalStateException("A DataSource is not available. Check Datastore configuration.");
-		}
-
 		Connection connection = null;
 		try {
 			// get connection
-			connection = getConnectionHandler().getConnection(dataSource, connectionType);
-			if (connection == null) {
-				throw new IllegalStateException(
-						"The connecction handler [" + getConnectionHandler() + "] returned a null connection");
-			}
-			// configure connection
-			configureConnection(connection);
+			connection = getConnection(connectionType);
+
 			// execute operation
 			return operation.execute(connection);
 		} catch (Exception e) {
 			throw new DataAccessException("Failed to execute operation", e);
 		} finally {
 			// release connection
-			if (connection != null) {
-				try {
-					getConnectionHandler().releaseConnection(connection, dataSource, connectionType);
-				} catch (SQLException e) {
-					LOGGER.warn("Failed to release the connection", e);
-				}
+			try {
+				releaseConnection(connection, connectionType);
+			} catch (SQLException e) {
+				throw new DataAccessException("Failed to release the connection", e);
 			}
 		}
 	}
 
 	/**
-	 * Configure given {@link Connection} before being used.
-	 * @param connection The connection to configure (not null)
+	 * Get a {@link Connection} using current {@link JdbcConnectionHandler}.
+	 * @param connectionType Connection type
+	 * @return The connection
 	 * @throws SQLException If an error occurred
 	 */
-	protected void configureConnection(Connection connection) throws SQLException {
-		LOGGER.debug(() -> "Configuring connection: [" + connection + "] autocommit: [" + isAutoCommit() + "]");
-		connection.setAutoCommit(isAutoCommit());
+	private Connection getConnection(ConnectionType connectionType) throws SQLException {
+
+		// check transaction
+		final JdbcTransaction transaction = CURRENT_TRANSACTION.get();
+		if (transaction != null) {
+			return transaction.getConnection();
+		}
+
+		// check DataSource
+		final DataSource dataSource = getDataSource();
+		if (dataSource == null) {
+			throw new IllegalStateException("A DataSource is not available. Check Datastore configuration.");
+		}
+
+		// get connection
+		Connection connection = getConnectionHandler().getConnection(dataSource, connectionType);
+		if (connection == null) {
+			throw new IllegalStateException(
+					"The connection handler [" + getConnectionHandler() + "] returned a null connection");
+		}
+		return connection;
+	}
+
+	/**
+	 * Release (finalize) given {@link Connection} using current {@link JdbcConnectionHandler}.
+	 * @param connection The connection to release
+	 * @param connectionType Connection type
+	 * @throws SQLException If an error occurred
+	 */
+	private void releaseConnection(Connection connection, ConnectionType connectionType) throws SQLException {
+
+		// check transaction
+		if (CURRENT_TRANSACTION.get() != null) {
+			return;
+		}
+
+		if (connection != null) {
+			getConnectionHandler().releaseConnection(connection, getDataSource(), connectionType);
+		}
 	}
 
 	/*
@@ -515,6 +523,92 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	@Override
 	public <R> R withConnection(ConnectionOperation<R> operation) {
 		return withConnection(ConnectionType.DEFAULT, operation);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.JdbcDatastore#withTransaction(com.holonplatform.core.datastore.transaction.
+	 * TransactionalOperation, com.holonplatform.core.datastore.transaction.TransactionConfiguration)
+	 */
+	@Override
+	public <R> R withTransaction(TransactionalOperation<R> operation,
+			TransactionConfiguration transactionConfiguration) {
+		ObjectUtils.argumentNotNull(operation, "TransactionalOperation must be not null");
+
+		final JdbcTransaction tx = getOrStartTransaction(transactionConfiguration);
+
+		try {
+			// execute operation
+			return operation.execute(tx);
+		} catch (Exception e) {
+			// check rollback transaction
+			if (tx.getConfiguration().isRollbackOnError()) {
+				tx.setRollbackOnly();
+			}
+			throw new DataAccessException("Failed to execute operation", e);
+		} finally {
+			try {
+				finalizeTransaction();
+			} catch (Exception e) {
+				throw new DataAccessException("Failed to finalize transaction", e);
+			}
+		}
+
+	}
+
+	/**
+	 * Get the current transaction, or start a new one if no transaction is active.
+	 * @param configuration Transaction configuration
+	 * @return The current transaction or a new one if no transaction is active
+	 * @throws TransactionException Error starting a new transaction
+	 */
+	private JdbcTransaction getOrStartTransaction(TransactionConfiguration configuration) throws TransactionException {
+		// check if a transaction is active
+		if (CURRENT_TRANSACTION.get() != null) {
+			return CURRENT_TRANSACTION.get();
+		}
+		// create a new transaction
+		JdbcTransaction tx;
+		try {
+			tx = new JdbcTransaction(getConnection(ConnectionType.DEFAULT),
+					(configuration != null) ? configuration : TransactionConfiguration.getDefault());
+			// start transaction
+			tx.start();
+			// set as current transaction
+			CURRENT_TRANSACTION.set(tx);
+		} catch (Exception e) {
+			throw new TransactionException("Failed to start a transaction", e);
+		}
+		return tx;
+	}
+
+	/**
+	 * Finalize current transaction, if present.
+	 * @return <code>true</code> if a transaction was active and has been finalized
+	 * @throws TransactionException Error during transaction finalization
+	 */
+	private boolean finalizeTransaction() throws TransactionException {
+		JdbcTransaction tx = CURRENT_TRANSACTION.get();
+		if (tx != null) {
+			try {
+				// finalize transaction
+				tx.end();
+				// done
+				return true;
+			} catch (Exception e) {
+				throw new TransactionException("Failed to finalize transaction", e);
+			} finally {
+				// remove transaction
+				CURRENT_TRANSACTION.remove();
+				// close connection
+				try {
+					releaseConnection(tx.getConnection(), ConnectionType.DEFAULT);
+				} catch (SQLException e) {
+					throw new TransactionException("Failed to release the connection", e);
+				}
+			}
+		}
+		return false;
 	}
 
 	/*
@@ -1063,9 +1157,10 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		 * (non-Javadoc)
 		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#autoCommit(boolean)
 		 */
+		@Deprecated
 		@Override
 		public JdbcDatastore.Builder<D> autoCommit(boolean autoCommit) {
-			datastore.setAutoCommit(autoCommit);
+			// noop
 			return this;
 		}
 
