@@ -49,8 +49,6 @@ import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
-import com.holonplatform.datastore.jdbc.JdbcConnectionHandler;
-import com.holonplatform.datastore.jdbc.JdbcConnectionHandler.ConnectionType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
@@ -116,6 +114,8 @@ import com.holonplatform.datastore.jdbc.internal.resolvers.WhereFilterResolver;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
+import com.holonplatform.jdbc.JdbcConnectionHandler;
+import com.holonplatform.jdbc.JdbcConnectionHandler.ConnectionType;
 
 /**
  * Default {@link JdbcDatastore} implementation.
@@ -145,7 +145,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	/**
 	 * Connection handler
 	 */
-	private JdbcConnectionHandler connectionHandler = new DefaultJdbcConnectionHandler();
+	private JdbcConnectionHandler connectionHandler = JdbcConnectionHandler.create();
 
 	/**
 	 * Database
@@ -488,7 +488,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			// release connection
 			if (connection != null) {
 				try {
-					getConnectionHandler().releaseConnection(connection, connectionType);
+					getConnectionHandler().releaseConnection(connection, dataSource, connectionType);
 				} catch (SQLException e) {
 					LOGGER.warn("Failed to release the connection", e);
 				}

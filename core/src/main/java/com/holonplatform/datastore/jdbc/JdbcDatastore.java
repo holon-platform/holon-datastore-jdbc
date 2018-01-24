@@ -27,6 +27,7 @@ import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
+import com.holonplatform.jdbc.JdbcConnectionHandler;
 
 /**
  * JDBC {@link Datastore}.
