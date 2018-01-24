@@ -16,7 +16,7 @@
 package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 
 /**
@@ -28,14 +28,14 @@ public class DefaultSQLStatement implements SQLStatement {
 
 	private final String sql;
 
-	private final SQLParameterValue<?>[] parameters;
+	private final SQLParameter<?>[] parameters;
 
 	/**
 	 * Constructor
 	 * @param sql SQL statement (not null)
 	 * @param parameters Optional SQL statement parameters
 	 */
-	public DefaultSQLStatement(String sql, SQLParameterValue<?>[] parameters) {
+	public DefaultSQLStatement(String sql, SQLParameter<?>[] parameters) {
 		super();
 		ObjectUtils.argumentNotNull(sql, "SQL statement must be not null");
 		this.sql = sql;
@@ -56,8 +56,8 @@ public class DefaultSQLStatement implements SQLStatement {
 	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLStatement#getParameters()
 	 */
 	@Override
-	public SQLParameterValue<?>[] getParameters() {
-		return (parameters != null) ? parameters : new SQLParameterValue[0];
+	public SQLParameter<?>[] getParameters() {
+		return (parameters != null) ? parameters : new SQLParameter[0];
 	}
 
 	/*

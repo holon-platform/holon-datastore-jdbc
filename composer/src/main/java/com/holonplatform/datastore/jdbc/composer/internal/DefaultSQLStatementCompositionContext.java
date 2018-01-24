@@ -39,6 +39,11 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 	private static final String ALIAS_CHARS = "abcdefghijklmnopqrstuvwxyw0123456789_";
 
 	/**
+	 * Statement context sequence
+	 */
+	private final int statementContextSequence;
+
+	/**
 	 * Root data target
 	 */
 	private final RelationalTarget<?> rootTarget;
@@ -64,12 +69,14 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 	 * @param rootTarget Root query target (not null)
 	 * @param aliasMode Alias handling mode (not null)
 	 */
-	public DefaultSQLStatementCompositionContext(SQLContext context, RelationalTarget<?> rootTarget, AliasMode aliasMode) {
+	public DefaultSQLStatementCompositionContext(SQLContext context, RelationalTarget<?> rootTarget,
+			AliasMode aliasMode) {
 		super(context);
 		ObjectUtils.argumentNotNull(rootTarget, "Root query target must be not null");
 		ObjectUtils.argumentNotNull(aliasMode, "AliasMode must be not null");
 		this.rootTarget = rootTarget;
 		this.aliasMode = aliasMode;
+		this.statementContextSequence = 0;
 		init();
 	}
 
@@ -86,6 +93,8 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 		ObjectUtils.argumentNotNull(aliasMode, "AliasMode must be not null");
 		this.rootTarget = rootTarget;
 		this.aliasMode = aliasMode;
+		this.statementContextSequence = SQLCompositionContext.getContextSequence(parent,
+				SQLStatementCompositionContext.class) + 1;
 		init();
 	}
 
@@ -97,6 +106,14 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 		parsePathAlias(rootTarget);
 		// check joins
 		rootTarget.getJoins().forEach(j -> parsePathAlias(j));
+	}
+
+	/**
+	 * Get the statement context hierarchy sequence.
+	 * @return the statement context sequence
+	 */
+	protected int getStatementContextSequence() {
+		return statementContextSequence;
 	}
 
 	/**
@@ -113,23 +130,6 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 	 */
 	protected AliasMode getAliasMode() {
 		return aliasMode;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLQueryCompositionContext#getContextSequence()
-	 */
-	@Override
-	public int getContextSequence() {
-		int sequence = -1;
-		SQLCompositionContext ctx = this;
-		while (ctx != null) {
-			if (ctx instanceof SQLStatementCompositionContext) {
-				sequence++;
-			}
-			ctx = ctx.getParent().orElse(null);
-		}
-		return sequence;
 	}
 
 	/*
@@ -229,8 +229,8 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 		sb.append(duplicateCount);
 		sb.append("_");
 
-		// append resolution context sequence
-		sb.append(getContextSequence());
+		// append context sequence
+		sb.append(getStatementContextSequence());
 
 		return sb.toString();
 	}

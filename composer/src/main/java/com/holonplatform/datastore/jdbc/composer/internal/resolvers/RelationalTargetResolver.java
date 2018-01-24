@@ -32,7 +32,7 @@ import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver
 /**
  * {@link RelationalTarget} expression resolver.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)

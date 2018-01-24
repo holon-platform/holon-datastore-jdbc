@@ -13,28 +13,26 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate;
+package com.holonplatform.datastore.jdbc.composer.internal.resolvers;
 
 import java.util.Optional;
 
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.NullExpression;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
-import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
+import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
  * {@link SQLParameter} expression resolver.
  *
- * @since 5.1.0
+ * @since 5.0.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum SQLParameterResolver implements SQLContextExpressionResolver<SQLParameter, SQLParameterValue> {
+public enum SQLParameterResolver implements SQLExpressionResolver<SQLParameter> {
 
 	/**
 	 * Singleton instance.
@@ -52,39 +50,22 @@ public enum SQLParameterResolver implements SQLContextExpressionResolver<SQLPara
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
-	 */
-	@Override
-	public Class<? extends SQLParameterValue> getResolvedType() {
-		return SQLParameterValue.class;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see
 	 * com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLParameterValue> resolve(SQLParameter expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(SQLParameter expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		// Null expression
-		if (expression.getExpression() instanceof NullExpression) {
-			final NullExpression<?> nullExpression = (NullExpression<?>) expression.getExpression();
-			return Optional.of(SQLParameterValue.create(nullExpression.getModelValue(), nullExpression.getModelType()));
-		}
-		// ConstantExpression
-		if (expression.getExpression() instanceof ConstantExpression) {
-			final ConstantExpression<?> constant = (ConstantExpression<?>) expression.getExpression();
-			return Optional.of(SQLParameterValue.create(constant.getModelValue(), constant.getModelType(),
-					constant.getTemporalType().orElse(null)));
-		}
+		// intermediate resolution
+		SQLParameter<?> parameter = context.resolve(expression, SQLParameter.class).orElse(expression);
 
-		return Optional.empty();
+		// serialize parameter placeholder
+		return Optional.of(SQLExpression.create(parameter.getSerializationFunction().apply("?")));
 	}
 
 }

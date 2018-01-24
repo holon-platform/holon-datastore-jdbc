@@ -15,7 +15,6 @@
  */
 package com.holonplatform.datastore.jdbc.composer;
 
-import java.util.Map;
 import java.util.Optional;
 
 import com.holonplatform.core.Expression;
@@ -23,6 +22,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
+import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.internal.DefaultSQLCompositionContext;
@@ -52,18 +52,20 @@ public interface SQLCompositionContext extends SQLContext, ResolutionContext, Ex
 	Optional<SQLCompositionContext> getParent();
 
 	/**
-	 * Declare a named parameter and add it to this context.
-	 * @param <T> Parameter expression type
-	 * @param parameter Parameter definition (not null)
-	 * @return Generated parameter SQL
+	 * Get the SQL named parameters handler.
+	 * @return the SQL named parameters handler
 	 */
-	<T> String addNamedParameter(SQLParameter<T> parameter);
+	SQLContextParametersHandler getNamedParametersHandler();
 
 	/**
-	 * Get the context named parameters.
-	 * @return A map of parameters name and {@link SQLParameter}, empty if none
+	 * Convenience method to add a named parameter using current {@link SQLContextParametersHandler}.
+	 * @param <T> Parameter expression type
+	 * @param parameter Parameter definition (not null)
+	 * @return The generated parameter name
 	 */
-	Map<String, SQLParameter<?>> getNamedParameters();
+	default <T> String addNamedParameter(SQLParameter<T> parameter) {
+		return getNamedParametersHandler().addNamedParameter(parameter);
+	}
 
 	/**
 	 * Prepare given SQL statement, replacing named parameters with the default <code>?</code> parameter placeholder.
@@ -131,8 +133,8 @@ public interface SQLCompositionContext extends SQLContext, ResolutionContext, Ex
 	 *         {@link SQLStatementCompositionContext}, otherwise returns an empty Optional
 	 */
 	default Optional<SQLStatementCompositionContext> isStatementCompositionContext() {
-		return Optional
-				.ofNullable((this instanceof SQLStatementCompositionContext) ? (SQLStatementCompositionContext) this : null);
+		return Optional.ofNullable(
+				(this instanceof SQLStatementCompositionContext) ? (SQLStatementCompositionContext) this : null);
 	}
 
 	/**
@@ -142,6 +144,30 @@ public interface SQLCompositionContext extends SQLContext, ResolutionContext, Ex
 	 */
 	static SQLCompositionContext create(SQLContext context) {
 		return new DefaultSQLCompositionContext(context);
+	}
+
+	// Utils
+
+	/**
+	 * Get the given <code>context</code> hierarchy sequence, where <code>0</code> is the sequence number of the root
+	 * context.
+	 * @param context The context for which to obtain the sequence (not null)
+	 * @param contextType The context type to take into account to calculate the sequence
+	 * @return Context sequence
+	 */
+	public static int getContextSequence(SQLCompositionContext context,
+			Class<? extends SQLCompositionContext> contextType) {
+		ObjectUtils.argumentNotNull(context, "Context must be not null");
+		final Class<?> type = (contextType != null) ? contextType : context.getClass();
+		int sequence = -1;
+		SQLCompositionContext ctx = context;
+		while (ctx != null) {
+			if (type.isAssignableFrom(ctx.getClass())) {
+				sequence++;
+			}
+			ctx = ctx.getParent().orElse(null);
+		}
+		return sequence;
 	}
 
 	// Exceptions

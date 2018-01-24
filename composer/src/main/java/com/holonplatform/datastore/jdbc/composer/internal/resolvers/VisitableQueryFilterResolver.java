@@ -46,6 +46,7 @@ import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.StringFunction.Lower;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterizableExpression;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
@@ -210,9 +211,11 @@ public enum VisitableQueryFilterResolver implements SQLExpressionResolver<Visita
 		StringBuilder sb = new StringBuilder();
 		sb.append(serialize(filter.getLeftOperand(), context));
 		sb.append(" BETWEEN ");
-		sb.append(serialize(ConstantExpression.create(filter.getFromValue()), context));
+		sb.append(serialize(SQLParameterizableExpression.create(ConstantExpression.create(filter.getFromValue())),
+				context));
 		sb.append(" AND ");
-		sb.append(serialize(ConstantExpression.create(filter.getToValue()), context));
+		sb.append(serialize(SQLParameterizableExpression.create(ConstantExpression.create(filter.getToValue())),
+				context));
 		return SQLExpression.create(sb.toString());
 	}
 
@@ -224,21 +227,11 @@ public enum VisitableQueryFilterResolver implements SQLExpressionResolver<Visita
 	@Override
 	public SQLExpression visit(StringMatchFilter filter, SQLCompositionContext context) {
 
-		// right operand
-		if (!filter.getRightOperand().isPresent()) {
-			throw new InvalidExpressionException("Invalid StringMatchFilter right operand");
+		// check value
+		String value = filter.getValue();
+		if (value == null) {
+			throw new InvalidExpressionException("String match filter value cannot be null");
 		}
-		if (!(filter.getRightOperand().get() instanceof ConstantExpression)) {
-			throw new InvalidExpressionException(
-					"Invalid right operand expression for StringMatchFilter: [" + filter.getRightOperand().get() + "]");
-		}
-		Object resolved = ((ConstantExpression<?>) filter.getRightOperand().get()).getModelValue();
-		if (resolved == null) {
-			throw new InvalidExpressionException(
-					"Invalid right operand value for StringMatchFilter: [" + resolved + "]");
-		}
-
-		String value = resolved.toString();
 
 		// escape
 		boolean escape = context.getDialect().supportsLikeEscapeClause();
@@ -274,7 +267,10 @@ public enum VisitableQueryFilterResolver implements SQLExpressionResolver<Visita
 		sb.append(path);
 
 		sb.append(" LIKE ");
-		sb.append(context.resolveOrFail(ConstantExpression.create(value), SQLExpression.class).getValue());
+		sb.append(context
+				.resolveOrFail(SQLParameterizableExpression.create(ConstantExpression.create(value, String.class)),
+						SQLExpression.class)
+				.getValue());
 
 		if (escape) {
 			sb.append(" ESCAPE '!'");
@@ -364,7 +360,7 @@ public enum VisitableQueryFilterResolver implements SQLExpressionResolver<Visita
 			throws InvalidExpressionException {
 		TypedExpression<?> operand = filter.getRightOperand()
 				.orElseThrow(() -> new InvalidExpressionException("Missing right operand in filter [" + filter + "]"));
-		return context.resolveOrFail(operand, SQLExpression.class).getValue();
+		return context.resolveOrFail(SQLParameterizableExpression.create(operand), SQLExpression.class).getValue();
 	}
 
 }

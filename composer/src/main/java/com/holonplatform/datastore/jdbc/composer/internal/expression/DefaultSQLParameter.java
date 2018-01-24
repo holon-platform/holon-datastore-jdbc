@@ -16,8 +16,8 @@
 package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
 import java.util.Optional;
+import java.util.function.Function;
 
-import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
@@ -29,24 +29,29 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
  */
 public class DefaultSQLParameter<T> implements SQLParameter<T> {
 
+	private final T value;
+
+	private final Class<? extends T> type;
+
+	private final TemporalType temporalType;
+
+	private final Function<String, String> serializationFunction;
+
 	/**
-	 * Parameter expression
+	 * Constructor.
+	 * @param value Parameter value
+	 * @param type Parameter value type (not null)
+	 * @param temporalType Optional temporal type
+	 * @param serializationFunction Parameter serialization function
 	 */
-	private final TypedExpression<T> expression;
-
-	public DefaultSQLParameter(TypedExpression<T> expression) {
+	public DefaultSQLParameter(T value, Class<? extends T> type, TemporalType temporalType,
+			Function<String, String> serializationFunction) {
 		super();
-		ObjectUtils.argumentNotNull(expression, "Parameter expression must be not null");
-		this.expression = expression;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLParameter#getExpression()
-	 */
-	@Override
-	public TypedExpression<T> getExpression() {
-		return expression;
+		ObjectUtils.argumentNotNull(type, "Parameter type must be not null");
+		this.value = value;
+		this.type = type;
+		this.temporalType = temporalType;
+		this.serializationFunction = (serializationFunction != null) ? serializationFunction : Function.identity();
 	}
 
 	/*
@@ -55,7 +60,7 @@ public class DefaultSQLParameter<T> implements SQLParameter<T> {
 	 */
 	@Override
 	public Class<? extends T> getType() {
-		return expression.getType();
+		return type;
 	}
 
 	/*
@@ -64,7 +69,25 @@ public class DefaultSQLParameter<T> implements SQLParameter<T> {
 	 */
 	@Override
 	public Optional<TemporalType> getTemporalType() {
-		return expression.getTemporalType();
+		return Optional.of(temporalType);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLParameter#getValue()
+	 */
+	@Override
+	public T getValue() {
+		return value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLParameter#getSerializationFunction()
+	 */
+	@Override
+	public Function<String, String> getSerializationFunction() {
+		return serializationFunction;
 	}
 
 	/*
@@ -73,8 +96,11 @@ public class DefaultSQLParameter<T> implements SQLParameter<T> {
 	 */
 	@Override
 	public void validate() throws InvalidExpressionException {
-		if (getExpression() == null) {
-			throw new InvalidExpressionException("Null parameter expression");
+		if (getType() == null) {
+			throw new InvalidExpressionException("Null parameter type");
+		}
+		if (getSerializationFunction() == null) {
+			throw new InvalidExpressionException("Null parameter serialization function");
 		}
 	}
 

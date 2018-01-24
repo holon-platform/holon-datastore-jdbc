@@ -87,12 +87,6 @@ public interface SQLStatementCompositionContext extends SQLCompositionContext {
 		return alias;
 	}
 
-	/**
-	 * Get the query context hierarchy sequence, where <code>0</code> is the sequence number of the root context.
-	 * @return Context sequence
-	 */
-	int getContextSequence();
-
 	// builders
 
 	/**

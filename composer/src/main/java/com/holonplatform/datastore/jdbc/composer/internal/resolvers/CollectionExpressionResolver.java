@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.jdbc.composer.internal.resolvers;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
@@ -25,7 +24,7 @@ import com.holonplatform.core.query.CollectionExpression;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLLiteral;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
@@ -64,11 +63,8 @@ public enum CollectionExpressionResolver implements SQLExpressionResolver<Collec
 		// validate
 		expression.validate();
 
-		// add a named parameter for each value
-		final String serialized = ((CollectionExpression<?>) expression).getValue().stream()
-				.map(value -> context.addNamedParameter(SQLParameter.create(ConstantExpression.create(value))))
-				.collect(Collectors.joining(","));
-
-		return Optional.of(SQLExpression.create(serialized));
+		// resolve as Literal
+		return context.resolve(SQLLiteral.create(expression.getModelValue(),
+				((ConstantExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class);
 	}
 }

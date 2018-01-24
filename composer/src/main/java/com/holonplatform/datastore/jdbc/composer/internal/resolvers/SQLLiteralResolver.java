@@ -15,7 +15,9 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal.resolvers;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
@@ -60,9 +62,26 @@ public enum SQLLiteralResolver implements SQLExpressionResolver<SQLLiteral> {
 		// validate
 		expression.validate();
 
+		// check value
+		final Object value = expression.getValue();
+
+		if (value == null) {
+			return Optional.of(SQLExpression.create("NULL"));
+		}
+
+		final String serialized;
+		if (Collection.class.isAssignableFrom(value.getClass())) {
+			serialized = ((Collection<?>) value).stream()
+					.map(element -> context.getValueSerializer().serialize(element,
+							((SQLLiteral<?>) expression).getTemporalType().orElse(null)))
+					.collect(Collectors.joining(","));
+		} else {
+			serialized = context.getValueSerializer().serialize(value,
+					((SQLLiteral<?>) expression).getTemporalType().orElse(null));
+		}
+
 		// serialize
-		return Optional.of(SQLExpression.create(context.getValueSerializer().serialize(expression.getValue(),
-				((SQLLiteral<?>) expression).getTemporalType().orElse(null))));
+		return Optional.of(SQLExpression.create(serialized));
 	}
 
 }

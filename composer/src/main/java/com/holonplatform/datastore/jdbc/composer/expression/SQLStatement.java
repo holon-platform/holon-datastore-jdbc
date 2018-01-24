@@ -35,7 +35,7 @@ public interface SQLStatement extends Expression {
 	 * Get the optional statement parameters.
 	 * @return the statement parameters, an empty array if none
 	 */
-	SQLParameterValue<?>[] getParameters();
+	SQLParameter<?>[] getParameters();
 
 	/**
 	 * Create a new {@link SQLStatement}.
@@ -44,7 +44,7 @@ public interface SQLStatement extends Expression {
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	static SQLStatement create(String sql, SQLParameterValue... parameters) {
+	static SQLStatement create(String sql, SQLParameter... parameters) {
 		return new DefaultSQLStatement(sql, parameters);
 	}
 

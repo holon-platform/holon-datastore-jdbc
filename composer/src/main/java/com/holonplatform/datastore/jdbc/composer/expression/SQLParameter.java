@@ -15,9 +15,10 @@
  */
 package com.holonplatform.datastore.jdbc.composer.expression;
 
+import java.util.function.Function;
+
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLParameter;
 
 /**
@@ -30,29 +31,67 @@ import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLP
 public interface SQLParameter<T> extends TypedExpression<T> {
 
 	/**
-	 * Get the parameter expression.
-	 * @return the the parameter expression
+	 * Get the parameter value
+	 * @return the parameter value, maybe <code>null</code>
 	 */
-	TypedExpression<T> getExpression();
+	T getValue();
 
 	/**
-	 * Create a new {@link SQLParameter} using given expression.
-	 * @param <T> Parameter expression type
-	 * @param expression Parameter expresion (not null)
-	 * @return A new {@link SQLParameter}
+	 * Optional function which has to be used to serialize the parameter placeholder in the SQL statement.
+	 * @return Optional parameter placeholder serialization function
 	 */
-	static <T> SQLParameter<T> create(TypedExpression<T> expression) {
-		return new DefaultSQLParameter<>(expression);
+	default Function<String, String> getSerializationFunction() {
+		return Function.identity();
 	}
 
 	/**
-	 * Create a new {@link SQLParameter} using given constant value.
-	 * @param value Parameter value (not null)
+	 * Create a new {@link SQLParameter}.
+	 * @param <T> Parameter value type
+	 * @param value Parameter value
+	 * @param type Parameter value type (not null)
 	 * @return A new {@link SQLParameter}
 	 */
-	static <T> SQLParameter<T> create(T value) {
-		ObjectUtils.argumentNotNull(value, "Parameter value must be not null");
-		return new DefaultSQLParameter<>(ConstantExpression.create(value));
+	static <T> SQLParameter<T> create(T value, Class<? extends T> type) {
+		return create(value, type, null, Function.identity());
+	}
+
+	/**
+	 * Create a new {@link SQLParameter}.
+	 * @param <T> Parameter value type
+	 * @param value Parameter value
+	 * @param type Parameter value type (not null)
+	 * @param temporalType Value temporal type
+	 * @return A new {@link SQLParameter}
+	 */
+	static <T> SQLParameter<T> create(T value, Class<? extends T> type, TemporalType temporalType) {
+		return create(value, type, temporalType, Function.identity());
+	}
+
+	/**
+	 * Create a new {@link SQLParameter}.
+	 * @param <T> Parameter value type
+	 * @param value Parameter value
+	 * @param type Parameter value type (not null)
+	 * @param serializationFunction Parameter serialization function
+	 * @return A new {@link SQLParameter}
+	 */
+	static <T> SQLParameter<T> create(T value, Class<? extends T> type,
+			Function<String, String> serializationFunction) {
+		return create(value, type, null, serializationFunction);
+	}
+
+	/**
+	 * Create a new {@link SQLParameter}.
+	 * @param <T> Parameter value type
+	 * @param value Parameter value
+	 * @param type Parameter value type (not null)
+	 * @param temporalType Value temporal type
+	 * @param serializationFunction Parameter serialization function
+	 * @return A new {@link SQLParameter}
+	 */
+	static <T> SQLParameter<T> create(T value, Class<? extends T> type, TemporalType temporalType,
+			Function<String, String> serializationFunction) {
+		return new DefaultSQLParameter<>(value, type, temporalType, serializationFunction);
 	}
 
 }

@@ -20,19 +20,14 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.datastore.jdbc.SQLWhereFilter;
+import com.holonplatform.core.NullExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
-/**
- * {@link SQLWhereFilter} resolver.
- *
- * @since 5.1.0
- */
+@SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum SQLWhereFilterResolver implements SQLExpressionResolver<SQLWhereFilter> {
+public enum NullExpressionResolver implements SQLExpressionResolver<NullExpression> {
 
 	/**
 	 * Singleton instance
@@ -44,8 +39,8 @@ public enum SQLWhereFilterResolver implements SQLExpressionResolver<SQLWhereFilt
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends SQLWhereFilter> getExpressionType() {
-		return SQLWhereFilter.class;
+	public Class<? extends NullExpression> getExpressionType() {
+		return NullExpression.class;
 	}
 
 	/*
@@ -55,31 +50,14 @@ public enum SQLWhereFilterResolver implements SQLExpressionResolver<SQLWhereFilt
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(SQLWhereFilter expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(NullExpression expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		String sql = expression.getSQL();
-
-		// parameters
-		if (expression.getParameters() != null) {
-			for (int i = 0; i < expression.getParameters().size(); i++) {
-				final Object parameter = expression.getParameters().get(i);
-				int idx = sql.indexOf('?');
-				if (idx < 0) {
-					throw new InvalidExpressionException("Cannot replace parameter [" + parameter + "] in sql ["
-							+ expression.getSQL() + "]: no placeholder found at index [" + (i + 1) + "]");
-				}
-				sql = sql.replaceFirst("\\?",
-						context.addNamedParameter(SQLParameter.create(parameter, parameter.getClass())));
-			}
-		}
-
-		// get SQL
-		return Optional.of(SQLExpression.create(sql));
-
+		// resolve as NULL
+		return Optional.of(SQLExpression.create("NULL"));
 	}
 
 }

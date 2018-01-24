@@ -17,6 +17,7 @@ package com.holonplatform.datastore.jdbc.composer.dialect;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.internal.Logger;
-import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.core.query.TemporalFunction.CurrentDate;
@@ -39,7 +40,6 @@ import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
@@ -53,7 +53,7 @@ import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionR
 public class SQLServerDialect implements SQLDialect {
 
 	private static final long serialVersionUID = -3585193712573424374L;
-	
+
 	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
@@ -220,7 +220,7 @@ public class SQLServerDialect implements SQLDialect {
 	@SuppressWarnings({ "rawtypes", "serial" })
 	@Priority(Integer.MAX_VALUE - 10000)
 	private static final class TimeParameterResolver
-			implements SQLContextExpressionResolver<SQLParameter, SQLParameterValue> {
+			implements SQLContextExpressionResolver<SQLParameter, SQLParameter> {
 
 		@Override
 		public Class<? extends SQLParameter> getExpressionType() {
@@ -228,21 +228,25 @@ public class SQLServerDialect implements SQLDialect {
 		}
 
 		@Override
-		public Class<? extends SQLParameterValue> getResolvedType() {
-			return SQLParameterValue.class;
+		public Class<? extends SQLParameter> getResolvedType() {
+			return SQLParameter.class;
 		}
 
 		@Override
-		public Optional<SQLParameterValue> resolve(SQLParameter expression, SQLCompositionContext context)
+		public Optional<SQLParameter> resolve(SQLParameter expression, SQLCompositionContext context)
 				throws InvalidExpressionException {
 			expression.validate();
 
-			if (expression.getExpression() instanceof ConstantExpression) {
-				return ((SQLParameter<?>) expression).getTemporalType()
-						.filter(temporalType -> TemporalType.TIME == temporalType)
-						.flatMap(temporalType -> context.getValueSerializer()
-								.serializeTemporal(((ConstantExpression<?>) expression).getValue(), temporalType))
-						.map(serialized -> SQLParameterValue.create(serialized, String.class));
+			if (expression.getValue() != null) {
+				if (TypeUtils.isDate(expression.getValue().getClass())
+						|| Temporal.class.isAssignableFrom(expression.getValue().getClass())) {
+					TemporalType tt = ((SQLParameter<?>) expression).getTemporalType().orElse(null);
+					if (tt != null && tt == TemporalType.TIME) {
+						// serialize time as string
+						return Optional.of(SQLParameter.create(context.getValueSerializer()
+								.serializeTemporal(expression.getValue(), TemporalType.TIME), String.class));
+					}
+				}
 			}
 
 			return Optional.empty();

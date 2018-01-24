@@ -23,7 +23,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLLiteral;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
@@ -61,9 +61,9 @@ public enum ConstantExpressionResolver implements SQLExpressionResolver<Constant
 		// validate
 		expression.validate();
 
-		// resolve as a named parameter
-		return Optional.of(SQLExpression
-				.create(context.addNamedParameter(SQLParameter.create((ConstantExpression<?>) expression))));
+		// resolve as Literal
+		return context.resolve(SQLLiteral.create(expression.getModelValue(),
+				((ConstantExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class);
 	}
 
 }

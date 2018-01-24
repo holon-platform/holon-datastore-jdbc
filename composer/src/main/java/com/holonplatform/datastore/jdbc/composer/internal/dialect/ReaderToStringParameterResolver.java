@@ -23,15 +23,13 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 100)
-public enum ReaderToStringParameterResolver implements SQLContextExpressionResolver<SQLParameter, SQLParameterValue> {
+public enum ReaderToStringParameterResolver implements SQLContextExpressionResolver<SQLParameter, SQLParameter> {
 
 	INSTANCE;
 
@@ -49,8 +47,8 @@ public enum ReaderToStringParameterResolver implements SQLContextExpressionResol
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends SQLParameterValue> getResolvedType() {
-		return SQLParameterValue.class;
+	public Class<? extends SQLParameter> getResolvedType() {
+		return SQLParameter.class;
 	}
 
 	/*
@@ -59,19 +57,18 @@ public enum ReaderToStringParameterResolver implements SQLContextExpressionResol
 	 * com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
-	@SuppressWarnings({ "resource", "unchecked" })
+	@SuppressWarnings("resource")
 	@Override
-	public Optional<SQLParameterValue> resolve(SQLParameter expression, SQLCompositionContext context)
+	public Optional<SQLParameter> resolve(SQLParameter expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		if (Reader.class.isAssignableFrom(expression.getExpression().getType())
-				&& expression.getExpression() instanceof ConstantExpression) {
-			final Reader reader = ((ConstantExpression<Reader>) expression.getExpression()).getValue();
+		if (expression.getValue() != null && expression.getValue() instanceof Reader) {
+			final Reader reader = (Reader) expression.getValue();
 			try {
-				return Optional.of(SQLParameterValue.create(ConversionUtils.readerToString(reader), String.class));
+				return Optional.of(SQLParameter.create(ConversionUtils.readerToString(reader), String.class));
 			} catch (IOException e) {
 				throw new InvalidExpressionException("Failed to convert Reader [" + reader + "] to String", e);
 			}

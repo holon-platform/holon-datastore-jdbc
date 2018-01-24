@@ -24,6 +24,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +34,6 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Provider;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.TypeUtils;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
@@ -46,7 +46,6 @@ import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer.ValueProcessor;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.ReaderToStringParameterResolver;
@@ -277,7 +276,7 @@ public class SQLiteDialect implements SQLDialect {
 	@SuppressWarnings({ "rawtypes", "serial" })
 	@Priority(Integer.MAX_VALUE - 10000)
 	private static final class TemporalParameterResolver
-			implements SQLContextExpressionResolver<SQLParameter, SQLParameterValue> {
+			implements SQLContextExpressionResolver<SQLParameter, SQLParameter> {
 
 		@Override
 		public Class<? extends SQLParameter> getExpressionType() {
@@ -285,27 +284,27 @@ public class SQLiteDialect implements SQLDialect {
 		}
 
 		@Override
-		public Class<? extends SQLParameterValue> getResolvedType() {
-			return SQLParameterValue.class;
+		public Class<? extends SQLParameter> getResolvedType() {
+			return SQLParameter.class;
 		}
 
 		@Override
-		public Optional<SQLParameterValue> resolve(SQLParameter expression, SQLCompositionContext context)
+		public Optional<SQLParameter> resolve(SQLParameter expression, SQLCompositionContext context)
 				throws InvalidExpressionException {
+
 			expression.validate();
 
-			if (expression.getExpression().getTemporalType().isPresent()
-					&& expression.getExpression() instanceof ConstantExpression) {
-				Object value = ((ConstantExpression<?>) expression).getValue();
-				if (value != null) {
-					return context.getValueSerializer()
-							.serializeTemporal(value,
-									((SQLParameter<?>) expression).getExpression().getTemporalType().get())
-							.map(serialized -> {
-								return SQLParameterValue.create(serialized, String.class);
-							});
+			if (expression.getValue() != null) {
+				if (TypeUtils.isDate(expression.getValue().getClass())
+						|| Temporal.class.isAssignableFrom(expression.getValue().getClass())) {
+					return Optional
+							.of(SQLParameter.create(
+									context.getValueSerializer().serializeTemporal(expression.getValue(),
+											((SQLParameter<?>) expression).getTemporalType().orElse(null)),
+									String.class));
 				}
 			}
+
 			return Optional.empty();
 		}
 

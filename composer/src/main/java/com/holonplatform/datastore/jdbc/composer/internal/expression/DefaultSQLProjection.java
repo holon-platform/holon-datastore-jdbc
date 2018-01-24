@@ -79,8 +79,10 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 	 *        generated selection alias name
 	 */
 	public DefaultSQLProjection(Class<? extends R> projectionType, SQLCompositionContext context) {
-		this(projectionType, (context != null)
-				? context.isStatementCompositionContext().map(ctx -> ctx.getContextSequence()).orElse(0) : 0);
+		ObjectUtils.argumentNotNull(projectionType, "Projection type must be not null");
+		ObjectUtils.argumentNotNull(context, "SQLCompositionContext must be not null");
+		this.projectionType = projectionType;
+		this.aliasMainSequence = SQLCompositionContext.getContextSequence(context, SQLCompositionContext.class);
 	}
 
 	/**

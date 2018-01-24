@@ -43,7 +43,7 @@ public interface SQLQuery<T> extends SQLStatement, TypedExpression<T> {
 	 * @return A new {@link SQLQuery}
 	 */
 	static <T> SQLQuery<T> create(String sql, Class<? extends T> resultType, SQLResultConverter<T> resultConverter,
-			SQLParameterValue<?>[] parameters) {
+			SQLParameter<?>[] parameters) {
 		return new DefaultSQLQuery<>(sql, resultType, resultConverter, parameters);
 	}
 

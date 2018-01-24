@@ -36,7 +36,7 @@ import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.composer.SQLType;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterValue;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 
 /**
@@ -59,10 +59,10 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		ObjectUtils.argumentNotNull(sqlStatement, "SQLStatement must be not null");
 
 		// statement parameters
-		final SQLParameterValue<?>[] parameters = sqlStatement.getParameters();
+		final SQLParameter<?>[] parameters = sqlStatement.getParameters();
 
 		for (int i = 0; i < parameters.length; i++) {
-			final SQLParameterValue<?> parameter = parameters[i];
+			final SQLParameter<?> parameter = parameters[i];
 
 			// check null
 			if (parameter.getValue() == null) {
