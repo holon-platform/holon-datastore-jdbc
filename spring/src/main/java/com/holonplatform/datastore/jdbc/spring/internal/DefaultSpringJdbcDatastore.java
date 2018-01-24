@@ -15,21 +15,16 @@
  */
 package com.holonplatform.datastore.jdbc.spring.internal;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
-import javax.sql.DataSource;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
 import com.holonplatform.datastore.jdbc.spring.SpringJdbcDatastore;
+import com.holonplatform.jdbc.spring.SpringJdbcConnectionHandler;
 import com.holonplatform.spring.internal.datastore.DatastoreInitializer;
 
 /**
@@ -62,30 +57,7 @@ public class DefaultSpringJdbcDatastore extends DefaultJdbcDatastore
 	 */
 	public DefaultSpringJdbcDatastore() {
 		super(false);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore#getConnection(javax.sql.DataSource)
-	 */
-	@Override
-	protected Connection getConnection(DataSource dataSource) throws SQLException {
-		Connection connection = DataSourceUtils.doGetConnection(dataSource);
-		LOGGER.debug(() -> "Obtained a DataSource connection: [" + connection + "]");
-		return connection;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore#releaseConnection(java.sql.Connection,
-	 * javax.sql.DataSource)
-	 */
-	@Override
-	protected void releaseConnection(Connection connection, DataSource dataSource) throws SQLException {
-		if (connection != null) {
-			LOGGER.debug(() -> "Closing connection: [" + connection + "]");
-			DataSourceUtils.doReleaseConnection(connection, dataSource);
-		}
+		setConnectionHandler(SpringJdbcConnectionHandler.create());
 	}
 
 	/*

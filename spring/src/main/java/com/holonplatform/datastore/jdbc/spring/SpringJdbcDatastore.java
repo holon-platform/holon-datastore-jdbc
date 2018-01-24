@@ -21,7 +21,7 @@ import com.holonplatform.spring.DatastoreCommodityFactory;
 import com.holonplatform.spring.DatastoreResolver;
 
 /**
- * Spring-enabled {@link JdbcDatastore}.
+ * Spring-enabled {@link JdbcDatastore}, with Spring-managed transactional connections support.
  * <p>
  * Supports {@link DatastoreResolver} and {@link DatastoreCommodityFactory} annotated beans automatic registration.
  * </p>
