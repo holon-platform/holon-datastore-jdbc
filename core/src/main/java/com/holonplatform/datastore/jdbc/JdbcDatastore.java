@@ -139,6 +139,13 @@ public interface JdbcDatastore extends Datastore, DatastoreCommodityRegistrar<Jd
 		 * @return this
 		 */
 		Builder<D> autoCommit(boolean autoCommit);
+		
+		/**
+		 * Set a custom {@link JdbcConnectionHandler} to be used for Datastore JDBC connections handling.
+		 * @param connectionHandler The connection handler to set (not null)
+		 * @return this
+		 */
+		Builder<D> connectionHandler(JdbcConnectionHandler connectionHandler);
 
 	}
 

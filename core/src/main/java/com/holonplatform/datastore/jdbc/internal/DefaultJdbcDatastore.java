@@ -49,6 +49,8 @@ import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
+import com.holonplatform.datastore.jdbc.JdbcConnectionHandler;
+import com.holonplatform.datastore.jdbc.JdbcConnectionHandler.ConnectionType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
@@ -139,6 +141,11 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 * DataSource
 	 */
 	private DataSource dataSource;
+
+	/**
+	 * Connection handler
+	 */
+	private JdbcConnectionHandler connectionHandler = new DefaultJdbcConnectionHandler();
 
 	/**
 	 * Database
@@ -251,10 +258,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	public void initialize(ClassLoader classLoader) throws IllegalStateException {
 		if (!initialized) {
-			if (getDataSource() == null) {
-				throw new IllegalStateException("Missing DataSource");
-			}
-
+			
 			// auto detect platform if not setted
 			if (getDatabase().orElse(DatabasePlatform.NONE) == DatabasePlatform.NONE) {
 				// get from metadata
@@ -350,6 +354,23 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		return dataSource;
 	}
 
+	/**
+	 * Get the {@link JdbcConnectionHandler} which is used for Datastore JDBC connections handling.
+	 * @return the connection handler
+	 */
+	protected JdbcConnectionHandler getConnectionHandler() {
+		return connectionHandler;
+	}
+
+	/**
+	 * Set the {@link JdbcConnectionHandler} to be used for Datastore JDBC connections handling.
+	 * @param connectionHandler The connection handler to set (not null)
+	 */
+	public void setConnectionHandler(JdbcConnectionHandler connectionHandler) {
+		ObjectUtils.argumentNotNull(connectionHandler, "JdbcConnectionHandler must be not null");
+		this.connectionHandler = connectionHandler;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.internal.ConfigurableJdbcDatastore#getDatabase()
@@ -433,21 +454,31 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Execute given <code>operation</code> with a JDBC {@link Connection} handled by current
+	 * {@link JdbcConnectionHandler} and return the operation result.
+	 * @param connectionType The connection type (not null)
+	 * @param operation The operation to execute (not null)
+	 * @return Operation result
 	 */
 	@SuppressWarnings("resource")
-	@Override
-	public <R> R withConnection(ConnectionOperation<R> operation) {
+	protected <R> R withConnection(ConnectionType connectionType, ConnectionOperation<R> operation) {
 		ObjectUtils.argumentNotNull(operation, "Operation must be not null");
+
+		// check DataSource
 		final DataSource dataSource = getDataSource();
 		if (dataSource == null) {
 			throw new IllegalStateException("A DataSource is not available. Check Datastore configuration.");
 		}
+
 		Connection connection = null;
 		try {
 			// get connection
-			connection = getConnection(dataSource);
-			// configure
+			connection = getConnectionHandler().getConnection(dataSource, connectionType);
+			if (connection == null) {
+				throw new IllegalStateException(
+						"The connecction handler [" + getConnectionHandler() + "] returned a null connection");
+			}
+			// configure connection
 			configureConnection(connection);
 			// execute operation
 			return operation.execute(connection);
@@ -457,7 +488,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			// release connection
 			if (connection != null) {
 				try {
-					releaseConnection(connection, dataSource);
+					getConnectionHandler().releaseConnection(connection, connectionType);
 				} catch (SQLException e) {
 					LOGGER.warn("Failed to release the connection", e);
 				}
@@ -466,20 +497,8 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * Obtain a {@link Connection} from given <code>dataSource</code>.
-	 * @param dataSource {@link DataSource} from which to obtain the connection
-	 * @return A new {@link Connection}
-	 * @throws SQLException If an error occurred
-	 */
-	protected Connection getConnection(DataSource dataSource) throws SQLException {
-		Connection connection = dataSource.getConnection();
-		LOGGER.debug(() -> "Obtained a DataSource connection: [" + connection + "]");
-		return connection;
-	}
-
-	/**
-	 * Configure a {@link Connection} obtained form the {@link DataSource}.
-	 * @param connection Connection to configure
+	 * Configure given {@link Connection} before being used.
+	 * @param connection The connection to configure (not null)
 	 * @throws SQLException If an error occurred
 	 */
 	protected void configureConnection(Connection connection) throws SQLException {
@@ -487,17 +506,15 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		connection.setAutoCommit(isAutoCommit());
 	}
 
-	/**
-	 * Release the given <code>connection</code>.
-	 * @param connection Connection to release
-	 * @param dataSource The {@link DataSource} from which the connection was obtained
-	 * @throws SQLException If an error occurred
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.JdbcDatastore#withConnection(com.holonplatform.datastore.jdbc.JdbcDatastore.
+	 * ConnectionOperation)
 	 */
-	protected void releaseConnection(Connection connection, DataSource dataSource) throws SQLException {
-		if (connection != null) {
-			LOGGER.debug(() -> "Closing connection: [" + connection + "]");
-			connection.close();
-		}
+	@Override
+	public <R> R withConnection(ConnectionOperation<R> operation) {
+		return withConnection(ConnectionType.DEFAULT, operation);
 	}
 
 	/*
@@ -1049,6 +1066,18 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		@Override
 		public JdbcDatastore.Builder<D> autoCommit(boolean autoCommit) {
 			datastore.setAutoCommit(autoCommit);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#connectionHandler(com.holonplatform.datastore.jdbc.
+		 * JdbcConnectionHandler)
+		 */
+		@Override
+		public JdbcDatastore.Builder<D> connectionHandler(JdbcConnectionHandler connectionHandler) {
+			datastore.setConnectionHandler(connectionHandler);
 			return this;
 		}
 
