@@ -115,6 +115,8 @@ import com.holonplatform.datastore.jdbc.internal.resolvers.SubQueryResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.VisitableQueryFilterResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.VisitableQuerySortResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.WhereFilterResolver;
+import com.holonplatform.datastore.jdbc.internal.transaction.DefaultJdbcTransaction;
+import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransaction;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
@@ -576,7 +578,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	private JdbcTransaction beginTransaction(TransactionConfiguration configuration) throws TransactionException {
 		try {
 			// create a new transaction
-			JdbcTransaction tx = new JdbcTransaction(getConnection(ConnectionType.DEFAULT),
+			JdbcTransaction tx = buildTransaction(getConnection(ConnectionType.DEFAULT),
 					(configuration != null) ? configuration : TransactionConfiguration.getDefault());
 			// start transaction
 			tx.start();
@@ -585,6 +587,16 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		} catch (Exception e) {
 			throw new TransactionException("Failed to start a transaction", e);
 		}
+	}
+
+	/**
+	 * Build a new {@link JdbcTransaction}.
+	 * @param connection Connection (not null)
+	 * @param configuration Configuration (not null)
+	 * @return A new {@link JdbcTransaction}
+	 */
+	protected JdbcTransaction buildTransaction(Connection connection, TransactionConfiguration configuration) {
+		return new DefaultJdbcTransaction(connection, configuration);
 	}
 
 	/**

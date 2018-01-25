@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.transaction;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -28,7 +28,7 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
  *
  * @since 5.1.0
  */
-public class JdbcTransaction extends AbstractTransaction {
+public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcTransaction {
 
 	private final Connection connection;
 
@@ -43,7 +43,7 @@ public class JdbcTransaction extends AbstractTransaction {
 	 * @param connection JDBC connection (not null)
 	 * @param configuration Transaction configuration (not null)
 	 */
-	public JdbcTransaction(Connection connection, TransactionConfiguration configuration) {
+	public DefaultJdbcTransaction(Connection connection, TransactionConfiguration configuration) {
 		super();
 		ObjectUtils.argumentNotNull(connection, "Connection must be not null");
 		ObjectUtils.argumentNotNull(configuration, "TransactionConfiguration must be not null");
@@ -55,6 +55,7 @@ public class JdbcTransaction extends AbstractTransaction {
 	 * Start the transaction, configuring the connection.
 	 * @throws SQLException If an error occurred
 	 */
+	@Override
 	public void start() throws SQLException {
 		// disable auto-commit
 		if (getConnection().getAutoCommit()) {
@@ -72,6 +73,7 @@ public class JdbcTransaction extends AbstractTransaction {
 	 * Finalize the transaction.
 	 * @throws SQLException If an error occurred
 	 */
+	@Override
 	public void end() throws SQLException {
 		// check completed
 		if (!isCompleted()) {
@@ -93,6 +95,7 @@ public class JdbcTransaction extends AbstractTransaction {
 	 * Get the JDBC connection.
 	 * @return the connection
 	 */
+	@Override
 	public Connection getConnection() {
 		return connection;
 	}
@@ -101,6 +104,7 @@ public class JdbcTransaction extends AbstractTransaction {
 	 * Get the transaction configuration.
 	 * @return the transaction configuration
 	 */
+	@Override
 	public TransactionConfiguration getConfiguration() {
 		return configuration;
 	}
