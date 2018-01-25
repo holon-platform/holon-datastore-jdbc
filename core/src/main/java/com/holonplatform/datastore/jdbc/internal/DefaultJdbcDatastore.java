@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
@@ -135,7 +136,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	protected static final Logger LOGGER = JdbcDatastoreLogger.create();
 
-	static final ThreadLocal<JdbcTransaction> CURRENT_TRANSACTION = new ThreadLocal<>();
+	static final ThreadLocal<Stack<JdbcTransaction>> CURRENT_TRANSACTION = ThreadLocal.withInitial(() -> new Stack<>());
 
 	/**
 	 * Data source configuration
@@ -450,19 +451,26 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 
 		Connection connection = null;
 		try {
-			// get connection
-			connection = getConnection(connectionType);
+			// if a transaction is active, use current transaction connection
+			JdbcTransaction tx = getCurrentTransaction().orElse(null);
+			if (tx != null) {
+				return operation.execute(tx.getConnection());
+			}
 
-			// execute operation
-			return operation.execute(connection);
+			// get a connection from connection handler
+			return operation.execute(connection = getConnection(connectionType));
+
 		} catch (Exception e) {
 			throw new DataAccessException("Failed to execute operation", e);
 		} finally {
-			// release connection
-			try {
-				releaseConnection(connection, connectionType);
-			} catch (SQLException e) {
-				throw new DataAccessException("Failed to release the connection", e);
+			// check active transaction: avoid connection release if present
+			if (connection != null) {
+				// release connection
+				try {
+					releaseConnection(connection, connectionType);
+				} catch (SQLException e) {
+					throw new DataAccessException("Failed to release the connection", e);
+				}
 			}
 		}
 	}
@@ -474,20 +482,12 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 * @throws SQLException If an error occurred
 	 */
 	private Connection getConnection(ConnectionType connectionType) throws SQLException {
-
-		// check transaction
-		final JdbcTransaction transaction = CURRENT_TRANSACTION.get();
-		if (transaction != null) {
-			return transaction.getConnection();
-		}
-
 		// check DataSource
 		final DataSource dataSource = getDataSource();
 		if (dataSource == null) {
 			throw new IllegalStateException("A DataSource is not available. Check Datastore configuration.");
 		}
-
-		// get connection
+		// get connection from handler
 		Connection connection = getConnectionHandler().getConnection(dataSource, connectionType);
 		if (connection == null) {
 			throw new IllegalStateException(
@@ -503,12 +503,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 * @throws SQLException If an error occurred
 	 */
 	private void releaseConnection(Connection connection, ConnectionType connectionType) throws SQLException {
-
-		// check transaction
-		if (CURRENT_TRANSACTION.get() != null) {
-			return;
-		}
-
 		if (connection != null) {
 			getConnectionHandler().releaseConnection(connection, getDataSource(), connectionType);
 		}
@@ -535,7 +529,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			TransactionConfiguration transactionConfiguration) {
 		ObjectUtils.argumentNotNull(operation, "TransactionalOperation must be not null");
 
-		final JdbcTransaction tx = getOrStartTransaction(transactionConfiguration);
+		final JdbcTransaction tx = beginTransaction(transactionConfiguration);
 
 		try {
 			// execute operation
@@ -557,29 +551,40 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * Get the current transaction, or start a new one if no transaction is active.
+	 * Get the current transaction, if active.
+	 * @return Optional current transaction
+	 */
+	private static Optional<JdbcTransaction> getCurrentTransaction() {
+		return (CURRENT_TRANSACTION.get().isEmpty()) ? Optional.empty() : Optional.of(CURRENT_TRANSACTION.get().peek());
+	}
+
+	/**
+	 * If a transaction is active, remove the transaction from current trasactions stack and return the transaction
+	 * itself.
+	 * @return The removed current transaction, if it was present
+	 */
+	private static Optional<JdbcTransaction> removeCurrentTransaction() {
+		return (CURRENT_TRANSACTION.get().isEmpty()) ? Optional.empty() : Optional.of(CURRENT_TRANSACTION.get().pop());
+	}
+
+	/**
+	 * Start a new transaction.
 	 * @param configuration Transaction configuration
 	 * @return The current transaction or a new one if no transaction is active
 	 * @throws TransactionException Error starting a new transaction
 	 */
-	private JdbcTransaction getOrStartTransaction(TransactionConfiguration configuration) throws TransactionException {
-		// check if a transaction is active
-		if (CURRENT_TRANSACTION.get() != null) {
-			return CURRENT_TRANSACTION.get();
-		}
-		// create a new transaction
-		JdbcTransaction tx;
+	private JdbcTransaction beginTransaction(TransactionConfiguration configuration) throws TransactionException {
 		try {
-			tx = new JdbcTransaction(getConnection(ConnectionType.DEFAULT),
+			// create a new transaction
+			JdbcTransaction tx = new JdbcTransaction(getConnection(ConnectionType.DEFAULT),
 					(configuration != null) ? configuration : TransactionConfiguration.getDefault());
 			// start transaction
 			tx.start();
-			// set as current transaction
-			CURRENT_TRANSACTION.set(tx);
+			// stack transaction
+			return CURRENT_TRANSACTION.get().push(tx);
 		} catch (Exception e) {
 			throw new TransactionException("Failed to start a transaction", e);
 		}
-		return tx;
 	}
 
 	/**
@@ -588,18 +593,14 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 * @throws TransactionException Error during transaction finalization
 	 */
 	private boolean finalizeTransaction() throws TransactionException {
-		JdbcTransaction tx = CURRENT_TRANSACTION.get();
-		if (tx != null) {
+		return removeCurrentTransaction().map(tx -> {
 			try {
 				// finalize transaction
 				tx.end();
-				// done
 				return true;
 			} catch (Exception e) {
 				throw new TransactionException("Failed to finalize transaction", e);
 			} finally {
-				// remove transaction
-				CURRENT_TRANSACTION.remove();
 				// close connection
 				try {
 					releaseConnection(tx.getConnection(), ConnectionType.DEFAULT);
@@ -607,8 +608,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 					throw new TransactionException("Failed to release the connection", e);
 				}
 			}
-		}
-		return false;
+		}).orElse(false);
 	}
 
 	/*
