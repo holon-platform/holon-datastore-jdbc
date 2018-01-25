@@ -29,22 +29,10 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
@@ -54,45 +42,24 @@ import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
 import com.holonplatform.jdbc.DataSourceBuilder;
-import com.holonplatform.jdbc.DataSourceConfigProperties;
-import com.holonplatform.jdbc.DatabasePlatform;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = JdbcDatastoreSQLServerIT.Config.class)
-@DirtiesContext
-public class JdbcDatastoreSQLServerIT extends AbstractDatastoreIntegrationTest {
+public class JdbcDatastoreSQLServerIT extends AbstractJdbcDatastoreIT {
 
-	@Configuration
-	@EnableTransactionManagement
-	protected static class Config {
+	private static JdbcDatastore datastore;
 
-		@Bean
-		public DataSource dataSource() {
-			DataSource ds = DataSourceBuilder.create().build(
-					DataSourceConfigProperties.builder().withPropertySource("sqlserver/datasource.properties").build());
-			return ds;
-		}
+	@BeforeClass
+	public static void initDatastore() {
 
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new DataSourceTransactionManager(dataSource());
-		}
+		final DataSource dataSource = DataSourceBuilder.build("sqlserver/datasource.properties");
+		// initSQL(dataSource, "sqlserver/schema.sql", "sqlserver/data.sql");
 
-		@Bean
-		public JdbcDatastore datastore() {
-			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.SQL_SERVER)
-					.withExpressionResolver(KeyIs.RESOLVER)
-					// .traceEnabled(true)
-					.build();
-		}
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
+				.traceEnabled(true).build();
 
 	}
 
-	@Autowired
-	private Datastore datastore;
-
 	@Override
-	protected Datastore getDatastore() {
+	protected JdbcDatastore getDatastore() {
 		return datastore;
 	}
 
@@ -102,82 +69,88 @@ public class JdbcDatastoreSQLServerIT extends AbstractDatastoreIntegrationTest {
 	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
 
 	@Test
-	@Transactional
-	@Rollback
 	@Override
 	public void testCurrentDate() {
 
-		final Calendar now = Calendar.getInstance();
+		inTransaction(() -> {
 
-		List<Date> dates = getDatastore().query().target(NAMED_TARGET).list(QueryFunction.currentDate());
-		assertTrue(dates.size() > 0);
-		Date date = dates.get(0);
+			final Calendar now = Calendar.getInstance();
 
-		Calendar dc = Calendar.getInstance();
-		dc.setTime(date);
+			List<Date> dates = getDatastore().query().target(NAMED_TARGET).list(QueryFunction.currentDate());
+			assertTrue(dates.size() > 0);
+			Date date = dates.get(0);
 
-		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
-		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
-		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+			Calendar dc = Calendar.getInstance();
+			dc.setTime(date);
 
-		// LocalDate
+			assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+			assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+			assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
 
-		LocalDate lnow = LocalDate.now();
+			// LocalDate
 
-		List<LocalDate> ldates = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc())
-				.list(QueryFunction.currentLocalDate());
-		assertTrue(ldates.size() > 0);
+			LocalDate lnow = LocalDate.now();
 
-		LocalDate ldate = ldates.get(0);
+			List<LocalDate> ldates = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc())
+					.list(QueryFunction.currentLocalDate());
+			assertTrue(ldates.size() > 0);
 
-		assertEquals(lnow, ldate);
+			LocalDate ldate = ldates.get(0);
+
+			assertEquals(lnow, ldate);
+
+		});
 	}
 
 	@Test
-	@Transactional
 	public void testAutoIncrement() {
-		((JdbcDatastore) datastore).withConnection(c -> {
-			c.createStatement().executeUpdate("DROP TABLE IF EXISTS test2");
-			c.createStatement().executeUpdate(
-					"create table test2 (code int NOT NULL IDENTITY (1,1) PRIMARY KEY, text varchar(100) not null)");
-			return null;
+
+		inTransaction(() -> {
+
+			datastore.withConnection(c -> {
+				c.createStatement().executeUpdate("DROP TABLE IF EXISTS test2");
+				c.createStatement().executeUpdate(
+						"create table test2 (code int NOT NULL IDENTITY (1,1) PRIMARY KEY, text varchar(100) not null)");
+				return null;
+			});
+
+			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
+			OperationResult result = getDatastore().save(TEST2, box);
+
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+
+			assertEquals(1, result.getInsertedKeys().size());
+
+			assertEquals(BigDecimal.valueOf(1), result.getInsertedKeys().values().iterator().next());
+			assertEquals("code", result.getInsertedKeys().keySet().iterator().next().getName());
+
+			// bring back ids
+
+			box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 2").build();
+			result = getDatastore().insert(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+
+			assertEquals(1, result.getInsertedKeys().size());
+			assertEquals(Long.valueOf(2), box.getValue(CODE));
+
+			box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 3").build();
+			result = getDatastore().save(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+
+			assertEquals(1, result.getInsertedKeys().size());
+			assertEquals(Long.valueOf(3), box.getValue(CODE));
+
+			getDatastore().bulkDelete(TEST2).execute();
+
 		});
-
-		PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
-		OperationResult result = getDatastore().save(TEST2, box);
-
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
-
-		assertEquals(1, result.getInsertedKeys().size());
-
-		assertEquals(BigDecimal.valueOf(1), result.getInsertedKeys().values().iterator().next());
-		assertEquals("code", result.getInsertedKeys().keySet().iterator().next().getName());
-
-		// bring back ids
-
-		box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 2").build();
-		result = getDatastore().insert(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
-
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
-
-		assertEquals(1, result.getInsertedKeys().size());
-		assertEquals(Long.valueOf(2), box.getValue(CODE));
-
-		box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 3").build();
-		result = getDatastore().save(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
-
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
-
-		assertEquals(1, result.getInsertedKeys().size());
-		assertEquals(Long.valueOf(3), box.getValue(CODE));
-
-		getDatastore().bulkDelete(TEST2).execute();
 	}
 
 }

@@ -15,23 +15,16 @@
  */
 package com.holonplatform.datastore.jdbc.dialect;
 
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.internal.dialect.SQLValueSerializer;
-
-import oracle.jdbc.OracleConnection;
-import oracle.sql.TIMESTAMP;
-import oracle.sql.TIMESTAMPTZ;
 
 /**
  * Oracle {@link JdbcDialect}.
@@ -44,7 +37,7 @@ public class OracleDialect implements JdbcDialect {
 
 	private static final OracleParameterProcessor PARAMETER_PROCESSOR = new OracleParameterProcessor();
 
-	private static final OracleValueDeserializer DESERIALIZER = new OracleValueDeserializer();
+	//private static final OracleValueDeserializer DESERIALIZER = new OracleValueDeserializer();
 
 	private static final OracleLimitHandler LIMIT_HANDLER = new OracleLimitHandler();
 	private static final Oracle12LimitHandler LIMIT_HANDLER_12c = new Oracle12LimitHandler();
@@ -128,10 +121,10 @@ public class OracleDialect implements JdbcDialect {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.JdbcDialect#getValueDeserializer()
 	 */
-	@Override
+	/*@Override
 	public SQLValueDeserializer getValueDeserializer() {
 		return DESERIALIZER;
-	}
+	}*/
 
 	/*
 	 * (non-Javadoc)
@@ -189,7 +182,7 @@ public class OracleDialect implements JdbcDialect {
 
 	}
 
-	@SuppressWarnings("serial")
+	/*@SuppressWarnings("serial")
 	private static final class OracleValueDeserializer implements SQLValueDeserializer {
 
 		@Override
@@ -213,7 +206,7 @@ public class OracleDialect implements JdbcDialect {
 			}
 		}
 
-	}
+	}*/
 
 	private static final class OracleParameterProcessor implements SQLParameterProcessor {
 

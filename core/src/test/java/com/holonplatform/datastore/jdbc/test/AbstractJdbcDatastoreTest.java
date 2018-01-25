@@ -52,14 +52,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.beans.BeanIntrospector;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.DataTarget.DataTargetResolver;
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.datastore.relational.SubQuery;
@@ -73,6 +70,7 @@ import com.holonplatform.core.query.ConstantExpressionProjection;
 import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcWhereFilter;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
 import com.holonplatform.datastore.jdbc.test.data.TestData;
@@ -82,7 +80,14 @@ import com.holonplatform.datastore.jdbc.test.data.TestProjectionBean;
 
 public abstract class AbstractJdbcDatastoreTest {
 
-	protected abstract Datastore getDatastore();
+	protected abstract JdbcDatastore getDatastore();
+
+	protected void inTransaction(Runnable operation) {
+		getDatastore().withTransaction(tx -> {
+			tx.setRollbackOnly();
+			operation.run();
+		});
+	}
 
 	@Test
 	public void testQueryResults() {
@@ -206,119 +211,125 @@ public abstract class AbstractJdbcDatastoreTest {
 	}
 
 	@Test
-	@Transactional
-	@Rollback
 	public void testCurrentDate() {
 
-		final Calendar now = Calendar.getInstance();
+		inTransaction(() -> {
 
-		List<Date> dates = getDatastore().query().target(NAMED_TARGET).list(QueryFunction.currentDate());
-		assertTrue(dates.size() > 0);
-		Date date = dates.get(0);
+			final Calendar now = Calendar.getInstance();
 
-		Calendar dc = Calendar.getInstance();
-		dc.setTime(date);
+			List<Date> dates = getDatastore().query().target(NAMED_TARGET).list(QueryFunction.currentDate());
+			assertTrue(dates.size() > 0);
+			Date date = dates.get(0);
 
-		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
-		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
-		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+			Calendar dc = Calendar.getInstance();
+			dc.setTime(date);
 
-		long cnt = getDatastore().query().target(NAMED_TARGET).filter(DAT.lt(QueryFunction.currentDate())).count();
-		assertEquals(2L, cnt);
+			assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+			assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+			assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
 
-		OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(DAT, QueryFunction.currentDate())
-				.filter(KEY.eq(1L)).execute();
-		assertEquals(1, result.getAffectedCount());
+			long cnt = getDatastore().query().target(NAMED_TARGET).filter(DAT.lt(QueryFunction.currentDate())).count();
+			assertEquals(2L, cnt);
 
-		date = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(DAT).orElse(null);
-		assertNotNull(date);
+			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(DAT, QueryFunction.currentDate())
+					.filter(KEY.eq(1L)).execute();
+			assertEquals(1, result.getAffectedCount());
 
-		dc = Calendar.getInstance();
-		dc.setTime(date);
+			date = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(DAT).orElse(null);
+			assertNotNull(date);
 
-		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
-		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
-		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+			dc = Calendar.getInstance();
+			dc.setTime(date);
 
-		// LocalDate
+			assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+			assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+			assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
 
-		LocalDate lnow = LocalDate.now();
+			// LocalDate
 
-		result = getDatastore().bulkUpdate(NAMED_TARGET).set(LDAT, QueryFunction.currentLocalDate()).filter(KEY.eq(1L))
-				.execute();
-		assertEquals(1, result.getAffectedCount());
+			LocalDate lnow = LocalDate.now();
 
-		LocalDate ldate = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LDAT).orElse(null);
-		assertNotNull(ldate);
+			result = getDatastore().bulkUpdate(NAMED_TARGET).set(LDAT, QueryFunction.currentLocalDate())
+					.filter(KEY.eq(1L)).execute();
+			assertEquals(1, result.getAffectedCount());
 
-		assertEquals(lnow, ldate);
+			LocalDate ldate = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LDAT).orElse(null);
+			assertNotNull(ldate);
 
-		cnt = getDatastore().query().target(NAMED_TARGET).filter(LDAT.loe(QueryFunction.currentLocalDate())).count();
-		assertEquals(2L, cnt);
+			assertEquals(lnow, ldate);
 
-		List<LocalDate> ldates = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc())
-				.list(QueryFunction.currentLocalDate());
-		assertTrue(ldates.size() > 0);
+			cnt = getDatastore().query().target(NAMED_TARGET).filter(LDAT.loe(QueryFunction.currentLocalDate()))
+					.count();
+			assertEquals(2L, cnt);
 
-		ldate = ldates.get(0);
+			List<LocalDate> ldates = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc())
+					.list(QueryFunction.currentLocalDate());
+			assertTrue(ldates.size() > 0);
 
-		assertEquals(lnow, ldate);
+			ldate = ldates.get(0);
+
+			assertEquals(lnow, ldate);
+
+		});
 	}
 
 	@Test
-	@Transactional
-	@Rollback
 	public void testCurrentTimestamp() {
 
-		final Calendar now = Calendar.getInstance();
+		inTransaction(() -> {
 
-		List<Date> dates = getDatastore().query().target(NAMED_TARGET).list(QueryFunction.currentTimestamp());
-		assertTrue(dates.size() > 0);
-		Date date = dates.get(0);
+			final Calendar now = Calendar.getInstance();
 
-		Calendar dc = Calendar.getInstance();
-		dc.setTime(date);
+			List<Date> dates = getDatastore().query().target(NAMED_TARGET).list(QueryFunction.currentTimestamp());
+			assertTrue(dates.size() > 0);
+			Date date = dates.get(0);
 
-		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
-		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
-		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+			Calendar dc = Calendar.getInstance();
+			dc.setTime(date);
 
-		long cnt = getDatastore().query().target(NAMED_TARGET)
-				.filter(TMS.isNotNull().and(TMS.lt(QueryFunction.currentTimestamp()))).count();
-		assertEquals(1L, cnt);
+			assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+			assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+			assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
 
-		OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(TMS, QueryFunction.currentTimestamp())
-				.filter(KEY.eq(2L)).execute();
-		assertEquals(1, result.getAffectedCount());
+			long cnt = getDatastore().query().target(NAMED_TARGET)
+					.filter(TMS.isNotNull().and(TMS.lt(QueryFunction.currentTimestamp()))).count();
+			assertEquals(1L, cnt);
 
-		date = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(TMS).orElse(null);
-		assertNotNull(date);
+			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(TMS, QueryFunction.currentTimestamp())
+					.filter(KEY.eq(2L)).execute();
+			assertEquals(1, result.getAffectedCount());
 
-		dc = Calendar.getInstance();
-		dc.setTime(date);
+			date = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(TMS).orElse(null);
+			assertNotNull(date);
 
-		assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
-		assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
-		assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
+			dc = Calendar.getInstance();
+			dc.setTime(date);
 
-		// LocalDateTime
+			assertEquals(now.get(Calendar.YEAR), dc.get(Calendar.YEAR));
+			assertEquals(now.get(Calendar.MONTH), dc.get(Calendar.MONTH));
+			assertEquals(now.get(Calendar.DAY_OF_MONTH), dc.get(Calendar.DAY_OF_MONTH));
 
-		LocalDateTime lnow = LocalDateTime.now().withSecond(0).withNano(0);
+			// LocalDateTime
 
-		result = getDatastore().bulkUpdate(NAMED_TARGET).set(LTMS, QueryFunction.currentLocalDateTime())
-				.filter(KEY.eq(1L)).execute();
-		assertEquals(1, result.getAffectedCount());
+			LocalDateTime lnow = LocalDateTime.now().withSecond(0).withNano(0);
 
-		LocalDateTime ldate = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LTMS).orElse(null);
-		assertNotNull(ldate);
+			result = getDatastore().bulkUpdate(NAMED_TARGET).set(LTMS, QueryFunction.currentLocalDateTime())
+					.filter(KEY.eq(1L)).execute();
+			assertEquals(1, result.getAffectedCount());
 
-		ldate = ldate.withSecond(0).withNano(0);
+			LocalDateTime ldate = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(LTMS)
+					.orElse(null);
+			assertNotNull(ldate);
 
-		assertEquals(lnow.toLocalDate(), ldate.toLocalDate());
+			ldate = ldate.withSecond(0).withNano(0);
 
-		cnt = getDatastore().query().target(NAMED_TARGET).filter(LTMS.loe(QueryFunction.currentLocalDateTime()))
-				.count();
-		assertEquals(2L, cnt);
+			assertEquals(lnow.toLocalDate(), ldate.toLocalDate());
+
+			cnt = getDatastore().query().target(NAMED_TARGET).filter(LTMS.loe(QueryFunction.currentLocalDateTime()))
+					.count();
+			assertEquals(2L, cnt);
+
+		});
 
 	}
 
@@ -451,88 +462,104 @@ public abstract class AbstractJdbcDatastoreTest {
 	}
 
 	@Test
-	@Transactional
-	@Rollback
-	public void testClob() throws IOException {
-		final PathProperty<String> CLOB1 = PathProperty.create("clb", String.class);
-		final PathProperty<Reader> CLOB2 = PathProperty.create("clb", Reader.class);
+	public void testClob() {
 
-		String value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(CLOB1).orElse(null);
-		assertNotNull(value);
-		assertEquals("clocbcontent", value);
+		inTransaction(() -> {
 
-		try (Reader reader = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(CLOB2)
-				.orElse(null)) {
-			assertNotNull(reader);
-			value = "";
-			int charv;
-			while ((charv = reader.read()) != -1) {
-				value += (char) charv;
+			final PathProperty<String> CLOB1 = PathProperty.create("clb", String.class);
+			final PathProperty<Reader> CLOB2 = PathProperty.create("clb", Reader.class);
+
+			String value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(CLOB1).orElse(null);
+			assertNotNull(value);
+			assertEquals("clocbcontent", value);
+
+			try {
+				try (Reader reader = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(CLOB2)
+						.orElse(null)) {
+					assertNotNull(reader);
+					value = "";
+					int charv;
+					while ((charv = reader.read()) != -1) {
+						value += (char) charv;
+					}
+				}
+				assertEquals("clocbcontent", value);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
-		}
-		assertEquals("clocbcontent", value);
 
-		// save
-		PropertyBox box = PropertyBox.builder(KEY, STR, NBOOL, CLOB1).set(KEY, 77L).set(STR, "Test clob")
-				.set(NBOOL, false).set(CLOB1, "savedclob").build();
-		getDatastore().save(NAMED_TARGET, box);
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(77L)).findOne(CLOB1).orElse(null);
-		assertNotNull(value);
-		assertEquals("savedclob", value);
+			// save
+			PropertyBox box = PropertyBox.builder(KEY, STR, NBOOL, CLOB1).set(KEY, 77L).set(STR, "Test clob")
+					.set(NBOOL, false).set(CLOB1, "savedclob").build();
+			getDatastore().save(NAMED_TARGET, box);
+			value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(77L)).findOne(CLOB1).orElse(null);
+			assertNotNull(value);
+			assertEquals("savedclob", value);
 
-		OperationResult deleted = getDatastore().delete(NAMED_TARGET, PropertyBox.builder(KEY).set(KEY, 77L).build());
-		assertTrue(deleted.getAffectedCount() == 1);
+			OperationResult deleted = getDatastore().delete(NAMED_TARGET,
+					PropertyBox.builder(KEY).set(KEY, 77L).build());
+			assertTrue(deleted.getAffectedCount() == 1);
 
-		box = PropertyBox.builder(KEY, STR, NBOOL, CLOB2).set(KEY, 78L).set(STR, "Test clob").set(NBOOL, false)
-				.set(CLOB2, new StringReader("savedclob")).build();
-		getDatastore().save(NAMED_TARGET, box);
-		value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(78L)).findOne(CLOB1).orElse(null);
-		assertNotNull(value);
-		assertEquals("savedclob", value);
+			box = PropertyBox.builder(KEY, STR, NBOOL, CLOB2).set(KEY, 78L).set(STR, "Test clob").set(NBOOL, false)
+					.set(CLOB2, new StringReader("savedclob")).build();
+			getDatastore().save(NAMED_TARGET, box);
+			value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(78L)).findOne(CLOB1).orElse(null);
+			assertNotNull(value);
+			assertEquals("savedclob", value);
 
-		deleted = getDatastore().delete(NAMED_TARGET, PropertyBox.builder(KEY).set(KEY, 78L).build());
-		assertTrue(deleted.getAffectedCount() == 1);
+			deleted = getDatastore().delete(NAMED_TARGET, PropertyBox.builder(KEY).set(KEY, 78L).build());
+			assertTrue(deleted.getAffectedCount() == 1);
+
+		});
 
 	}
 
 	@Test
-	@Transactional
-	@Rollback
-	public void testBlob() throws IOException {
-		final PathProperty<InputStream> BLOB1 = PathProperty.create("blb", InputStream.class);
-		final PathProperty<byte[]> BLOB2 = PathProperty.create("blb", byte[].class);
+	public void testBlob() {
 
-		try (InputStream is = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(BLOB1)
-				.orElse(null)) {
-			assertNotNull(is);
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-			int nRead;
-			byte[] data = new byte[16];
-			while ((nRead = is.read(data, 0, data.length)) != -1) {
-				buffer.write(data, 0, nRead);
+		inTransaction(() -> {
+
+			final PathProperty<InputStream> BLOB1 = PathProperty.create("blb", InputStream.class);
+			final PathProperty<byte[]> BLOB2 = PathProperty.create("blb", byte[].class);
+
+			try {
+				try (InputStream is = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(BLOB1)
+						.orElse(null)) {
+					assertNotNull(is);
+					ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+					int nRead;
+					byte[] data = new byte[16];
+					while ((nRead = is.read(data, 0, data.length)) != -1) {
+						buffer.write(data, 0, nRead);
+					}
+					buffer.flush();
+					byte[] bs = buffer.toByteArray();
+					assertNotNull(bs);
+					assertEquals(15, bs.length);
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
-			buffer.flush();
-			byte[] bs = buffer.toByteArray();
+
+			byte[] bs = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(BLOB2).orElse(null);
 			assertNotNull(bs);
 			assertEquals(15, bs.length);
-		}
 
-		byte[] bs = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(BLOB2).orElse(null);
-		assertNotNull(bs);
-		assertEquals(15, bs.length);
+			// save
+			final byte[] bytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-		// save
-		final byte[] bytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+			PropertyBox box = PropertyBox.builder(KEY, STR, NBOOL, BLOB2).set(KEY, 87L).set(STR, "Test clob")
+					.set(NBOOL, false).set(BLOB2, bytes).build();
+			getDatastore().save(NAMED_TARGET, box);
+			byte[] value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(87L)).findOne(BLOB2).orElse(null);
+			assertNotNull(value);
+			assertTrue(Arrays.equals(bytes, value));
 
-		PropertyBox box = PropertyBox.builder(KEY, STR, NBOOL, BLOB2).set(KEY, 87L).set(STR, "Test clob")
-				.set(NBOOL, false).set(BLOB2, bytes).build();
-		getDatastore().save(NAMED_TARGET, box);
-		byte[] value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(87L)).findOne(BLOB2).orElse(null);
-		assertNotNull(value);
-		assertTrue(Arrays.equals(bytes, value));
+			OperationResult deleted = getDatastore().delete(NAMED_TARGET,
+					PropertyBox.builder(KEY).set(KEY, 87L).build());
+			assertTrue(deleted.getAffectedCount() == 1);
 
-		OperationResult deleted = getDatastore().delete(NAMED_TARGET, PropertyBox.builder(KEY).set(KEY, 87L).build());
-		assertTrue(deleted.getAffectedCount() == 1);
+		});
 	}
 
 	@Test
@@ -670,53 +697,65 @@ public abstract class AbstractJdbcDatastoreTest {
 	}
 
 	@Test
-	@Transactional
-	@Rollback
 	public void testSaveDelete() {
-		// insert
-		PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 3L).set(STR, "Three").set(NBOOL, false)
-				.set(ENM, TestEnum.THIRD).build();
-		getDatastore().save(NAMED_TARGET, box);
 
-		PropertyBox saved = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(3L)).findOne(PROPS).orElse(null);
-		assertNotNull(saved);
-		assertEquals("Three", saved.getValue(STR));
+		inTransaction(() -> {
 
-		// update
-		saved.setValue(STR, "Three UPD");
-		getDatastore().save(NAMED_TARGET, saved);
+			// insert
+			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 3L).set(STR, "Three").set(NBOOL, false)
+					.set(ENM, TestEnum.THIRD).build();
+			getDatastore().save(NAMED_TARGET, box);
 
-		saved = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(3L)).findOne(PROPS).orElse(null);
-		assertNotNull(saved);
-		assertEquals("Three UPD", saved.getValue(STR));
+			PropertyBox saved = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(3L)).findOne(PROPS)
+					.orElse(null);
+			assertNotNull(saved);
+			assertEquals("Three", saved.getValue(STR));
 
-		// delete
-		OperationResult deleted = getDatastore().delete(NAMED_TARGET, box);
-		assertTrue(deleted.getAffectedCount() == 1);
+			// update
+			saved.setValue(STR, "Three UPD");
+			getDatastore().save(NAMED_TARGET, saved);
+
+			saved = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(3L)).findOne(PROPS).orElse(null);
+			assertNotNull(saved);
+			assertEquals("Three UPD", saved.getValue(STR));
+
+			// delete
+			OperationResult deleted = getDatastore().delete(NAMED_TARGET, box);
+			assertTrue(deleted.getAffectedCount() == 1);
+
+		});
 	}
 
 	@Test
-	@Transactional
-	@Rollback
 	public void testSaveDeleteByKey() {
-		PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 3L).set(STR, "Three").set(NBOOL, true)
-				.set(ENM, TestEnum.THIRD).set(DAT, new Date()).set(LDAT, LocalDate.of(2017, Month.MARCH, 24)).build();
-		getDatastore().save(NAMED_TARGET, box);
 
-		OperationResult deleted = getDatastore().delete(NAMED_TARGET, PropertyBox.builder(KEY).set(KEY, 3L).build());
-		assertTrue(deleted.getAffectedCount() == 1);
+		inTransaction(() -> {
+
+			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 3L).set(STR, "Three").set(NBOOL, true)
+					.set(ENM, TestEnum.THIRD).set(DAT, new Date()).set(LDAT, LocalDate.of(2017, Month.MARCH, 24))
+					.build();
+			getDatastore().save(NAMED_TARGET, box);
+
+			OperationResult deleted = getDatastore().delete(NAMED_TARGET,
+					PropertyBox.builder(KEY).set(KEY, 3L).build());
+			assertTrue(deleted.getAffectedCount() == 1);
+
+		});
 	}
 
 	@Test
-	@Transactional
-	@Rollback
 	public void testSaveDeleteByTargetKey() {
 
-		PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 4L).set(STR, "Three").set(NBOOL, true).build();
-		getDatastore().save(NAMED_TARGET, box);
+		inTransaction(() -> {
 
-		OperationResult deleted = getDatastore().delete(NAMED_TARGET, PropertyBox.builder(KEY).set(KEY, 4L).build());
-		assertTrue(deleted.getAffectedCount() == 1);
+			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 4L).set(STR, "Three").set(NBOOL, true).build();
+			getDatastore().save(NAMED_TARGET, box);
+
+			OperationResult deleted = getDatastore().delete(NAMED_TARGET,
+					PropertyBox.builder(KEY).set(KEY, 4L).build());
+			assertTrue(deleted.getAffectedCount() == 1);
+
+		});
 	}
 
 	@Test
@@ -730,57 +769,67 @@ public abstract class AbstractJdbcDatastoreTest {
 	}
 
 	@Test
-	@Transactional
-	@Rollback
 	public void testBulkDelete() {
-		PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 10L).set(STR, "k10").set(NBOOL, false).build();
-		getDatastore().save(NAMED_TARGET, box);
-		box = PropertyBox.builder(PROPS).set(KEY, 11L).set(STR, "k11").set(NBOOL, false).build();
-		getDatastore().save(NAMED_TARGET, box);
-		box = PropertyBox.builder(PROPS).set(KEY, 12L).set(STR, "k12").set(NBOOL, false).build();
-		getDatastore().save(NAMED_TARGET, box);
 
-		OperationResult result = getDatastore().bulkDelete(NAMED_TARGET).filter(KEY.between(10L, 12L)).execute();
-		assertEquals(3, result.getAffectedCount());
+		inTransaction(() -> {
+
+			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 10L).set(STR, "k10").set(NBOOL, false).build();
+			getDatastore().save(NAMED_TARGET, box);
+			box = PropertyBox.builder(PROPS).set(KEY, 11L).set(STR, "k11").set(NBOOL, false).build();
+			getDatastore().save(NAMED_TARGET, box);
+			box = PropertyBox.builder(PROPS).set(KEY, 12L).set(STR, "k12").set(NBOOL, false).build();
+			getDatastore().save(NAMED_TARGET, box);
+
+			OperationResult result = getDatastore().bulkDelete(NAMED_TARGET).filter(KEY.between(10L, 12L)).execute();
+			assertEquals(3, result.getAffectedCount());
+
+		});
 	}
 
 	@Test
-	@Transactional
-	@Rollback
 	public void testBulkUpdate() {
-		PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 10L).set(STR, "k10").set(NBOOL, false).build();
-		getDatastore().save(NAMED_TARGET, box);
-		box = PropertyBox.builder(PROPS).set(KEY, 11L).set(STR, "k11").set(NBOOL, false).build();
-		getDatastore().save(NAMED_TARGET, box);
-		box = PropertyBox.builder(PROPS).set(KEY, 12L).set(STR, "k12").set(NBOOL, false).build();
-		getDatastore().save(NAMED_TARGET, box);
 
-		OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).filter(KEY.between(10L, 12L)).set(STR, "UPD")
-				.setNull(DAT).execute();
-		assertEquals(3, result.getAffectedCount());
+		inTransaction(() -> {
 
-		List<String> values = getDatastore().query().target(NAMED_TARGET).filter(KEY.between(10L, 12L)).list(STR);
-		assertEquals(3, values.size());
-		values.forEach(v -> assertEquals("UPD", v));
+			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 10L).set(STR, "k10").set(NBOOL, false).build();
+			getDatastore().save(NAMED_TARGET, box);
+			box = PropertyBox.builder(PROPS).set(KEY, 11L).set(STR, "k11").set(NBOOL, false).build();
+			getDatastore().save(NAMED_TARGET, box);
+			box = PropertyBox.builder(PROPS).set(KEY, 12L).set(STR, "k12").set(NBOOL, false).build();
+			getDatastore().save(NAMED_TARGET, box);
 
-		result = getDatastore().bulkDelete(NAMED_TARGET).filter(KEY.between(10L, 12L)).execute();
-		assertEquals(3, result.getAffectedCount());
+			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).filter(KEY.between(10L, 12L))
+					.set(STR, "UPD").setNull(DAT).execute();
+			assertEquals(3, result.getAffectedCount());
+
+			List<String> values = getDatastore().query().target(NAMED_TARGET).filter(KEY.between(10L, 12L)).list(STR);
+			assertEquals(3, values.size());
+			values.forEach(v -> assertEquals("UPD", v));
+
+			result = getDatastore().bulkDelete(NAMED_TARGET).filter(KEY.between(10L, 12L)).execute();
+			assertEquals(3, result.getAffectedCount());
+
+		});
 	}
 
 	@Test
-	@Transactional
-	@Rollback
 	public void testBulkInsert() {
-		OperationResult result = getDatastore().bulkInsert(NAMED_TARGET, PropertySet.of(KEY, STR, NBOOL))
-				.add(PropertyBox.builder(PROPS).set(KEY, 201L).set(STR, "k201").set(NBOOL, false).build())
-				.add(PropertyBox.builder(PROPS).set(KEY, 202L).set(STR, "k202").set(NBOOL, false).build())
-				.add(PropertyBox.builder(PROPS).set(KEY, 203L).set(STR, "k203").set(NBOOL, false).build())
-				.add(PropertyBox.builder(PROPS).set(KEY, 204L).set(STR, "k204").set(NBOOL, false).build())
-				.add(PropertyBox.builder(PROPS).set(KEY, 205L).set(STR, "k205").set(NBOOL, false).build()).execute();
-		assertEquals(5, result.getAffectedCount());
 
-		result = getDatastore().bulkDelete(NAMED_TARGET).filter(KEY.gt(200L)).execute();
-		assertEquals(5, result.getAffectedCount());
+		inTransaction(() -> {
+
+			OperationResult result = getDatastore().bulkInsert(NAMED_TARGET, PropertySet.of(KEY, STR, NBOOL))
+					.add(PropertyBox.builder(PROPS).set(KEY, 201L).set(STR, "k201").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPS).set(KEY, 202L).set(STR, "k202").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPS).set(KEY, 203L).set(STR, "k203").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPS).set(KEY, 204L).set(STR, "k204").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPS).set(KEY, 205L).set(STR, "k205").set(NBOOL, false).build())
+					.execute();
+			assertEquals(5, result.getAffectedCount());
+
+			result = getDatastore().bulkDelete(NAMED_TARGET).filter(KEY.gt(200L)).execute();
+			assertEquals(5, result.getAffectedCount());
+
+		});
 	}
 
 	@Test
@@ -805,30 +854,33 @@ public abstract class AbstractJdbcDatastoreTest {
 	}
 
 	@Test
-	@Transactional
 	public void testCustomFilter() {
 
-		long count = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).count();
-		assertEquals(1, count);
+		inTransaction(() -> {
 
-		Optional<String> str = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).findOne(STR);
-		assertEquals("One", str.get());
+			long count = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).count();
+			assertEquals(1, count);
 
-		OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.THIRD).filter(new KeyIs(1))
-				.execute();
-		assertEquals(1, result.getAffectedCount());
+			Optional<String> str = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).findOne(STR);
+			assertEquals("One", str.get());
 
-		result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.FIRST).filter(new KeyIs(1)).execute();
-		assertEquals(1, result.getAffectedCount());
+			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.THIRD)
+					.filter(new KeyIs(1)).execute();
+			assertEquals(1, result.getAffectedCount());
 
-		Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(2)).findOne(PROPS);
-		assertEquals(TestEnum.SECOND, pb.get().getValue(ENM));
+			result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.FIRST).filter(new KeyIs(1)).execute();
+			assertEquals(1, result.getAffectedCount());
 
-		result = getDatastore().bulkUpdate(NAMED_TARGET).filter(new KeyIs(2)).setNull(DAT).execute();
-		assertEquals(1, result.getAffectedCount());
+			Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(2)).findOne(PROPS);
+			assertEquals(TestEnum.SECOND, pb.get().getValue(ENM));
 
-		pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).findOne(PROPS);
-		assertEquals("One", pb.get().getValue(STR));
+			result = getDatastore().bulkUpdate(NAMED_TARGET).filter(new KeyIs(2)).setNull(DAT).execute();
+			assertEquals(1, result.getAffectedCount());
+
+			pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).findOne(PROPS);
+			assertEquals("One", pb.get().getValue(STR));
+
+		});
 	}
 
 	private final static DataTarget<String> TEST3 = DataTarget.named("test3");

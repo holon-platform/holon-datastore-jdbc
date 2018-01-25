@@ -29,21 +29,8 @@ import javax.sql.DataSource;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
@@ -55,40 +42,24 @@ import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
 import com.holonplatform.datastore.jdbc.test.function.IfNullFunction;
 import com.holonplatform.datastore.jdbc.test.function.IfNullFunctionResolver;
-import com.holonplatform.jdbc.DatabasePlatform;
+import com.holonplatform.jdbc.DataSourceBuilder;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestJdbcDatastoreH2.Config.class)
 public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 
-	@Configuration
-	@EnableTransactionManagement
-	protected static class Config {
-
-		@Bean
-		public DataSource dataSource() {
-			return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2).setName("datastore")
-					.addScript("h2/schema.sql").addScript("h2/data.sql").build();
-		}
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new DataSourceTransactionManager(dataSource());
-		}
-
-		@Bean
-		public JdbcDatastore datastore() {
-			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.H2)
-					.withExpressionResolver(KeyIs.RESOLVER).withExpressionResolver(new IfNullFunctionResolver())
-					.traceEnabled(true).build();
-		}
-
-	}
+	private static JdbcDatastore datastore;
 
 	private static long ms;
 
 	@BeforeClass
-	public static void before() {
+	public static void initDatastore() {
+
+		final DataSource dataSource = DataSourceBuilder.builder()
+				.url("jdbc:h2:mem:datastore;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE").username("sa")
+				.withInitScriptResource("h2/schema.sql").withInitScriptResource("h2/data.sql").build();
+
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
+				.withExpressionResolver(new IfNullFunctionResolver()).traceEnabled(true).build();
+
 		ms = System.currentTimeMillis();
 	}
 
@@ -97,11 +68,8 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 		System.err.println(System.currentTimeMillis() - ms);
 	}
 
-	@Autowired
-	private Datastore datastore;
-
 	@Override
-	protected Datastore getDatastore() {
+	protected JdbcDatastore getDatastore() {
 		return datastore;
 	}
 
@@ -111,41 +79,45 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
 
 	@Test
-	@Transactional
 	public void testAutoIncrement() {
-		PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
-		OperationResult result = getDatastore().save(TEST2, box);
 
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+		inTransaction(() -> {
 
-		assertEquals(1, result.getInsertedKeys().size());
+			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
+			OperationResult result = getDatastore().save(TEST2, box);
 
-		assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
-		assertEquals("CODE", result.getInsertedKeys().keySet().iterator().next().getName());
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
 
-		// bring back ids
+			assertEquals(1, result.getInsertedKeys().size());
 
-		box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 2").build();
-		result = getDatastore().insert(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+			assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
+			assertEquals("CODE", result.getInsertedKeys().keySet().iterator().next().getName());
 
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+			// bring back ids
 
-		assertEquals(1, result.getInsertedKeys().size());
-		assertEquals(Long.valueOf(2), box.getValue(CODE));
+			box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 2").build();
+			result = getDatastore().insert(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
 
-		box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 3").build();
-		result = getDatastore().save(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
 
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+			assertEquals(1, result.getInsertedKeys().size());
+			assertEquals(Long.valueOf(2), box.getValue(CODE));
 
-		assertEquals(1, result.getInsertedKeys().size());
-		assertEquals(Long.valueOf(3), box.getValue(CODE));
+			box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 3").build();
+			result = getDatastore().save(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+
+			assertEquals(1, result.getInsertedKeys().size());
+			assertEquals(Long.valueOf(3), box.getValue(CODE));
+
+		});
 	}
 
 	@Test

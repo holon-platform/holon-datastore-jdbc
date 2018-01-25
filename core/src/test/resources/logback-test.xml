@@ -11,8 +11,10 @@
 		<appender-ref ref="stdout" />
 	</root>
 
-	<logger name="com.holonplatform.jdbc" level="DEBUG" additivity="false">
+	<!--  
+	<logger name="com.holonplatform.datastore.jdbc" level="DEBUG" additivity="false">
 		<appender-ref ref="stdout" />
 	</logger>
+	-->
 
 </configuration>

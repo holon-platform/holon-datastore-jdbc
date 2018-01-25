@@ -60,8 +60,8 @@ public enum ConstantExpressionProjectionResolver
 		final String sql = SQLValueSerializer.serializeValue(expression.getValue(), null);
 		
 		final DefaultProjectionContext ctx = new DefaultProjectionContext<>(jdbcContext);
-		String alias = ctx.addSelection(sql, false);
-		ctx.setConverter(new QueryExpressionResultSetConverter(jdbcContext.getDialect(), expression, alias));
+		ctx.addSelection(sql, false);
+		ctx.setConverter(new QueryExpressionResultSetConverter(jdbcContext.getDialect(), expression, null));
 
 		return Optional.of(ctx);
 	}

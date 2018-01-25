@@ -60,7 +60,6 @@ public class QueryExpressionResultSetConverter<T> extends AbstractResultSetConve
 
 		ObjectUtils.argumentNotNull(dialect, "Dialect must be not null");
 		ObjectUtils.argumentNotNull(expression, "Selection expression must be not null");
-		ObjectUtils.argumentNotNull(selection, "Selection label must be not null");
 
 		this.dialect = dialect;
 		this.expression = expression;

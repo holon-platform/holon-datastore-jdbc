@@ -20,20 +20,10 @@ import static org.junit.Assert.assertNotNull;
 
 import javax.sql.DataSource;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
@@ -42,46 +32,24 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
 import com.holonplatform.jdbc.DataSourceBuilder;
-import com.holonplatform.jdbc.DataSourceConfigProperties;
-import com.holonplatform.jdbc.DatabasePlatform;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = JdbcDatastoreMySQLIT.Config.class)
-public class JdbcDatastoreMySQLIT extends AbstractDatastoreIntegrationTest {
+public class JdbcDatastoreMySQLIT extends AbstractJdbcDatastoreIT {
 
-	@Configuration
-	@EnableTransactionManagement
-	protected static class Config {
+	private static JdbcDatastore datastore;
 
-		@Bean
-		public DataSource dataSource() {
-			DataSource ds = DataSourceBuilder.create().build(
-					DataSourceConfigProperties.builder().withPropertySource("mysql/datasource.properties").build());
-			// init
-			initSQL(ds, "mysql/schema.sql", "mysql/data.sql");
-			return ds;
-		}
+	@BeforeClass
+	public static void initDatastore() {
 
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new DataSourceTransactionManager(dataSource());
-		}
+		final DataSource dataSource = DataSourceBuilder.build("mysql/datasource.properties");
+		initSQL(dataSource, "mysql/schema.sql", "mysql/data.sql");
 
-		@Bean
-		public JdbcDatastore datastore() {
-			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.MYSQL)
-					.withExpressionResolver(KeyIs.RESOLVER)
-					// .traceEnabled(true)
-					.build();
-		}
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
+				.traceEnabled(true).build();
 
 	}
 
-	@Autowired
-	private Datastore datastore;
-
 	@Override
-	protected Datastore getDatastore() {
+	protected JdbcDatastore getDatastore() {
 		return datastore;
 	}
 
@@ -91,41 +59,45 @@ public class JdbcDatastoreMySQLIT extends AbstractDatastoreIntegrationTest {
 	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
 
 	@Test
-	@Transactional
 	public void testAutoIncrement() {
-		PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
-		OperationResult result = getDatastore().save(TEST2, box);
 
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+		inTransaction(() -> {
 
-		assertEquals(1, result.getInsertedKeys().size());
+			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
+			OperationResult result = getDatastore().save(TEST2, box);
 
-		assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
-		assertEquals("code", result.getInsertedKeys().keySet().iterator().next().getName());
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
 
-		// bring back ids
+			assertEquals(1, result.getInsertedKeys().size());
 
-		box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 2").build();
-		result = getDatastore().insert(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+			assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
+			assertEquals("code", result.getInsertedKeys().keySet().iterator().next().getName());
 
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+			// bring back ids
 
-		assertEquals(1, result.getInsertedKeys().size());
-		assertEquals(Long.valueOf(2), box.getValue(CODE));
+			box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 2").build();
+			result = getDatastore().insert(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
 
-		box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 3").build();
-		result = getDatastore().save(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
 
-		assertNotNull(result);
-		assertEquals(1, result.getAffectedCount());
-		assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+			assertEquals(1, result.getInsertedKeys().size());
+			assertEquals(Long.valueOf(2), box.getValue(CODE));
 
-		assertEquals(1, result.getInsertedKeys().size());
-		assertEquals(Long.valueOf(3), box.getValue(CODE));
+			box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 3").build();
+			result = getDatastore().save(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
+
+			assertNotNull(result);
+			assertEquals(1, result.getAffectedCount());
+			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+
+			assertEquals(1, result.getInsertedKeys().size());
+			assertEquals(Long.valueOf(3), box.getValue(CODE));
+
+		});
 	}
 
 }

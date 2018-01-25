@@ -49,7 +49,7 @@ public class TestTransactional {
 	public void initDatastore() {
 
 		DataSource dataSource = DataSourceBuilder.builder().url("jdbc:h2:mem:txdb").username("sa")
-				.database(DatabasePlatform.H2).initScript(INIT_SQL).build();
+				.withInitScript(INIT_SQL).build();
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).database(DatabasePlatform.H2).traceEnabled(true)
 				.build();
