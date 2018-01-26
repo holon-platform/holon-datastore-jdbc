@@ -578,7 +578,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	private JdbcTransaction beginTransaction(TransactionConfiguration configuration) throws TransactionException {
 		try {
 			// create a new transaction
-			JdbcTransaction tx = buildTransaction(getConnection(ConnectionType.DEFAULT),
+			JdbcTransaction tx = buildTransaction(
 					(configuration != null) ? configuration : TransactionConfiguration.getDefault());
 			// start transaction
 			tx.start();
@@ -591,12 +591,16 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 
 	/**
 	 * Build a new {@link JdbcTransaction}.
-	 * @param connection Connection (not null)
 	 * @param configuration Configuration (not null)
 	 * @return A new {@link JdbcTransaction}
+	 * @throws TransactionException If an error occurred
 	 */
-	protected JdbcTransaction buildTransaction(Connection connection, TransactionConfiguration configuration) {
-		return new DefaultJdbcTransaction(connection, configuration);
+	protected JdbcTransaction buildTransaction(TransactionConfiguration configuration) throws TransactionException {
+		try {
+			return new DefaultJdbcTransaction(getConnection(ConnectionType.DEFAULT), configuration);
+		} catch (SQLException e) {
+			throw new TransactionException("Failed to create a transaction", e);
+		}
 	}
 
 	/**
