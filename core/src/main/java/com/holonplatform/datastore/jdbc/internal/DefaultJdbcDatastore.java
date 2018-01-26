@@ -262,9 +262,8 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	/**
 	 * Initialize the datastore if it is not already initialized.
 	 * @param classLoader ClassLoader to use to load default factories and resolvers
-	 * @throws IllegalStateException If initialization fails
 	 */
-	public void initialize(ClassLoader classLoader) throws IllegalStateException {
+	public void initialize(ClassLoader classLoader) {
 		if (!initialized) {
 
 			// auto detect platform if not setted

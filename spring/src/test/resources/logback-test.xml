@@ -11,10 +11,11 @@
 		<appender-ref ref="stdout" />
 	</root>
 
-	<!--
 	<logger name="com.holonplatform.datastore.jdbc" level="debug" additivity="false">
 		<appender-ref ref="stdout" />
 	</logger>
-	-->
+	<logger name="org.springframework.jdbc" level="debug" additivity="false">
+		<appender-ref ref="stdout" />
+	</logger>
 
 </configuration>

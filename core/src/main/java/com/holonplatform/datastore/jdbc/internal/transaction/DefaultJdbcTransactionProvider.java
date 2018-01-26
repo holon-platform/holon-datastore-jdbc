@@ -19,6 +19,8 @@ import java.sql.Connection;
 
 import com.holonplatform.core.datastore.transaction.Transaction.TransactionException;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
+import com.holonplatform.core.internal.Logger;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 
 /**
  * Default {@link JdbcTransactionProvider}.
@@ -29,6 +31,8 @@ public enum DefaultJdbcTransactionProvider implements JdbcTransactionProvider {
 
 	INSTANCE;
 
+	private static final Logger LOGGER = JdbcDatastoreLogger.create();
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransactionProvider#createTransaction(java.sql.
@@ -37,6 +41,7 @@ public enum DefaultJdbcTransactionProvider implements JdbcTransactionProvider {
 	@Override
 	public JdbcTransaction createTransaction(Connection connection, TransactionConfiguration configuration)
 			throws TransactionException {
+		LOGGER.debug(() -> "Create a new JdbcTransaction");
 		return new DefaultJdbcTransaction(connection, configuration);
 	}
 

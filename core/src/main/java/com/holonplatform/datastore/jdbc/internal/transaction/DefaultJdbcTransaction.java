@@ -20,8 +20,10 @@ import java.sql.SQLException;
 
 import com.holonplatform.core.datastore.transaction.Transaction;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.transaction.AbstractTransaction;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 
 /**
  * A JDBC {@link Transaction}.
@@ -29,6 +31,8 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
  * @since 5.1.0
  */
 public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcTransaction {
+
+	private static final Logger LOGGER = JdbcDatastoreLogger.create();
 
 	private final Connection connection;
 
@@ -75,6 +79,7 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 			}
 		}
 		active = true;
+		LOGGER.debug(() -> "Jdbc transaction started");
 	}
 
 	/*
@@ -101,6 +106,7 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 				throw new TransactionException("Failed to set connection auto-commit", e);
 			}
 		}
+		LOGGER.debug(() -> "Jdbc transaction finalized");
 	}
 
 	/**
@@ -148,6 +154,7 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 				rollback();
 			} else {
 				getConnection().commit();
+				LOGGER.debug(() -> "Jdbc transaction committed");
 			}
 		} catch (Exception e) {
 			throw new TransactionException("Failed to commit the transaction", e);
@@ -171,6 +178,7 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 		}
 		try {
 			getConnection().rollback();
+			LOGGER.debug(() -> "Jdbc transaction rolled back");
 		} catch (Exception e) {
 			throw new TransactionException("Failed to rollback the transaction", e);
 		}

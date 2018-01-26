@@ -22,18 +22,17 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 
+import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
-import com.holonplatform.datastore.jdbc.spring.SpringJdbcDatastore;
-import com.holonplatform.jdbc.spring.SpringJdbcConnectionHandler;
 import com.holonplatform.spring.internal.datastore.DatastoreInitializer;
 
 /**
- * Default {@link SpringJdbcDatastore} implementation.
+ * Spring {@link JdbcDatastore} implementation.
  *
  * @since 5.0.0
  */
 public class DefaultSpringJdbcDatastore extends DefaultJdbcDatastore
-		implements SpringJdbcDatastore, InitializingBean, BeanNameAware, BeanFactoryAware, BeanClassLoaderAware {
+		implements InitializingBean, BeanNameAware, BeanFactoryAware, BeanClassLoaderAware {
 
 	private static final long serialVersionUID = -3784286815816600405L;
 
@@ -57,7 +56,6 @@ public class DefaultSpringJdbcDatastore extends DefaultJdbcDatastore
 	 */
 	public DefaultSpringJdbcDatastore() {
 		super(false);
-		setConnectionHandler(SpringJdbcConnectionHandler.create());
 	}
 
 	/*
@@ -87,14 +85,14 @@ public class DefaultSpringJdbcDatastore extends DefaultJdbcDatastore
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
 	@Override
 	public void afterPropertiesSet() throws Exception {
-
+		
 		// intialization
 		initialize(classLoader);
 
@@ -102,27 +100,6 @@ public class DefaultSpringJdbcDatastore extends DefaultJdbcDatastore
 		DatastoreInitializer.configureDatastore(this, beanName, beanFactory);
 
 		LOGGER.info("JDBC Datastore initialized - using dialect [" + getDialect().getClass().getName() + "]");
-	}
-
-	/**
-	 * {@link SpringJdbcDatastore} builder implementation.
-	 */
-	public static class Builder
-			extends DefaultJdbcDatastore.AbstractBuilder<SpringJdbcDatastore, DefaultSpringJdbcDatastore> {
-
-		public Builder() {
-			super(new DefaultSpringJdbcDatastore());
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see com.holonplatform.core.datastore.Datastore.Builder#build()
-		 */
-		@Override
-		public SpringJdbcDatastore build() {
-			return datastore;
-		}
-
 	}
 
 }

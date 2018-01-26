@@ -38,6 +38,7 @@ import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
 import com.holonplatform.jdbc.DatabasePlatform;
 import com.holonplatform.jdbc.spring.EnableDataSource;
+import com.holonplatform.jdbc.spring.SpringJdbcConnectionHandler;
 import com.holonplatform.spring.EnvironmentConfigPropertyProvider;
 import com.holonplatform.spring.internal.AbstractConfigPropertyRegistrar;
 import com.holonplatform.spring.internal.BeanRegistryUtils;
@@ -172,6 +173,7 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 
 		MutablePropertyValues pvs = new MutablePropertyValues();
 		pvs.add("dataSource", new RuntimeBeanReference(datasourceBeanName));
+		pvs.add("connectionHandler", SpringJdbcConnectionHandler.create());
 
 		if (platform != null && platform != DatabasePlatform.NONE) {
 			pvs.add("database", platform);
