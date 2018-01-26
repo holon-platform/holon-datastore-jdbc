@@ -51,30 +51,38 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 		this.configuration = configuration;
 	}
 
-	/**
-	 * Start the transaction, configuring the connection.
-	 * @throws SQLException If an error occurred
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransaction#start()
 	 */
 	@Override
-	public void start() throws SQLException {
+	public void start() throws TransactionException {
 		// disable auto-commit
-		if (getConnection().getAutoCommit()) {
-			wasAutoCommit = true;
-			getConnection().setAutoCommit(false);
+		try {
+			if (getConnection().getAutoCommit()) {
+				wasAutoCommit = true;
+				getConnection().setAutoCommit(false);
+			}
+		} catch (SQLException e) {
+			throw new TransactionException("Failed to set connection auto-commit", e);
 		}
 		// configure connection
 		if (getConfiguration().getTransactionIsolation().isPresent()) {
-			getConnection().setTransactionIsolation(getConfiguration().getTransactionIsolation().get().getLevel());
+			try {
+				getConnection().setTransactionIsolation(getConfiguration().getTransactionIsolation().get().getLevel());
+			} catch (SQLException e) {
+				throw new TransactionException("Failed to configure connection transaction isolation level", e);
+			}
 		}
 		active = true;
 	}
 
-	/**
-	 * Finalize the transaction.
-	 * @throws SQLException If an error occurred
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransaction#end()
 	 */
 	@Override
-	public void end() throws SQLException {
+	public void end() throws TransactionException {
 		// check completed
 		if (!isCompleted()) {
 			if (isRollbackOnly()) {
@@ -87,7 +95,11 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 		}
 		// restore auto-commit
 		if (wasAutoCommit) {
-			getConnection().setAutoCommit(true);
+			try {
+				getConnection().setAutoCommit(true);
+			} catch (SQLException e) {
+				throw new TransactionException("Failed to set connection auto-commit", e);
+			}
 		}
 	}
 

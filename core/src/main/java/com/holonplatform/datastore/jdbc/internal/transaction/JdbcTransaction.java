@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.jdbc.internal.transaction;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 import com.holonplatform.core.datastore.transaction.Transaction;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
@@ -30,15 +29,15 @@ public interface JdbcTransaction extends Transaction {
 
 	/**
 	 * Start the transaction, configuring the connection.
-	 * @throws SQLException If an error occurred
+	 * @throws TransactionException If an error occurred
 	 */
-	void start() throws SQLException;
+	void start() throws TransactionException;
 
 	/**
 	 * Finalize the transaction.
-	 * @throws SQLException If an error occurred
+	 * @throws TransactionException If an error occurred
 	 */
-	void end() throws SQLException;
+	void end() throws TransactionException;
 
 	/**
 	 * Get the JDBC connection.
