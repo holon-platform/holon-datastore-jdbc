@@ -160,7 +160,7 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 		try {
 			getConnection().rollback();
 		} catch (Exception e) {
-			throw new TransactionException("Failed to commit the transaction", e);
+			throw new TransactionException("Failed to rollback the transaction", e);
 		}
 		setCompleted();
 	}
