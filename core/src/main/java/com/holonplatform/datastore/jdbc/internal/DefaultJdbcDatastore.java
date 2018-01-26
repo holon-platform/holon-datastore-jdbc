@@ -115,8 +115,8 @@ import com.holonplatform.datastore.jdbc.internal.resolvers.SubQueryResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.VisitableQueryFilterResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.VisitableQuerySortResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.WhereFilterResolver;
-import com.holonplatform.datastore.jdbc.internal.transaction.DefaultJdbcTransaction;
 import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransaction;
+import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransactionProvider;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
@@ -154,6 +154,11 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 * Connection handler
 	 */
 	private JdbcConnectionHandler connectionHandler = JdbcConnectionHandler.create();
+
+	/**
+	 * Transaction provider
+	 */
+	private JdbcTransactionProvider transactionProvider = JdbcTransactionProvider.getDefault();
 
 	/**
 	 * Database
@@ -310,6 +315,23 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		if (isAutoInitialize()) {
 			initialize(ClassUtils.getDefaultClassLoader());
 		}
+	}
+
+	/**
+	 * Get the {@link JdbcTransactionProvider} to use to create a new JDBC transaction.
+	 * @return the transaction provider
+	 */
+	protected JdbcTransactionProvider getTransactionProvider() {
+		return transactionProvider;
+	}
+
+	/**
+	 * Set the {@link JdbcTransactionProvider} to use to create a new JDBC transaction.
+	 * @param transactionProvider the transaction provider to set (not null)
+	 */
+	public void setTransactionProvider(JdbcTransactionProvider transactionProvider) {
+		ObjectUtils.argumentNotNull(transactionProvider, "JdbcTransactionProvider must be not null");
+		this.transactionProvider = transactionProvider;
 	}
 
 	/**
@@ -578,7 +600,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	private JdbcTransaction beginTransaction(TransactionConfiguration configuration) throws TransactionException {
 		try {
 			// create a new transaction
-			JdbcTransaction tx = buildTransaction(
+			JdbcTransaction tx = createTransaction(getConnection(ConnectionType.DEFAULT),
 					(configuration != null) ? configuration : TransactionConfiguration.getDefault());
 			// start transaction
 			tx.start();
@@ -590,17 +612,14 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * Build a new {@link JdbcTransaction}.
+	 * Build a new {@link JdbcTransaction} using current {@link JdbcTransactionProvider}.
+	 * @param connection The connection to use (not null)
 	 * @param configuration Configuration (not null)
 	 * @return A new {@link JdbcTransaction}
 	 * @throws TransactionException If an error occurred
 	 */
-	protected JdbcTransaction buildTransaction(TransactionConfiguration configuration) throws TransactionException {
-		try {
-			return new DefaultJdbcTransaction(getConnection(ConnectionType.DEFAULT), configuration);
-		} catch (SQLException e) {
-			throw new TransactionException("Failed to create a transaction", e);
-		}
+	protected JdbcTransaction createTransaction(Connection connection, TransactionConfiguration configuration) {
+		return getTransactionProvider().createTransaction(connection, configuration);
 	}
 
 	/**
