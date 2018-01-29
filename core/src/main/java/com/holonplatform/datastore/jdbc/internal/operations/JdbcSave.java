@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.operations;
 
 import java.util.Optional;
 
@@ -33,6 +33,8 @@ import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction.Count;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
@@ -42,7 +44,7 @@ import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionConte
  *
  * @since 5.1.0
  */
-public class JdbcSaveOperation extends AbstractSaveOperation {
+public class JdbcSave extends AbstractSaveOperation {
 
 	private static final long serialVersionUID = -8341947663708669197L;
 
@@ -50,7 +52,7 @@ public class JdbcSaveOperation extends AbstractSaveOperation {
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, SaveOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, SaveOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, SaveOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, SaveOperation>() {
 
 		@Override
 		public Class<? extends SaveOperation> getCommodityType() {
@@ -60,13 +62,13 @@ public class JdbcSaveOperation extends AbstractSaveOperation {
 		@Override
 		public SaveOperation createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new JdbcSaveOperation(context);
+			return new JdbcSave(context);
 		}
 	};
 
 	private final JdbcStatementExecutionContext executionContext;
 
-	public JdbcSaveOperation(JdbcStatementExecutionContext executionContext) {
+	public JdbcSave(JdbcStatementExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}

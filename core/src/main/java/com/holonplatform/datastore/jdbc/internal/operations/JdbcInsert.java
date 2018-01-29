@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.operations;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
@@ -29,13 +29,13 @@ import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionC
  *
  * @since 5.1.0
  */
-public class JdbcInsertOperation extends AbstractInsertOperation {
+public class JdbcInsert extends AbstractInsertOperation {
 
 	private static final long serialVersionUID = -3547948214277724242L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, InsertOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, InsertOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, InsertOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, InsertOperation>() {
 
 		@Override
 		public Class<? extends InsertOperation> getCommodityType() {
@@ -45,13 +45,13 @@ public class JdbcInsertOperation extends AbstractInsertOperation {
 		@Override
 		public InsertOperation createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new JdbcInsertOperation(context);
+			return new JdbcInsert(context);
 		}
 	};
 
 	private final JdbcStatementExecutionContext executionContext;
 
-	public JdbcInsertOperation(JdbcStatementExecutionContext executionContext) {
+	public JdbcInsert(JdbcStatementExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}

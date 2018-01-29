@@ -70,6 +70,14 @@ import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.internal.context.StatementConfigurationException;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcBulkDelete;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcBulkInsert;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcBulkUpdate;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcDelete;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcInsert;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcRefresh;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcSave;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcUpdate;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BeanProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BulkDeleteResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BulkInsertResolver;
@@ -247,11 +255,11 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		addExpressionResolver(BulkDeleteResolver.INSTANCE);
 
 		// register operation commodities
-		registerCommodity(JdbcRefreshOperation.FACTORY);
-		registerCommodity(JdbcInsertOperation.FACTORY);
-		registerCommodity(JdbcUpdateOperation.FACTORY);
-		registerCommodity(JdbcSaveOperation.FACTORY);
-		registerCommodity(JdbcDeleteOperation.FACTORY);
+		registerCommodity(JdbcRefresh.FACTORY);
+		registerCommodity(JdbcInsert.FACTORY);
+		registerCommodity(JdbcUpdate.FACTORY);
+		registerCommodity(JdbcSave.FACTORY);
+		registerCommodity(JdbcDelete.FACTORY);
 		registerCommodity(JdbcBulkInsert.FACTORY);
 		registerCommodity(JdbcBulkUpdate.FACTORY);
 		registerCommodity(JdbcBulkDelete.FACTORY);

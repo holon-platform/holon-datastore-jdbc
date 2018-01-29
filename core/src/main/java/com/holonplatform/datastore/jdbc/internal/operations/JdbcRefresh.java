@@ -13,49 +13,52 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.operations;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.bulk.BulkUpdate;
-import com.holonplatform.core.datastore.operation.UpdateOperation;
+import com.holonplatform.core.datastore.operation.RefreshOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.datastore.operation.AbstractUpdateOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractRefreshOperation;
+import com.holonplatform.core.property.PathPropertyBoxAdapter;
+import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.query.Query;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
+import com.holonplatform.datastore.jdbc.internal.DialectPathMatcher;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 
 /**
- * JDBC {@link UpdateOperation}.
+ * JDBC {@link RefreshOperation}.
  *
  * @since 5.1.0
  */
-public class JdbcUpdateOperation extends AbstractUpdateOperation {
+public class JdbcRefresh extends AbstractRefreshOperation {
 
-	private static final long serialVersionUID = 7143507117624707335L;
+	private static final long serialVersionUID = 1202760170834449222L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, UpdateOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, UpdateOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, RefreshOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, RefreshOperation>() {
 
 		@Override
-		public Class<? extends UpdateOperation> getCommodityType() {
-			return UpdateOperation.class;
+		public Class<? extends RefreshOperation> getCommodityType() {
+			return RefreshOperation.class;
 		}
 
 		@Override
-		public UpdateOperation createCommodity(JdbcDatastoreCommodityContext context)
+		public RefreshOperation createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new JdbcUpdateOperation(context);
+			return new JdbcRefresh(context);
 		}
 	};
 
 	private final JdbcStatementExecutionContext executionContext;
 
-	public JdbcUpdateOperation(JdbcStatementExecutionContext executionContext) {
+	public JdbcRefresh(JdbcStatementExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}
@@ -65,7 +68,7 @@ public class JdbcUpdateOperation extends AbstractUpdateOperation {
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
 	@Override
-	public OperationResult execute() {
+	public PropertyBox execute() {
 
 		// validate
 		getConfiguration().validate();
@@ -81,14 +84,37 @@ public class JdbcUpdateOperation extends AbstractUpdateOperation {
 					.orElseThrow(() -> new DataAccessException(
 							"Cannot obtain the primary key for target [" + getConfiguration().getTarget() + "]"));
 
-			// execute using a BulkUpdate
-			return executionContext.create(BulkUpdate.class).target(getConfiguration().getTarget())
-					.withWriteOptions(getConfiguration().getWriteOptions()).set(getConfiguration().getValue())
+			// execute using Query
+			return executionContext.create(Query.class).target(getConfiguration().getTarget())
 					.filter(JdbcDatastoreUtils.getPrimaryKeyFilter(executionContext, primaryKey,
 							getConfiguration().getValue()))
-					.execute();
+					.findOne(getConfiguration().getValue())
+					.orElseThrow(() -> new DataAccessException("No data found for primary key ["
+							+ printPrimaryKey(primaryKey, getConfiguration().getValue()) + "]"));
 
 		});
+	}
+
+	private String printPrimaryKey(SQLPrimaryKey primaryKey, PropertyBox value) {
+
+		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(value)
+				.pathMatcher(new DialectPathMatcher(executionContext.getDialect())).build();
+
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < primaryKey.getPaths().length; i++) {
+			if (i > 0) {
+				sb.append(",");
+			}
+			sb.append(primaryKey.getPaths()[i].getName());
+			sb.append("=");
+			Object v = adapter.getValue(primaryKey.getPaths()[i]).orElse(null);
+			if (v != null) {
+				sb.append(v);
+			} else {
+				sb.append("[NULL]");
+			}
+		}
+		return sb.toString();
 	}
 
 }

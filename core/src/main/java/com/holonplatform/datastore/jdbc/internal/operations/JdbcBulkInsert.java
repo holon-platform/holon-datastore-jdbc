@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.operations;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -46,6 +46,8 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
+import com.holonplatform.datastore.jdbc.internal.DialectPathMatcher;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurator;
@@ -64,7 +66,7 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkInsert> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkInsert>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkInsert> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkInsert>() {
 
 		@Override
 		public Class<? extends BulkInsert> getCommodityType() {

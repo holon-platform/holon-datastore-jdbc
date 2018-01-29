@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.operations;
 
 import java.sql.PreparedStatement;
 
@@ -21,8 +21,8 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.bulk.BulkUpdate;
-import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation;
+import com.holonplatform.core.datastore.bulk.BulkDelete;
+import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDeleteOperation;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
@@ -31,43 +31,43 @@ import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionConte
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 
 /**
- * JDBC datastore {@link BulkUpdate} implementation.
+ * JDBC datastore {@link BulkDelete} implementation.
  * 
  * @since 5.0.0
  */
-public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> implements BulkUpdate {
+public class JdbcBulkDelete extends AbstractBulkDeleteOperation<BulkDelete> implements BulkDelete {
 
 	private static final long serialVersionUID = 1L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkUpdate> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkUpdate>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkDelete> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkDelete>() {
 
 		@Override
-		public Class<? extends BulkUpdate> getCommodityType() {
-			return BulkUpdate.class;
+		public Class<? extends BulkDelete> getCommodityType() {
+			return BulkDelete.class;
 		}
 
 		@Override
-		public BulkUpdate createCommodity(JdbcDatastoreCommodityContext context)
+		public BulkDelete createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new JdbcBulkUpdate(context);
+			return new JdbcBulkDelete(context);
 		}
 	};
 
 	private final JdbcStatementExecutionContext executionContext;
 
-	public JdbcBulkUpdate(JdbcStatementExecutionContext executionContext) {
+	public JdbcBulkDelete(JdbcStatementExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation#getActualOperation()
+	 * @see com.holonplatform.core.internal.datastore.bulk.AbstractBulkDeleteOperation#getActualOperation()
 	 */
 	@Override
-	protected BulkUpdate getActualOperation() {
+	protected JdbcBulkDelete getActualOperation() {
 		return this;
 	}
 
@@ -78,7 +78,8 @@ public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> impl
 	@Override
 	public OperationResult execute() {
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext, AliasMode.UNSUPPORTED);
+		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext,
+				executionContext.getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO : AliasMode.UNSUPPORTED);
 
 		// add operation specific resolvers
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
@@ -94,7 +95,7 @@ public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> impl
 
 			try (PreparedStatement stmt = executionContext.createStatement(c, preparedSql)) {
 				int count = stmt.executeUpdate();
-				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(count).build();
+				return OperationResult.builder().type(OperationType.DELETE).affectedCount(count).build();
 			}
 
 		});

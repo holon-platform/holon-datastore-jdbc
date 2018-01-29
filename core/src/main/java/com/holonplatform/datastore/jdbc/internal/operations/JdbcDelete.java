@@ -13,50 +13,50 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.operations;
 
+import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.RefreshOperation;
+import com.holonplatform.core.datastore.bulk.BulkDelete;
+import com.holonplatform.core.datastore.operation.DeleteOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.datastore.operation.AbstractRefreshOperation;
-import com.holonplatform.core.property.PathPropertyBoxAdapter;
-import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.core.query.Query;
+import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperation;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 
 /**
- * JDBC {@link RefreshOperation}.
+ * JDBC {@link DeleteOperation}.
  *
  * @since 5.1.0
  */
-public class JdbcRefreshOperation extends AbstractRefreshOperation {
+public class JdbcDelete extends AbstractDeleteOperation {
 
-	private static final long serialVersionUID = 1202760170834449222L;
+	private static final long serialVersionUID = 4155821525871792639L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, RefreshOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, RefreshOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, DeleteOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, DeleteOperation>() {
 
 		@Override
-		public Class<? extends RefreshOperation> getCommodityType() {
-			return RefreshOperation.class;
+		public Class<? extends DeleteOperation> getCommodityType() {
+			return DeleteOperation.class;
 		}
 
 		@Override
-		public RefreshOperation createCommodity(JdbcDatastoreCommodityContext context)
+		public DeleteOperation createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new JdbcRefreshOperation(context);
+			return new JdbcDelete(context);
 		}
 	};
 
 	private final JdbcStatementExecutionContext executionContext;
 
-	public JdbcRefreshOperation(JdbcStatementExecutionContext executionContext) {
+	public JdbcDelete(JdbcStatementExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}
@@ -66,7 +66,7 @@ public class JdbcRefreshOperation extends AbstractRefreshOperation {
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
 	@Override
-	public PropertyBox execute() {
+	public OperationResult execute() {
 
 		// validate
 		getConfiguration().validate();
@@ -82,37 +82,13 @@ public class JdbcRefreshOperation extends AbstractRefreshOperation {
 					.orElseThrow(() -> new DataAccessException(
 							"Cannot obtain the primary key for target [" + getConfiguration().getTarget() + "]"));
 
-			// execute using Query
-			return executionContext.create(Query.class).target(getConfiguration().getTarget())
-					.filter(JdbcDatastoreUtils.getPrimaryKeyFilter(executionContext, primaryKey,
-							getConfiguration().getValue()))
-					.findOne(getConfiguration().getValue())
-					.orElseThrow(() -> new DataAccessException("No data found for primary key ["
-							+ printPrimaryKey(primaryKey, getConfiguration().getValue()) + "]"));
+			// execute using a BulkDelete
+			return executionContext.create(BulkDelete.class).target(getConfiguration().getTarget())
+					.withWriteOptions(getConfiguration().getWriteOptions()).filter(JdbcDatastoreUtils
+							.getPrimaryKeyFilter(executionContext, primaryKey, getConfiguration().getValue()))
+					.execute();
 
 		});
-	}
-
-	private String printPrimaryKey(SQLPrimaryKey primaryKey, PropertyBox value) {
-
-		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(value)
-				.pathMatcher(new DialectPathMatcher(executionContext.getDialect())).build();
-
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < primaryKey.getPaths().length; i++) {
-			if (i > 0) {
-				sb.append(",");
-			}
-			sb.append(primaryKey.getPaths()[i].getName());
-			sb.append("=");
-			Object v = adapter.getValue(primaryKey.getPaths()[i]).orElse(null);
-			if (v != null) {
-				sb.append(v);
-			} else {
-				sb.append("[NULL]");
-			}
-		}
-		return sb.toString();
 	}
 
 }

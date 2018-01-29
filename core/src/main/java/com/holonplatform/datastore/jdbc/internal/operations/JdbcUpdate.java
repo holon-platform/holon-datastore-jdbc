@@ -13,49 +13,50 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.operations;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.bulk.BulkDelete;
-import com.holonplatform.core.datastore.operation.DeleteOperation;
+import com.holonplatform.core.datastore.bulk.BulkUpdate;
+import com.holonplatform.core.datastore.operation.UpdateOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractUpdateOperation;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
 
 /**
- * JDBC {@link DeleteOperation}.
+ * JDBC {@link UpdateOperation}.
  *
  * @since 5.1.0
  */
-public class JdbcDeleteOperation extends AbstractDeleteOperation {
+public class JdbcUpdate extends AbstractUpdateOperation {
 
-	private static final long serialVersionUID = 4155821525871792639L;
+	private static final long serialVersionUID = 7143507117624707335L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, DeleteOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, DeleteOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, UpdateOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, UpdateOperation>() {
 
 		@Override
-		public Class<? extends DeleteOperation> getCommodityType() {
-			return DeleteOperation.class;
+		public Class<? extends UpdateOperation> getCommodityType() {
+			return UpdateOperation.class;
 		}
 
 		@Override
-		public DeleteOperation createCommodity(JdbcDatastoreCommodityContext context)
+		public UpdateOperation createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
-			return new JdbcDeleteOperation(context);
+			return new JdbcUpdate(context);
 		}
 	};
 
 	private final JdbcStatementExecutionContext executionContext;
 
-	public JdbcDeleteOperation(JdbcStatementExecutionContext executionContext) {
+	public JdbcUpdate(JdbcStatementExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}
@@ -81,10 +82,11 @@ public class JdbcDeleteOperation extends AbstractDeleteOperation {
 					.orElseThrow(() -> new DataAccessException(
 							"Cannot obtain the primary key for target [" + getConfiguration().getTarget() + "]"));
 
-			// execute using a BulkDelete
-			return executionContext.create(BulkDelete.class).target(getConfiguration().getTarget())
-					.withWriteOptions(getConfiguration().getWriteOptions()).filter(JdbcDatastoreUtils
-							.getPrimaryKeyFilter(executionContext, primaryKey, getConfiguration().getValue()))
+			// execute using a BulkUpdate
+			return executionContext.create(BulkUpdate.class).target(getConfiguration().getTarget())
+					.withWriteOptions(getConfiguration().getWriteOptions()).set(getConfiguration().getValue())
+					.filter(JdbcDatastoreUtils.getPrimaryKeyFilter(executionContext, primaryKey,
+							getConfiguration().getValue()))
 					.execute();
 
 		});
