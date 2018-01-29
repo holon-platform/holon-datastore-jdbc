@@ -21,11 +21,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
+import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.internal.query.QueryAdapterQuery;
+import com.holonplatform.core.internal.query.QueryDefinition;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
+import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcQueryComposition;
@@ -37,7 +43,22 @@ import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionConte
  *
  * @since 5.0.0
  */
-public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
+public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
+
+	// Commodity factory
+	@SuppressWarnings("serial")
+	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Query> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Query>() {
+
+		@Override
+		public Class<? extends Query> getCommodityType() {
+			return Query.class;
+		}
+
+		@Override
+		public Query createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
+			return new QueryAdapterQuery<>(new JdbcQuery(context), QueryDefinition.create());
+		}
+	};
 
 	/**
 	 * Execution context
@@ -48,7 +69,7 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 	 * Constructor
 	 * @param executionContext Execution context
 	 */
-	public JdbcQueryAdapter(JdbcStatementExecutionContext executionContext) {
+	public JdbcQuery(JdbcStatementExecutionContext executionContext) {
 		super();
 		ObjectUtils.argumentNotNull(executionContext, "Execution context must be not null");
 		this.executionContext = executionContext;
@@ -62,13 +83,14 @@ public class JdbcQueryAdapter implements QueryAdapter<QueryConfiguration> {
 		return executionContext;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.core.query.QueryAdapter#stream(com.holonplatform.core.query.QueryOperation)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws QueryExecutionException {
-		
+
 		// context
 		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(), AliasMode.AUTO);
 

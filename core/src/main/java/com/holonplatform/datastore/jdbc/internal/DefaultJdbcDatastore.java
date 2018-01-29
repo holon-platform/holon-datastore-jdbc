@@ -18,25 +18,20 @@ package com.holonplatform.datastore.jdbc.internal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.core.Path;
-import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.datastore.transaction.Transaction.TransactionException;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
@@ -46,15 +41,9 @@ import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.AbstractDatastore;
 import com.holonplatform.core.internal.utils.ClassUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.core.property.PathProperty;
-import com.holonplatform.core.property.Property;
-import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.core.property.PropertySet;
-import com.holonplatform.core.query.Query;
-import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.composer.ConnectionOperation;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver;
@@ -78,9 +67,6 @@ import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.internal.context.StatementConfigurationException;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
-import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeyInspector;
 import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeysCache;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BeanProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BulkDeleteResolver;
@@ -129,7 +115,7 @@ import com.holonplatform.jdbc.JdbcConnectionHandler.ConnectionType;
  * @since 5.0.0
  */
 public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodityContext>
-		implements JdbcDatastoreCommodityContext, PrimaryKeyInspector {
+		implements JdbcDatastoreCommodityContext {
 
 	private static final long serialVersionUID = -1701596812043351551L;
 
@@ -138,7 +124,16 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	protected static final Logger LOGGER = JdbcDatastoreLogger.create();
 
-	static final ThreadLocal<Stack<JdbcTransaction>> CURRENT_TRANSACTION = ThreadLocal.withInitial(() -> new Stack<>());
+	/**
+	 * Current local {@link JdbcTransaction}
+	 */
+	private static final ThreadLocal<Stack<JdbcTransaction>> CURRENT_TRANSACTION = ThreadLocal
+			.withInitial(() -> new Stack<>());
+
+	/**
+	 * Shared connection
+	 */
+	private static final ThreadLocal<Connection> SHARED_CONNECTION = new ThreadLocal<>();
 
 	/**
 	 * Data source configuration
@@ -201,7 +196,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		this.autoInitialize = autoInitialize;
 
 		// register default resolvers
-		addExpressionResolver(new PrimaryKeyResolver(primaryKeysCache, this));
+		addExpressionResolver(new PrimaryKeyResolver(this, primaryKeysCache));
 		addExpressionResolver(RelationalTargetResolver.INSTANCE);
 		addExpressionResolver(DataTargetResolver.INSTANCE);
 		addExpressionResolver(PathResolver.INSTANCE);
@@ -235,11 +230,16 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		addExpressionResolver(BulkUpdateResolver.INSTANCE);
 		addExpressionResolver(BulkDeleteResolver.INSTANCE);
 
-		// commodity factories
-		registerCommodity(new JdbcQueryFactory());
-		registerCommodity(new JdbcBulkInsertFactory());
-		registerCommodity(new JdbcBulkUpdateFactory());
-		registerCommodity(new JdbcBulkDeleteFactory());
+		// register operation commodities
+		registerCommodity(JdbcRefreshOperation.FACTORY);
+		registerCommodity(JdbcInsertOperation.FACTORY);
+		registerCommodity(JdbcUpdateOperation.FACTORY);
+		registerCommodity(JdbcSaveOperation.FACTORY);
+		registerCommodity(JdbcDeleteOperation.FACTORY);
+		registerCommodity(JdbcBulkInsert.FACTORY);
+		registerCommodity(JdbcBulkUpdate.FACTORY);
+		registerCommodity(JdbcBulkDelete.FACTORY);
+		registerCommodity(JdbcQuery.FACTORY);
 	}
 
 	/*
@@ -474,6 +474,11 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 
 		Connection connection = null;
 		try {
+			// check shared connection
+			if (SHARED_CONNECTION.get() != null) {
+				return operation.execute(SHARED_CONNECTION.get());
+			}
+
 			// if a transaction is active, use current transaction connection
 			JdbcTransaction tx = getCurrentTransaction().orElse(null);
 			if (tx != null) {
@@ -481,7 +486,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			}
 
 			// get a connection from connection handler
-			return operation.execute(connection = getConnection(connectionType));
+			return operation.execute(connection = obtainConnection(connectionType));
 
 		} catch (Exception e) {
 			throw new DataAccessException("Failed to execute operation", e);
@@ -498,13 +503,37 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext#withSharedConnection(java.util.
+	 * function.Supplier)
+	 */
+	@Override
+	public <R> R withSharedConnection(Supplier<R> operations) {
+		ObjectUtils.argumentNotNull(operations, "Operations must be not null");
+
+		if (SHARED_CONNECTION.get() != null) {
+			return operations.get();
+		}
+
+		return withConnection(connection -> {
+			try {
+				SHARED_CONNECTION.set(connection);
+				return operations.get();
+			} finally {
+				SHARED_CONNECTION.remove();
+			}
+		});
+	}
+
 	/**
-	 * Get a {@link Connection} using current {@link JdbcConnectionHandler}.
+	 * Obtain a new {@link Connection} using current {@link JdbcConnectionHandler}.
 	 * @param connectionType Connection type
 	 * @return The connection
 	 * @throws SQLException If an error occurred
 	 */
-	private Connection getConnection(ConnectionType connectionType) throws SQLException {
+	private Connection obtainConnection(ConnectionType connectionType) throws SQLException {
 		// check DataSource
 		final DataSource dataSource = getDataSource();
 		if (dataSource == null) {
@@ -599,7 +628,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	private JdbcTransaction beginTransaction(TransactionConfiguration configuration) throws TransactionException {
 		try {
 			// create a new transaction
-			JdbcTransaction tx = createTransaction(getConnection(ConnectionType.DEFAULT),
+			JdbcTransaction tx = createTransaction(obtainConnection(ConnectionType.DEFAULT),
 					(configuration != null) ? configuration : TransactionConfiguration.getDefault());
 			// start transaction
 			tx.start();
@@ -643,164 +672,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 				}
 			}
 		}).orElse(false);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDatastore#getPrimaryKey(java.lang.String)
-	 */
-	@Override
-	public Optional<Path<?>[]> getPrimaryKey(String tableName) throws SQLException {
-		return getPrimaryKeyFromDatabaseMetaData(tableName);
-	}
-
-	/**
-	 * Get table primary key using JDBC database metadata.
-	 * @param table The table name for which to obtain the primary key
-	 * @return Optional table primary keys
-	 * @throws SQLException If an error occurred
-	 */
-	private Optional<Path<?>[]> getPrimaryKeyFromDatabaseMetaData(String table) throws SQLException {
-		ObjectUtils.argumentNotNull(table, "Table name must be not null");
-
-		final String tableName = dialect.getTableName(table);
-
-		return withConnection(connection -> {
-
-			List<OrderedPath> paths = new ArrayList<>();
-
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-
-			try (ResultSet resultSet = databaseMetaData.getPrimaryKeys(null, null, tableName)) {
-				while (resultSet.next()) {
-					final String columnName = resultSet.getString("COLUMN_NAME");
-					OrderedPath op = new OrderedPath();
-					op.path = Path.of(columnName,
-							JdbcDatastoreUtils.getColumnType(databaseMetaData, tableName, columnName));
-					op.sequence = resultSet.getShort("KEY_SEQ");
-					paths.add(op);
-				}
-			}
-
-			if (!paths.isEmpty()) {
-				Collections.sort(paths);
-				return Optional.of(
-						paths.stream().map(p -> p.path).collect(Collectors.toList()).toArray(new Path[paths.size()]));
-			}
-
-			return Optional.empty();
-
-		});
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.Datastore#refresh(com.holonplatform.core.datastore.DataTarget,
-	 * com.holonplatform.core.property.PropertyBox)
-	 */
-	@Override
-	public PropertyBox refresh(DataTarget<?> target, PropertyBox propertyBox) {
-		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
-
-		try {
-			final JdbcResolutionContext context = JdbcResolutionContext.create(this, AliasMode.AUTO);
-			final TablePrimaryKey primaryKey = getTablePrimaryKey(context, target);
-			return query().target(target).filter(getPrimaryKeyFilter(primaryKey, propertyBox)).findOne(propertyBox)
-					.orElseThrow(() -> new DataAccessException(
-							"No data found for primary key [" + printPrimaryKey(primaryKey, propertyBox) + "]"));
-		} catch (InvalidExpressionException | QueryExecutionException e) {
-			throw new DataAccessException("Refresh operation failed", e);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.Datastore#save(com.holonplatform.core.datastore.DataTarget,
-	 * com.holonplatform.core.property.PropertyBox, com.holonplatform.core.datastore.Datastore.WriteOption[])
-	 */
-	@Override
-	public OperationResult save(DataTarget<?> target, PropertyBox propertyBox, WriteOption... options) {
-
-		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
-
-		boolean update = false;
-
-		try {
-			// check exist
-			Optional<TablePrimaryKey> primaryKey = resolvePrimaryKey(
-					JdbcResolutionContext.create(this, AliasMode.UNSUPPORTED), target);
-			if (!primaryKey.isPresent()) {
-				LOGGER.warn("(save) Cannot obtain the primary key for target [" + target
-						+ "]: an INSERT operation will be performed by default");
-				return insert(target, propertyBox);
-			} else {
-				final Path<?> singleKey = (primaryKey.get().getKeys().length == 1) ? primaryKey.get().getKeys()[0]
-						: null;
-				update = getOptionalPrimaryKeyFilter(primaryKey.get(), propertyBox).map(f -> {
-					Query q = query().target(target).filter(f);
-					if (singleKey != null) {
-						return q.findOne(PathProperty.create(singleKey).count()).orElse(0L) > 0;
-					}
-					return q.count() > 0;
-				}).orElse(false);
-			}
-		} catch (Exception e) {
-			throw new DataAccessException("Failed to execute existence query to discern insert/update operation", e);
-		}
-
-		return update ? update(target, propertyBox, options) : insert(target, propertyBox, options);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.Datastore#insert(com.holonplatform.core.datastore.DataTarget,
-	 * com.holonplatform.core.property.PropertyBox, com.holonplatform.core.datastore.Datastore.WriteOption[])
-	 */
-	@Override
-	public OperationResult insert(DataTarget<?> target, PropertyBox propertyBox, WriteOption... options) {
-
-		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
-
-		return bulkInsert(target, propertyBox, options).singleValue(propertyBox).execute();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.Datastore#update(com.holonplatform.core.datastore.DataTarget,
-	 * com.holonplatform.core.property.PropertyBox, com.holonplatform.core.datastore.Datastore.WriteOption[])
-	 */
-	@Override
-	public OperationResult update(DataTarget<?> target, PropertyBox propertyBox, WriteOption... options) {
-
-		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
-
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this, AliasMode.UNSUPPORTED);
-
-		return bulkUpdate(target, options).set(propertyBox)
-				.filter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox)).execute();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.Datastore#delete(com.holonplatform.core.datastore.DataTarget,
-	 * com.holonplatform.core.property.PropertyBox, com.holonplatform.core.datastore.Datastore.WriteOption[])
-	 */
-	@Override
-	public OperationResult delete(DataTarget<?> target, PropertyBox propertyBox, WriteOption... options) {
-
-		ObjectUtils.argumentNotNull(target, "Data target must be not null");
-		ObjectUtils.argumentNotNull(propertyBox, "PropertyBox must be not null");
-
-		final JdbcResolutionContext context = JdbcResolutionContext.create(this,
-				getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO : AliasMode.UNSUPPORTED);
-
-		return bulkDelete(target, options).filter(getPrimaryKeyFilter(getTablePrimaryKey(context, target), propertyBox))
-				.execute();
-
 	}
 
 	// ------- Execution context
@@ -938,138 +809,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			}
 		}
 		return Optional.ofNullable(dialect);
-	}
-
-	/**
-	 * Resolve given {@link DataTarget} to obtain its parimary key as {@link TablePrimaryKey}.
-	 * @param context Resolution context
-	 * @param target Target to resolve
-	 * @return Target primary key
-	 * @throws InvalidExpressionException If data target cannot be resolved
-	 */
-	protected Optional<TablePrimaryKey> resolvePrimaryKey(JdbcResolutionContext context, DataTarget<?> target) {
-		return resolve(target, TablePrimaryKey.class, context);
-	}
-
-	/**
-	 * Get the target table primary key.
-	 * @param context Resolution context
-	 * @param target Data target
-	 * @return Target table primary key
-	 * @throws DataAccessException If the primary key cannot be retrieved
-	 */
-	protected TablePrimaryKey getTablePrimaryKey(JdbcResolutionContext context, DataTarget<?> target) {
-		return resolvePrimaryKey(context, target).orElseThrow(
-				() -> new DataAccessException("Cannot obtain the primary key for target [" + target + "]"));
-	}
-
-	/**
-	 * Get a {@link QueryFilter} using given <code>primaryKey</code> if primary key values are available from property
-	 * box, matching by EQUAL operator the primary key paths whith their corresponding values read form given
-	 * <code>propertyBox</code>.
-	 * @param primaryKey Primary key
-	 * @param propertyBox Property box which contains the primary key values
-	 * @return Optional filter
-	 */
-	private Optional<QueryFilter> getOptionalPrimaryKeyFilter(TablePrimaryKey primaryKey, PropertyBox propertyBox) {
-		List<QueryFilter> filters = new LinkedList<>();
-		for (Path<?> path : primaryKey.getKeys()) {
-			Property<?> property = getPropertyForPath(path, propertyBox);
-			if (property == null || !propertyBox.containsValue(property)) {
-				return Optional.empty();
-			}
-			filters.add(QueryFilter.eq(PathProperty.create(path.getName(), path.getType()),
-					propertyBox.getValue(property)));
-		}
-		return QueryFilter.allOf(filters);
-	}
-
-	/**
-	 * Get a {@link QueryFilter} using given <code>primaryKey</code>, matching by EQUAL operator the primary key paths
-	 * whith their corresponding values read form given <code>propertyBox</code>.
-	 * @param primaryKey Primary key
-	 * @param propertyBox Property box which contains the primary key values
-	 * @return The filter
-	 * @throws DataAccessException If the primary key is not valid or the property box does not contain a value for a
-	 *         primary key path
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private QueryFilter getPrimaryKeyFilter(TablePrimaryKey primaryKey, PropertyBox propertyBox) {
-		List<QueryFilter> filters = new LinkedList<>();
-		for (Path path : primaryKey.getKeys()) {
-			filters.add(QueryFilter.eq(PathProperty.create(path.getName(), path.getType()),
-					getPathValue(path, propertyBox, true)));
-		}
-		return QueryFilter.allOf(filters)
-				.orElseThrow(() -> new DataAccessException("Invalid table primary key: no paths available"));
-	}
-
-	/**
-	 * Get the value of given <code>path</code> from given <code>values</code> {@link PropertyBox}.
-	 * @param path Path
-	 * @param values Values
-	 * @param required <code>true</code> is value must be present in property box
-	 * @return The value which corresponds to given path contained in given property box
-	 * @throws DataAccessException If the the property box does not contain a not null value for given path
-	 */
-	private Object getPathValue(Path<?> path, PropertyBox values, boolean required) {
-		Property<?> property = getPropertyForPath(path, values);
-		if (property == null) {
-			throw new DataAccessException("A property which corresponds to the path " + "[" + path.getName()
-					+ "] was not found in given property set");
-		}
-		if (required && !values.containsValue(property)) {
-			throw new DataAccessException(
-					"The property which corresponds to the path " + "[" + path.getName() + "] has no value");
-		}
-		return values.getValue(property);
-	}
-
-	/**
-	 * Get the {@link Property} of given <code>propertySet</code> which corresponds to given {@link Path}, using the
-	 * path name to match a {@link PathProperty} of set with the same name, if available.
-	 * @param path Path for which to obtain the property
-	 * @param propertySet Property set
-	 * @return The property which corresponds to given {@link Path}, or <code>null</code> if not found
-	 */
-	private Property<?> getPropertyForPath(Path<?> path, PropertySet<?> propertySet) {
-		if (path instanceof Property && propertySet.contains((Property<?>) path)) {
-			return (Property<?>) path;
-		}
-		final String name = path.getName();
-		for (Property<?> property : propertySet) {
-			if (Path.class.isAssignableFrom(property.getClass())) {
-				String pathAsColumn = getDialect().getColumnName(((Path<?>) property).getName());
-				if (name.equals(pathAsColumn)) {
-					return property;
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Print given primary key paths and values.
-	 * @param primaryKey Key to print
-	 * @param values Key values
-	 * @return String represnting the primary key paths and values
-	 */
-	private String printPrimaryKey(TablePrimaryKey primaryKey, PropertyBox values) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < primaryKey.getKeys().length; i++) {
-			if (i > 0) {
-				sb.append(",");
-			}
-			sb.append(primaryKey.getKeys()[i].getName());
-			sb.append("=");
-			Property<?> property = getPropertyForPath(primaryKey.getKeys()[i], values);
-			if (property != null && values.containsValue(property)) {
-				sb.append(values.getValue(property));
-			} else {
-				sb.append("[NULL]");
-			}
-		}
-		return sb.toString();
 	}
 
 	// Builder
@@ -1248,22 +987,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		public JdbcDatastore build() {
 			datastore.initialize(ClassUtils.getDefaultClassLoader());
 			return datastore;
-		}
-
-	}
-
-	/**
-	 * Support class to order {@link Path}s using a sequence.
-	 */
-	private static class OrderedPath implements Comparable<OrderedPath> {
-
-		@SuppressWarnings("rawtypes")
-		Path path;
-		short sequence;
-
-		@Override
-		public int compareTo(OrderedPath o) {
-			return ((Short) sequence).compareTo(o.sequence);
 		}
 
 	}

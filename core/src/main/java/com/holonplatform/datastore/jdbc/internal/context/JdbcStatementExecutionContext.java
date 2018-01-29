@@ -18,15 +18,26 @@ package com.holonplatform.datastore.jdbc.internal.context;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.function.Supplier;
 
-import com.holonplatform.datastore.jdbc.JdbcDatastore.ConnectionOperation;
+import com.holonplatform.core.datastore.DatastoreCommodityHandler;
+import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
 
 /**
  * JDBC {@link StatementExecutionContext}.
  *
  * @since 5.1.0
  */
-public interface JdbcStatementExecutionContext extends StatementExecutionContext {
+public interface JdbcStatementExecutionContext
+		extends StatementExecutionContext, ConnectionProvider, DatastoreCommodityHandler {
+
+	/**
+	 * Execute given operations using a shared connection.
+	 * @param <R> Operation result type
+	 * @param operation Operations to execute (not null)
+	 * @return Operation result
+	 */
+	<R> R withSharedConnection(Supplier<R> operations);
 
 	/**
 	 * Get the {@link SQLStatementConfigurator}.
@@ -43,13 +54,5 @@ public interface JdbcStatementExecutionContext extends StatementExecutionContext
 	 * @throws SQLException If an error occurred
 	 */
 	PreparedStatement createStatement(Connection connection, PreparedSql sql) throws SQLException;
-
-	/**
-	 * Execute given operation with a Datastore managed connection.
-	 * @param <R> Operation result type
-	 * @param operation Operation to execute
-	 * @return Operation result
-	 */
-	<R> R withConnection(ConnectionOperation<R> operation);
 
 }

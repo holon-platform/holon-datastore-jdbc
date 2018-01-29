@@ -13,9 +13,11 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.composer.expression;
+package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
 import java.util.Optional;
+
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 
 /**
  * Default {@link SQLQueryClauses}.

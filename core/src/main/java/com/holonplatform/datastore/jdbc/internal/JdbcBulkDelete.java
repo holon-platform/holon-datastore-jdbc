@@ -19,8 +19,11 @@ import java.sql.PreparedStatement;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
+import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
+import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkDelete;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDeleteOperation;
+import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
@@ -35,6 +38,22 @@ import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionConte
 public class JdbcBulkDelete extends AbstractBulkDeleteOperation<BulkDelete> implements BulkDelete {
 
 	private static final long serialVersionUID = 1L;
+
+	// Commodity factory
+	@SuppressWarnings("serial")
+	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkDelete> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkDelete>() {
+
+		@Override
+		public Class<? extends BulkDelete> getCommodityType() {
+			return BulkDelete.class;
+		}
+
+		@Override
+		public BulkDelete createCommodity(JdbcDatastoreCommodityContext context)
+				throws CommodityConfigurationException {
+			return new JdbcBulkDelete(context);
+		}
+	};
 
 	private final JdbcStatementExecutionContext executionContext;
 

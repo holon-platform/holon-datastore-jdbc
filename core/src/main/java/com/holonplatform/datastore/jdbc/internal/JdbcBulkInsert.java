@@ -31,6 +31,8 @@ import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
+import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
+import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.bulk.BulkInsert;
 import com.holonplatform.core.internal.Logger;
@@ -40,6 +42,7 @@ import com.holonplatform.core.property.PathPropertySetAdapter.PathMatcher;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
@@ -58,6 +61,22 @@ import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> implements BulkInsert {
 
 	private static final long serialVersionUID = 1L;
+
+	// Commodity factory
+	@SuppressWarnings("serial")
+	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkInsert> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkInsert>() {
+
+		@Override
+		public Class<? extends BulkInsert> getCommodityType() {
+			return BulkInsert.class;
+		}
+
+		@Override
+		public BulkInsert createCommodity(JdbcDatastoreCommodityContext context)
+				throws CommodityConfigurationException {
+			return new JdbcBulkInsert(context);
+		}
+	};
 
 	private static final Logger LOGGER = JdbcDatastoreLogger.create();
 

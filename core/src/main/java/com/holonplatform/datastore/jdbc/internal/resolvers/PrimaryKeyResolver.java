@@ -15,8 +15,13 @@
  */
 package com.holonplatform.datastore.jdbc.internal.resolvers;
 
-import java.sql.SQLException;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
@@ -25,8 +30,11 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
+import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
-import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeyInspector;
 import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeysCache;
 
 /**
@@ -40,29 +48,13 @@ public class PrimaryKeyResolver implements ExpressionResolver<DataTarget, TableP
 
 	private static final long serialVersionUID = -1693018694034935286L;
 
-	/**
-	 * Cache
-	 */
+	private final ConnectionProvider connectionProvider;
 	private final PrimaryKeysCache primaryKeysCache;
 
-	/**
-	 * Inspector
-	 */
-	private final PrimaryKeyInspector primaryKeyInspector;
-
-	/**
-	 * Constructor
-	 * @param primaryKeysCache Cache (not null)
-	 * @param primaryKeyInspector Inspector (not null)
-	 */
-	public PrimaryKeyResolver(PrimaryKeysCache primaryKeysCache, PrimaryKeyInspector primaryKeyInspector) {
+	public PrimaryKeyResolver(ConnectionProvider connectionProvider, PrimaryKeysCache primaryKeysCache) {
 		super();
-
-		ObjectUtils.argumentNotNull(primaryKeysCache, "PrimaryKeysCache must be not null");
-		ObjectUtils.argumentNotNull(primaryKeyInspector, "Primary key inspector must be not null");
-
+		this.connectionProvider = connectionProvider;
 		this.primaryKeysCache = primaryKeysCache;
-		this.primaryKeyInspector = primaryKeyInspector;
 	}
 
 	/*
@@ -107,36 +99,76 @@ public class PrimaryKeyResolver implements ExpressionResolver<DataTarget, TableP
 			return targetPrimaryKey;
 		}
 
-		return retrieve(tableName);
+		return retrieve(JdbcResolutionContext.checkContext(context), tableName);
 	}
 
-	/**
-	 * Retrieve the primary key for given table name.
-	 * <p>
-	 * The primary key is obtained from cache if available.
-	 * </p>
-	 * @param tableName Table name
-	 * @return Table primary key
-	 * @throws InvalidExpressionException If an error occurred
-	 */
-	private Optional<TablePrimaryKey> retrieve(String tableName) throws InvalidExpressionException {
+	private Optional<TablePrimaryKey> retrieve(JdbcResolutionContext context, String tableName)
+			throws InvalidExpressionException {
 		Optional<TablePrimaryKey> cached = primaryKeysCache.get(tableName);
 		if (cached.isPresent()) {
 			return cached;
 		}
 
 		try {
-			Optional<Path<?>[]> pk = primaryKeyInspector.getPrimaryKey(tableName);
+			Optional<Path<?>[]> pk = getPrimaryKeyFromDatabaseMetaData(context.getDialect(), tableName);
 			if (pk.isPresent()) {
 				TablePrimaryKey tablePrimaryKey = TablePrimaryKey.create(pk.get());
 				primaryKeysCache.put(tableName, tablePrimaryKey);
 				return Optional.of(tablePrimaryKey);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new InvalidExpressionException("Failed to retrieve primary key for table [" + tableName + "]", e);
 		}
 
 		return Optional.empty();
+	}
+
+	private Optional<Path<?>[]> getPrimaryKeyFromDatabaseMetaData(JdbcDialect dialect, String table) {
+		ObjectUtils.argumentNotNull(table, "Table name must be not null");
+
+		final String tableName = dialect.getTableName(table);
+
+		return connectionProvider.withConnection(connection -> {
+
+			List<OrderedPath> paths = new ArrayList<>();
+
+			DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+			try (ResultSet resultSet = databaseMetaData.getPrimaryKeys(null, null, tableName)) {
+				while (resultSet.next()) {
+					final String columnName = resultSet.getString("COLUMN_NAME");
+					OrderedPath op = new OrderedPath();
+					op.path = Path.of(columnName,
+							JdbcDatastoreUtils.getColumnType(databaseMetaData, tableName, columnName));
+					op.sequence = resultSet.getShort("KEY_SEQ");
+					paths.add(op);
+				}
+			}
+
+			if (!paths.isEmpty()) {
+				Collections.sort(paths);
+				return Optional.of(
+						paths.stream().map(p -> p.path).collect(Collectors.toList()).toArray(new Path[paths.size()]));
+			}
+
+			return Optional.empty();
+
+		});
+	}
+
+	/**
+	 * Support class to order {@link Path}s using a sequence.
+	 */
+	private static class OrderedPath implements Comparable<OrderedPath> {
+
+		Path path;
+		short sequence;
+
+		@Override
+		public int compareTo(OrderedPath o) {
+			return ((Short) sequence).compareTo(o.sequence);
+		}
+
 	}
 
 }

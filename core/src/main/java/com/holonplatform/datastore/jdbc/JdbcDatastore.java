@@ -15,15 +15,12 @@
  */
 package com.holonplatform.datastore.jdbc;
 
-import java.sql.Connection;
-import java.util.function.Function;
-
 import javax.sql.DataSource;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
 import com.holonplatform.core.datastore.transaction.Transactional;
-import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
@@ -35,42 +32,8 @@ import com.holonplatform.jdbc.JdbcConnectionHandler;
  * 
  * @since 5.0.0
  */
-public interface JdbcDatastore
-		extends Datastore, Transactional, DatastoreCommodityRegistrar<JdbcDatastoreCommodityContext> {
-
-	/**
-	 * Execute given <code>operation</code> using a new {@link Connection} provided by the Datastore and return the
-	 * operation result.
-	 * <p>
-	 * The connection lifecycle if managed by Datastore, performing the appropriate closing operations at the end of the
-	 * {@link Function} execution.
-	 * </p>
-	 * @param <R> Operation result type
-	 * @param operation The operation to execute (not null)
-	 * @return Operation result
-	 * @throws IllegalStateException If a {@link DataSource} is not available or not initialized
-	 * @throws DataAccessException If an error occurred during connection management or operation execution
-	 */
-	<R> R withConnection(ConnectionOperation<R> operation);
-
-	/**
-	 * Represents an operation to be executed using a Datastore managed {@link Connection}.
-	 * @param <R> Operation result type
-	 */
-	@FunctionalInterface
-	public interface ConnectionOperation<R> {
-
-		/**
-		 * Execute an operation and returns a result.
-		 * @param connection JDBC Connection
-		 * @return Operation result
-		 * @throws Exception If an operation execution error occurred
-		 */
-		R execute(Connection connection) throws Exception;
-
-	}
-
-	// Builder
+public interface JdbcDatastore extends Datastore, Transactional, ConnectionProvider,
+		DatastoreCommodityRegistrar<JdbcDatastoreCommodityContext> {
 
 	/**
 	 * Get a builder to create a {@link JdbcDatastore} instance.

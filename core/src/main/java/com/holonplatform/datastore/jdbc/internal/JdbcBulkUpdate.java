@@ -19,8 +19,11 @@ import java.sql.PreparedStatement;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
+import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
+import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation;
+import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
@@ -35,6 +38,22 @@ import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionConte
 public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> implements BulkUpdate {
 
 	private static final long serialVersionUID = 1L;
+
+	// Commodity factory
+	@SuppressWarnings("serial")
+	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkUpdate> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, BulkUpdate>() {
+
+		@Override
+		public Class<? extends BulkUpdate> getCommodityType() {
+			return BulkUpdate.class;
+		}
+
+		@Override
+		public BulkUpdate createCommodity(JdbcDatastoreCommodityContext context)
+				throws CommodityConfigurationException {
+			return new JdbcBulkUpdate(context);
+		}
+	};
 
 	private final JdbcStatementExecutionContext executionContext;
 

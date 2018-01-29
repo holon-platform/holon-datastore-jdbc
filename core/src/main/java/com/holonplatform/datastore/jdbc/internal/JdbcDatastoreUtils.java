@@ -30,16 +30,24 @@ import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DatastoreOperations.WriteOption;
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.TypeUtils;
+import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.property.Property;
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.temporal.TemporalType;
+import com.holonplatform.datastore.jdbc.internal.context.StatementExecutionContext;
+import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 
 /**
  * JDBC query utils.
@@ -56,6 +64,29 @@ public final class JdbcDatastoreUtils implements Serializable {
 	private JdbcDatastoreUtils() {
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static QueryFilter getPrimaryKeyFilter(StatementExecutionContext context, TablePrimaryKey primaryKey,
+			PropertyBox propertyBox) {
+
+		if (primaryKey.getKeys() == null || primaryKey.getKeys().length == 0) {
+			throw new DataAccessException("Invalid primary key: no paths available");
+		}
+		
+		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(propertyBox)
+				.pathMatcher(new DialectPathMatcher(context.getDialect())).build();
+
+		List<QueryFilter> filters = new LinkedList<>();
+		for (Path path : primaryKey.getKeys()) {
+			Optional<Object> value = adapter.getValue(path);
+			if (!value.isPresent()) {
+				throw new DataAccessException("Primary key path [" + path + "] value not available in PropertyBox");
+			}
+			filters.add(QueryFilter.eq(path, value.get()));
+		}
+		return QueryFilter.allOf(filters)
+				.orElseThrow(() -> new DataAccessException("Invalid table primary key: no paths available"));
+	}
+	
 	/**
 	 * Try to obtain the {@link TemporalType} of given <code>expression</code>, if the expression type is a temporal
 	 * type.

@@ -27,11 +27,11 @@ import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.composer.expression.DefaultSQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
+import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
