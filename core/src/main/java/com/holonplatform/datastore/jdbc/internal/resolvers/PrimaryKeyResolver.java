@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,29 +30,26 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
-import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeysCache;
 
 /**
- * {@link TablePrimaryKey} expression resolver.
+ * Primary key resolver.
  *
  * @since 5.0.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public class PrimaryKeyResolver implements ExpressionResolver<DataTarget, TablePrimaryKey> {
+public class PrimaryKeyResolver implements ExpressionResolver<DataTarget, SQLPrimaryKey> {
 
 	private static final long serialVersionUID = -1693018694034935286L;
 
 	private final ConnectionProvider connectionProvider;
-	private final PrimaryKeysCache primaryKeysCache;
+	private final Map<String, SQLPrimaryKey> primaryKeysCache;
 
-	public PrimaryKeyResolver(ConnectionProvider connectionProvider, PrimaryKeysCache primaryKeysCache) {
+	public PrimaryKeyResolver(ConnectionProvider connectionProvider, Map<String, SQLPrimaryKey> primaryKeysCache) {
 		super();
 		this.connectionProvider = connectionProvider;
 		this.primaryKeysCache = primaryKeysCache;
@@ -71,8 +69,8 @@ public class PrimaryKeyResolver implements ExpressionResolver<DataTarget, TableP
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends TablePrimaryKey> getResolvedType() {
-		return TablePrimaryKey.class;
+	public Class<? extends SQLPrimaryKey> getResolvedType() {
+		return SQLPrimaryKey.class;
 	}
 
 	/*
@@ -81,79 +79,57 @@ public class PrimaryKeyResolver implements ExpressionResolver<DataTarget, TableP
 	 * com.holonplatform.core.ExpressionResolver.ResolutionContext)
 	 */
 	@Override
-	public Optional<TablePrimaryKey> resolve(DataTarget expression, ResolutionContext context)
+	public Optional<SQLPrimaryKey> resolve(DataTarget expression, ResolutionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
-		String tableName = null;
-		Optional<TablePrimaryKey> targetPrimaryKey = Optional.empty();
+		// try to retrieve the primary key from database
+		final JdbcResolutionContext jdbcContext = JdbcResolutionContext.checkContext(context);
 
-		// resolve target
-		final DataTarget<?> target = context.resolve(expression, DataTarget.class, context).orElse(expression);
-		target.validate();
-		tableName = target.getName();
+		final DataTarget<?> target = jdbcContext.resolve(expression, DataTarget.class, jdbcContext).orElse(expression);
 
-		if (targetPrimaryKey.isPresent()) {
-			return targetPrimaryKey;
-		}
-
-		return retrieve(JdbcResolutionContext.checkContext(context), tableName);
+		return getPrimaryKeyFromDatabaseMetadata(jdbcContext, target.getName());
 	}
 
-	private Optional<TablePrimaryKey> retrieve(JdbcResolutionContext context, String tableName)
+	private Optional<SQLPrimaryKey> getPrimaryKeyFromDatabaseMetadata(JdbcResolutionContext context, String tableName)
 			throws InvalidExpressionException {
-		Optional<TablePrimaryKey> cached = primaryKeysCache.get(tableName);
-		if (cached.isPresent()) {
-			return cached;
-		}
-
-		try {
-			Optional<Path<?>[]> pk = getPrimaryKeyFromDatabaseMetaData(context.getDialect(), tableName);
-			if (pk.isPresent()) {
-				TablePrimaryKey tablePrimaryKey = TablePrimaryKey.create(pk.get());
-				primaryKeysCache.put(tableName, tablePrimaryKey);
-				return Optional.of(tablePrimaryKey);
-			}
-		} catch (Exception e) {
-			throw new InvalidExpressionException("Failed to retrieve primary key for table [" + tableName + "]", e);
-		}
-
-		return Optional.empty();
-	}
-
-	private Optional<Path<?>[]> getPrimaryKeyFromDatabaseMetaData(JdbcDialect dialect, String table) {
-		ObjectUtils.argumentNotNull(table, "Table name must be not null");
-
-		final String tableName = dialect.getTableName(table);
-
-		return connectionProvider.withConnection(connection -> {
-
-			List<OrderedPath> paths = new ArrayList<>();
-
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-
-			try (ResultSet resultSet = databaseMetaData.getPrimaryKeys(null, null, tableName)) {
-				while (resultSet.next()) {
-					final String columnName = resultSet.getString("COLUMN_NAME");
-					OrderedPath op = new OrderedPath();
-					op.path = Path.of(columnName,
-							JdbcDatastoreUtils.getColumnType(databaseMetaData, tableName, columnName));
-					op.sequence = resultSet.getShort("KEY_SEQ");
-					paths.add(op);
-				}
-			}
-
-			if (!paths.isEmpty()) {
-				Collections.sort(paths);
-				return Optional.of(
-						paths.stream().map(p -> p.path).collect(Collectors.toList()).toArray(new Path[paths.size()]));
-			}
-
+		if (tableName == null) {
 			return Optional.empty();
+		}
 
-		});
+		return Optional.ofNullable(primaryKeysCache.computeIfAbsent(tableName, table -> {
+			final String databaseTable = context.getDialect().getTableName(tableName);
+
+			return connectionProvider.withConnection(connection -> {
+
+				List<OrderedPath> paths = new ArrayList<>();
+
+				DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+				try (ResultSet resultSet = databaseMetaData.getPrimaryKeys(null, null, databaseTable)) {
+					while (resultSet.next()) {
+						final String columnName = resultSet.getString("COLUMN_NAME");
+						OrderedPath op = new OrderedPath();
+						op.path = Path.of(columnName,
+								JdbcDatastoreUtils.getColumnType(databaseMetaData, databaseTable, columnName));
+						op.sequence = resultSet.getShort("KEY_SEQ");
+						paths.add(op);
+					}
+				}
+
+				if (!paths.isEmpty()) {
+					Collections.sort(paths);
+					return SQLPrimaryKey.create(paths.stream().map(p -> p.path).collect(Collectors.toList())
+							.toArray(new Path[paths.size()]));
+				}
+
+				return null;
+
+			});
+		}));
+
 	}
 
 	/**

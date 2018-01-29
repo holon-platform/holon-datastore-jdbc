@@ -23,11 +23,11 @@ import com.holonplatform.core.internal.datastore.operation.AbstractRefreshOperat
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.Query;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 
 /**
  * JDBC {@link RefreshOperation}.
@@ -77,8 +77,8 @@ public class JdbcRefreshOperation extends AbstractRefreshOperation {
 		return executionContext.withSharedConnection(() -> {
 
 			// resolve primary key
-			final TablePrimaryKey primaryKey = context
-					.resolve(getConfiguration().getTarget(), TablePrimaryKey.class, context)
+			final SQLPrimaryKey primaryKey = context
+					.resolve(getConfiguration().getTarget(), SQLPrimaryKey.class, context)
 					.orElseThrow(() -> new DataAccessException(
 							"Cannot obtain the primary key for target [" + getConfiguration().getTarget() + "]"));
 
@@ -93,19 +93,19 @@ public class JdbcRefreshOperation extends AbstractRefreshOperation {
 		});
 	}
 
-	private String printPrimaryKey(TablePrimaryKey primaryKey, PropertyBox value) {
+	private String printPrimaryKey(SQLPrimaryKey primaryKey, PropertyBox value) {
 
 		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(value)
 				.pathMatcher(new DialectPathMatcher(executionContext.getDialect())).build();
 
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < primaryKey.getKeys().length; i++) {
+		for (int i = 0; i < primaryKey.getPaths().length; i++) {
 			if (i > 0) {
 				sb.append(",");
 			}
-			sb.append(primaryKey.getKeys()[i].getName());
+			sb.append(primaryKey.getPaths()[i].getName());
 			sb.append("=");
-			Object v = adapter.getValue(primaryKey.getKeys()[i]).orElse(null);
+			Object v = adapter.getValue(primaryKey.getPaths()[i]).orElse(null);
 			if (v != null) {
 				sb.append(v);
 			} else {

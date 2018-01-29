@@ -42,6 +42,7 @@ import com.holonplatform.core.property.PathPropertySetAdapter.PathMatcher;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
 import com.holonplatform.datastore.jdbc.expressions.SQLToken;
@@ -51,7 +52,6 @@ import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurato
 import com.holonplatform.datastore.jdbc.internal.context.StatementConfigurationException;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 
 /**
  * JDBC datastore {@link BulkInsert} implementation.
@@ -255,7 +255,7 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 
 	private static Optional<Path<?>[]> getPrimaryKeys(JdbcResolutionContext context, DataTarget<?> target) {
 		return context.getDialect().supportsGetGeneratedKeys()
-				? context.resolve(target, TablePrimaryKey.class, context).map(k -> k.getKeys()) : Optional.empty();
+				? context.resolve(target, SQLPrimaryKey.class, context).map(k -> k.getPaths()) : Optional.empty();
 	}
 
 	/**

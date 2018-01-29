@@ -22,11 +22,11 @@ import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.datastore.operation.UpdateOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractUpdateOperation;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 
 /**
  * JDBC {@link UpdateOperation}.
@@ -76,8 +76,8 @@ public class JdbcUpdateOperation extends AbstractUpdateOperation {
 		return executionContext.withSharedConnection(() -> {
 
 			// resolve primary key
-			final TablePrimaryKey primaryKey = context
-					.resolve(getConfiguration().getTarget(), TablePrimaryKey.class, context)
+			final SQLPrimaryKey primaryKey = context
+					.resolve(getConfiguration().getTarget(), SQLPrimaryKey.class, context)
 					.orElseThrow(() -> new DataAccessException(
 							"Cannot obtain the primary key for target [" + getConfiguration().getTarget() + "]"));
 

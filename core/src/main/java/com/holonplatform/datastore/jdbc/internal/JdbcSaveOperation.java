@@ -31,11 +31,11 @@ import com.holonplatform.core.internal.datastore.operation.AbstractSaveOperation
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction.Count;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
-import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 
 /**
  * JDBC {@link SaveOperation}.
@@ -87,8 +87,8 @@ public class JdbcSaveOperation extends AbstractSaveOperation {
 		return executionContext.withSharedConnection(() -> {
 
 			// resolve primary key
-			final Optional<TablePrimaryKey> primaryKey = context.resolve(getConfiguration().getTarget(),
-					TablePrimaryKey.class, context);
+			final Optional<SQLPrimaryKey> primaryKey = context.resolve(getConfiguration().getTarget(),
+					SQLPrimaryKey.class, context);
 
 			if (!primaryKey.isPresent()) {
 				LOGGER.warn("(Save operation) Cannot obtain the primary key for target ["
@@ -100,7 +100,7 @@ public class JdbcSaveOperation extends AbstractSaveOperation {
 					QueryFilter pkFilter = JdbcDatastoreUtils.getPrimaryKeyFilter(executionContext, primaryKey.get(),
 							getConfiguration().getValue());
 
-					final Path<?> singleKey = (primaryKey.get().getKeys().length == 1) ? primaryKey.get().getKeys()[0]
+					final Path<?> singleKey = (primaryKey.get().getPaths().length == 1) ? primaryKey.get().getPaths()[0]
 							: null;
 					Query q = executionContext.create(Query.class).target(getConfiguration().getTarget())
 							.filter(pkFilter);

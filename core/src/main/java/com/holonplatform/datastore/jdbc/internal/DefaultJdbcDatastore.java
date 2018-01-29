@@ -22,8 +22,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Supplier;
@@ -44,6 +46,7 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.JdbcDialect;
 import com.holonplatform.datastore.jdbc.composer.ConnectionOperation;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver;
@@ -67,7 +70,6 @@ import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
 import com.holonplatform.datastore.jdbc.internal.context.SQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.internal.context.StatementConfigurationException;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.pk.PrimaryKeysCache;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BeanProjectionResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BulkDeleteResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.BulkInsertResolver;
@@ -176,9 +178,23 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	private boolean initialized = false;
 
 	/**
+	 * Max primary keys cache size
+	 */
+	private final static int MAX_PRIMARY_KEY_CACHE_SIZE = 5000;
+
+	/**
 	 * Primary keys cache
 	 */
-	private PrimaryKeysCache primaryKeysCache = PrimaryKeysCache.create();
+	@SuppressWarnings("serial")
+	private final LinkedHashMap<String, SQLPrimaryKey> primaryKeysCache = new LinkedHashMap<String, SQLPrimaryKey>(16,
+			0.75f, true) {
+
+		@Override
+		protected boolean removeEldestEntry(Entry<String, SQLPrimaryKey> eldest) {
+			return size() > MAX_PRIMARY_KEY_CACHE_SIZE;
+		}
+
+	};
 
 	/**
 	 * Constructor with auto initialization.

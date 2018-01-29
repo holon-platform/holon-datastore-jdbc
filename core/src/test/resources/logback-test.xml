@@ -15,10 +15,11 @@
 	<logger name="com.holonplatform.datastore.jdbc" level="DEBUG" additivity="false">
 		<appender-ref ref="stdout" />
 	</logger>
-	-->
+	
 	<logger name="com.holonplatform.jdbc" level="DEBUG" additivity="false">
 		<appender-ref ref="stdout" />
 	</logger>
+	-->
 	
 
 </configuration>

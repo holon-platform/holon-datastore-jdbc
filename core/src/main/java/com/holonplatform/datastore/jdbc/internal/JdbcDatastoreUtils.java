@@ -46,8 +46,8 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.temporal.TemporalType;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.internal.context.StatementExecutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.TablePrimaryKey;
 
 /**
  * JDBC query utils.
@@ -65,18 +65,18 @@ public final class JdbcDatastoreUtils implements Serializable {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static QueryFilter getPrimaryKeyFilter(StatementExecutionContext context, TablePrimaryKey primaryKey,
+	public static QueryFilter getPrimaryKeyFilter(StatementExecutionContext context, SQLPrimaryKey primaryKey,
 			PropertyBox propertyBox) {
 
-		if (primaryKey.getKeys() == null || primaryKey.getKeys().length == 0) {
+		if (primaryKey.getPaths() == null || primaryKey.getPaths().length == 0) {
 			throw new DataAccessException("Invalid primary key: no paths available");
 		}
-		
+
 		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(propertyBox)
 				.pathMatcher(new DialectPathMatcher(context.getDialect())).build();
 
 		List<QueryFilter> filters = new LinkedList<>();
-		for (Path path : primaryKey.getKeys()) {
+		for (Path path : primaryKey.getPaths()) {
 			Optional<Object> value = adapter.getValue(path);
 			if (!value.isPresent()) {
 				throw new DataAccessException("Primary key path [" + path + "] value not available in PropertyBox");
@@ -86,7 +86,7 @@ public final class JdbcDatastoreUtils implements Serializable {
 		return QueryFilter.allOf(filters)
 				.orElseThrow(() -> new DataAccessException("Invalid table primary key: no paths available"));
 	}
-	
+
 	/**
 	 * Try to obtain the {@link TemporalType} of given <code>expression</code>, if the expression type is a temporal
 	 * type.
