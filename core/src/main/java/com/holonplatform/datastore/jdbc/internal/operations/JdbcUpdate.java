@@ -24,7 +24,6 @@ import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractUpdateOperation;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
@@ -85,7 +84,7 @@ public class JdbcUpdate extends AbstractUpdateOperation {
 			// execute using a BulkUpdate
 			return executionContext.create(BulkUpdate.class).target(getConfiguration().getTarget())
 					.withWriteOptions(getConfiguration().getWriteOptions()).set(getConfiguration().getValue())
-					.filter(JdbcDatastoreUtils.getPrimaryKeyFilter(executionContext, primaryKey,
+					.filter(JdbcOperationUtils.getPrimaryKeyFilter(executionContext.getDialect(), primaryKey,
 							getConfiguration().getValue()))
 					.execute();
 

@@ -26,7 +26,6 @@ import com.holonplatform.core.query.Query;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.DialectPathMatcher;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
@@ -86,7 +85,7 @@ public class JdbcRefresh extends AbstractRefreshOperation {
 
 			// execute using Query
 			return executionContext.create(Query.class).target(getConfiguration().getTarget())
-					.filter(JdbcDatastoreUtils.getPrimaryKeyFilter(executionContext, primaryKey,
+					.filter(JdbcOperationUtils.getPrimaryKeyFilter(executionContext.getDialect(), primaryKey,
 							getConfiguration().getValue()))
 					.findOne(getConfiguration().getValue())
 					.orElseThrow(() -> new DataAccessException("No data found for primary key ["

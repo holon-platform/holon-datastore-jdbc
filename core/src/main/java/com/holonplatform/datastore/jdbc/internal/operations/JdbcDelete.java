@@ -24,7 +24,6 @@ import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperation;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
@@ -84,8 +83,8 @@ public class JdbcDelete extends AbstractDeleteOperation {
 
 			// execute using a BulkDelete
 			return executionContext.create(BulkDelete.class).target(getConfiguration().getTarget())
-					.withWriteOptions(getConfiguration().getWriteOptions()).filter(JdbcDatastoreUtils
-							.getPrimaryKeyFilter(executionContext, primaryKey, getConfiguration().getValue()))
+					.withWriteOptions(getConfiguration().getWriteOptions()).filter(JdbcOperationUtils
+							.getPrimaryKeyFilter(executionContext.getDialect(), primaryKey, getConfiguration().getValue()))
 					.execute();
 
 		});

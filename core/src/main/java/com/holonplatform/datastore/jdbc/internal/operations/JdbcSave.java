@@ -34,7 +34,6 @@ import com.holonplatform.core.query.QueryFunction.Count;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreUtils;
 import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
 import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
@@ -99,8 +98,8 @@ public class JdbcSave extends AbstractSaveOperation {
 			} else {
 				// check existence using primary key
 				try {
-					QueryFilter pkFilter = JdbcDatastoreUtils.getPrimaryKeyFilter(executionContext, primaryKey.get(),
-							getConfiguration().getValue());
+					QueryFilter pkFilter = JdbcOperationUtils.getPrimaryKeyFilter(executionContext.getDialect(),
+							primaryKey.get(), getConfiguration().getValue());
 
 					final Path<?> singleKey = (primaryKey.get().getPaths().length == 1) ? primaryKey.get().getPaths()[0]
 							: null;
