@@ -75,6 +75,7 @@ import com.holonplatform.datastore.jdbc.internal.operations.JdbcBulkInsert;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcBulkUpdate;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcDelete;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcInsert;
+import com.holonplatform.datastore.jdbc.internal.operations.JdbcQuery;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcRefresh;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcSave;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcUpdate;

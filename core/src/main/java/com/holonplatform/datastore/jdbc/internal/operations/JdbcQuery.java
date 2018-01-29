@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.operations;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -47,7 +47,7 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Query> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Query>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Query> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Query>() {
 
 		@Override
 		public Class<? extends Query> getCommodityType() {
