@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
-import com.holonplatform.datastore.jdbc.expressions.SQLFunction;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 
 @SuppressWarnings({ "serial", "rawtypes" })
 public class IfNullFunctionResolver implements ExpressionResolver<IfNullFunction, SQLFunction> {

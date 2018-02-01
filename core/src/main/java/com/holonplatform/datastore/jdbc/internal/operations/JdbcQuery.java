@@ -15,12 +15,14 @@
  */
 package com.holonplatform.datastore.jdbc.internal.operations;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.holonplatform.core.Provider;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.internal.query.QueryAdapterQuery;
@@ -31,12 +33,11 @@ import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
-import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcQueryComposition;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
+import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
 
 /**
  * JDBC {@link QueryAdapter}.
@@ -63,24 +64,16 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 	/**
 	 * Execution context
 	 */
-	private final JdbcStatementExecutionContext executionContext;
+	private final JdbcExecutionContext executionContext;
 
 	/**
 	 * Constructor
 	 * @param executionContext Execution context
 	 */
-	public JdbcQuery(JdbcStatementExecutionContext executionContext) {
+	public JdbcQuery(JdbcExecutionContext executionContext) {
 		super();
 		ObjectUtils.argumentNotNull(executionContext, "Execution context must be not null");
 		this.executionContext = executionContext;
-	}
-
-	/**
-	 * Get the execution context.
-	 * @return the execution context
-	 */
-	protected JdbcStatementExecutionContext getExecutionContext() {
-		return executionContext;
 	}
 
 	/*
@@ -91,45 +84,34 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 	@Override
 	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws QueryExecutionException {
 
-		// context
-		final JdbcResolutionContext context = JdbcResolutionContext.create(getExecutionContext(), AliasMode.AUTO);
-
-		// add query specific resolvers
+		/// composition context
+		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
 		context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 
-		final JdbcQueryComposition<R> query;
-		final PreparedSql preparedSql;
-		try {
-
-			// resolve query
-			query = context.resolve(queryOperation, JdbcQueryComposition.class, context)
-					.orElseThrow(() -> new QueryExecutionException("Failed to resolve query"));
-
-			query.validate();
-
-			// prepare SQL
-			preparedSql = getExecutionContext().prepareSql(query.serialize(), context);
-			getExecutionContext().trace(preparedSql.getSql());
-
-		} catch (Exception e) {
-			throw new QueryExecutionException("Failed to build query", e);
-		}
+		// resolve to SQLQuery
+		final SQLQuery<R> query = context.resolveOrFail(queryOperation, SQLQuery.class);
+		
+		// trace
+		executionContext.trace(query.getSql());
 
 		// execute
-		return getExecutionContext().withConnection(c -> {
+		return executionContext.withConnection(c -> {
 
-			try (PreparedStatement statement = getExecutionContext().createStatement(c, preparedSql)) {
-				// convert results
-				try (ResultSet resultSet = statement.executeQuery()) {
+			try (PreparedStatement stmt = executionContext.prepareStatement(query, c)) {
+				final SQLResultConverter<R> converter = query.getResultConverter();
+				final Provider<Connection> connectionProvider = Provider.create(c);
+
+				try (ResultSet resultSet = stmt.executeQuery()) {
 					List<R> rows = new ArrayList<>();
 					while (resultSet.next()) {
-						rows.add(query.getProjection().getConverter().convert(c, resultSet));
+						rows.add(converter.convert(context, connectionProvider, ResultSetSQLResult.of(resultSet)));
 					}
 					return rows.stream();
 				}
-
 			}
+
 		});
+
 	}
 
 }

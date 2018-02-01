@@ -84,9 +84,10 @@ public enum ConstantExpressionProjectionResolver
 
 		// build projection
 		MutableSQLProjection<?> projection = SQLProjection.create((Class<?>) expression.getType(), context);
+		projection.addSelection(sql, false);
 
 		// set selection and converter
-		projection.setConverter(new TypedExpressionSQLResultConverter<>(expression, projection.addSelection(sql)));
+		projection.setConverter(new TypedExpressionSQLResultConverter<>(expression, null));
 
 		return Optional.of(projection);
 	}

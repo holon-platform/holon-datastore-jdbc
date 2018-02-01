@@ -48,8 +48,12 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 
 	INSTANCE;
 
-	/* (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLStatementConfigurator#configureStatement(com.holonplatform.datastore.jdbc.composer.SQLContext, java.sql.PreparedStatement, com.holonplatform.datastore.jdbc.composer.expression.SQLStatement)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLStatementConfigurator#configureStatement(com.holonplatform.datastore
+	 * .jdbc.composer.SQLContext, java.sql.PreparedStatement,
+	 * com.holonplatform.datastore.jdbc.composer.expression.SQLStatement)
 	 */
 	@Override
 	public PreparedStatement configureStatement(SQLContext context, PreparedStatement jdbcStatement,
@@ -76,7 +80,6 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		return jdbcStatement;
 	}
 
-
 	/**
 	 * Set a <code>null</code> statement parameter value.
 	 * @param context SQL context
@@ -85,8 +88,8 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 	 * @param type Statement parameter type
 	 * @throws SQLException If an error occurred
 	 */
-	private static void setNullStatementParameterValue(SQLContext context, PreparedStatement jdbcStatement, int parameterIndex, Class<?> type)
-			throws SQLException {
+	private static void setNullStatementParameterValue(SQLContext context, PreparedStatement jdbcStatement,
+			int parameterIndex, Class<?> type) throws SQLException {
 		Optional<SQLType> sqlType = context.getTypeConverter().getSqlType(context, type);
 		if (!sqlType.isPresent()) {
 			// try to use NULL type
@@ -120,8 +123,8 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 	 * @return Actual parameter value
 	 * @throws SQLException If an error occurred
 	 */
-	private static Object setStatementParameterValue(SQLContext context, PreparedStatement jdbcStatement, int parameterIndex, Class<?> type,
-			Object value, TemporalType temporalType) throws SQLException {
+	private static Object setStatementParameterValue(SQLContext context, PreparedStatement jdbcStatement,
+			int parameterIndex, Class<?> type, Object value, TemporalType temporalType) throws SQLException {
 
 		// CharSequence
 		if (TypeUtils.isCharSequence(type)) {
@@ -139,27 +142,27 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		// Numbers
 		if (TypeUtils.isInteger(type)) {
 			// check value type matches
-			jdbcStatement.setInt(parameterIndex, checkNumericValue(value, Integer.class).intValue());
+			jdbcStatement.setInt(parameterIndex, checkNumericValue(value, Integer.class));
 			return value;
 		}
 		if (TypeUtils.isLong(type)) {
-			jdbcStatement.setLong(parameterIndex, checkNumericValue(value, Long.class).longValue());
+			jdbcStatement.setLong(parameterIndex, checkNumericValue(value, Long.class));
 			return value;
 		}
 		if (TypeUtils.isDouble(type)) {
-			jdbcStatement.setDouble(parameterIndex, checkNumericValue(value, Double.class).doubleValue());
+			jdbcStatement.setDouble(parameterIndex, checkNumericValue(value, Double.class));
 			return value;
 		}
 		if (TypeUtils.isFloat(type)) {
-			jdbcStatement.setFloat(parameterIndex, checkNumericValue(value, Float.class).floatValue());
+			jdbcStatement.setFloat(parameterIndex, checkNumericValue(value, Float.class));
 			return value;
 		}
 		if (TypeUtils.isShort(type)) {
-			jdbcStatement.setShort(parameterIndex, checkNumericValue(value, Short.class).shortValue());
+			jdbcStatement.setShort(parameterIndex, checkNumericValue(value, Short.class));
 			return value;
 		}
 		if (Byte.class.isAssignableFrom(type)) {
-			jdbcStatement.setByte(parameterIndex, checkNumericValue(value, Byte.class).byteValue());
+			jdbcStatement.setByte(parameterIndex, checkNumericValue(value, Byte.class));
 			return value;
 		}
 		if (BigDecimal.class.isAssignableFrom(type)) {
@@ -167,7 +170,7 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 			return value;
 		}
 		if (BigInteger.class.isAssignableFrom(type)) {
-			jdbcStatement.setLong(parameterIndex, checkNumericValue(value, Long.class).longValue());
+			jdbcStatement.setLong(parameterIndex, checkNumericValue(value, Long.class));
 			return value;
 		}
 
@@ -261,7 +264,7 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 
 	@SuppressWarnings("unchecked")
 	private static <N extends Number> N checkNumericValue(Object value, Class<N> type) throws SQLException {
-		if (TypeUtils.isNumber(value.getClass())) {
+		if (!TypeUtils.isNumber(value.getClass())) {
 			throw new SQLException("Cannot set a numeric parameter type [" + type
 					+ "] using a parameter value which is not a number: [" + value + "]");
 		}
@@ -347,6 +350,5 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		}
 		return null;
 	}
-	
-	
+
 }

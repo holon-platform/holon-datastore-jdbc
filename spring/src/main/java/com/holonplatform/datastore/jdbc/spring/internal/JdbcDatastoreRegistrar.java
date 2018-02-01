@@ -33,7 +33,7 @@ import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
 import com.holonplatform.jdbc.DatabasePlatform;
@@ -186,7 +186,7 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 			String dialectClassName = datastoreConfig.getDialect();
 			if (dialectClassName != null) {
 				try {
-					JdbcDialect dialect = (JdbcDialect) Class.forName(dialectClassName).newInstance();
+					SQLDialect dialect = (SQLDialect) Class.forName(dialectClassName).newInstance();
 					if (dialect != null) {
 						pvs.add("dialect", dialect);
 					}

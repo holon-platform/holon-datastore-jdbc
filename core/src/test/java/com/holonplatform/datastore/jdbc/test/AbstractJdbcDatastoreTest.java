@@ -71,7 +71,7 @@ import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.JdbcWhereFilter;
+import com.holonplatform.datastore.jdbc.SQLWhereFilter;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
 import com.holonplatform.datastore.jdbc.test.data.TestData;
 import com.holonplatform.datastore.jdbc.test.data.TestDataImpl;
@@ -548,9 +548,10 @@ public abstract class AbstractJdbcDatastoreTest {
 			// save
 			final byte[] bytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-			PropertyBox box = PropertyBox.builder(KEY, STR, NBOOL, BLOB2).set(KEY, 87L).set(STR, "Test clob")
+			PropertyBox box = PropertyBox.builder(KEY, STR, NBOOL, BLOB2).set(KEY, 87L).set(STR, "Test blob")
 					.set(NBOOL, false).set(BLOB2, bytes).build();
 			getDatastore().save(NAMED_TARGET, box);
+			
 			byte[] value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(87L)).findOne(BLOB2).orElse(null);
 			assertNotNull(value);
 			assertTrue(Arrays.equals(bytes, value));
@@ -849,7 +850,7 @@ public abstract class AbstractJdbcDatastoreTest {
 	@Test
 	public void testWhereFilter() {
 		long count = getDatastore().query().target(NAMED_TARGET)
-				.filter(JdbcWhereFilter.create("keycode = ?", Long.valueOf(1))).count();
+				.filter(SQLWhereFilter.create("keycode = ?", Long.valueOf(1))).count();
 		assertEquals(1, count);
 	}
 

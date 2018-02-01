@@ -71,8 +71,7 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 
 	/**
 	 * Default constructor.
-	 * @param context SQL context (not null)
-	 * @param parent Optional parent context
+	 * @param context SQL context (not null)t
 	 * @param aliasMode Alias handling mode
 	 */
 	public DefaultSQLCompositionContext(SQLContext context) {
@@ -88,8 +87,7 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 
 	/**
 	 * Constructor with parent composition context.
-	 * @param context SQL context (not null)
-	 * @param aliasMode Alias handling mode
+	 * @param parent Parent context (not null)
 	 * @param parent Parent composition context
 	 */
 	public DefaultSQLCompositionContext(SQLCompositionContext parent) {

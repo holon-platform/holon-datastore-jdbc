@@ -94,8 +94,7 @@ public class PropertyBoxSQLResultConverter implements SQLResultConverter<Propert
 			// result value
 			Object value = result.getValue(entry.getKey());
 			// deserialize value
-			Object deserialized = deserializer.deserialize(connection, expression, value)
-					.orElseThrow(() -> new SQLException("Failed to deserialize value [" + value + "]"));
+			Object deserialized = deserializer.deserialize(connection, expression, value);
 			// set property value
 			builder.setIgnoreReadOnly((Property) entry.getValue(), deserialized);
 		}

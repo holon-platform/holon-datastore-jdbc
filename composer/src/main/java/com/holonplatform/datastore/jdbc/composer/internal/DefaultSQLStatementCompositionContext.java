@@ -165,34 +165,32 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 	 */
 	protected Optional<String> getPathAlias(Path<?> path) {
 		ObjectUtils.argumentNotNull(path, "Path must be not null");
-		return Optional.ofNullable(pathAlias.get(path.getName()));
+		if (path instanceof Aliasable) {
+			return Optional.ofNullable(((Aliasable<?>) path).getAlias().orElse(getGeneratedPathAlias(path)));
+		}
+		return Optional.ofNullable(getGeneratedPathAlias(path));
 	}
 
 	/**
-	 * Get or generate an alias name for given path, only if alias mode is not {@link AliasMode#UNSUPPORTED}. If alias
-	 * mode is {@link AliasMode#AUTO}, the alias name will be auto-generated.
+	 * Get the generated alias of given {@link Path}, if available.
+	 * @param path Path to get the alias for (not null)
+	 * @return Optional generated path alias
+	 */
+	private String getGeneratedPathAlias(Path<?> path) {
+		return pathAlias.get(path.getName());
+	}
+
+	/**
+	 * Check if an alias has to be generated for given path, only if alias mode is not {@link AliasMode#UNSUPPORTED} and
+	 * given path does not provide an explicit alias.
 	 * @param path Path for which to generate the alias (not null)
 	 * @param checkParentContext Whether to check the parent context to obtain the alias, if available
-	 * @return The alias name, either explicit if path is {@link Aliasable} or generated if alias mode is
-	 *         {@link AliasMode#AUTO}. Always returns <code>null</code> if alias mode is {@link AliasMode#UNSUPPORTED}
 	 */
-	protected String parsePathAlias(final AliasablePath<?, ?> path) {
-		final String name = path.getName();
-		// check alias is supported
-		return (getAliasMode() != AliasMode.UNSUPPORTED)
-				? pathAlias.computeIfAbsent(name, t -> path.getAlias().orElse(checkGenerateAlias(path))) : null;
-	}
-
-	/**
-	 * Generate an alias name for given path only if the alias mode is {@link AliasMode#AUTO}.
-	 * @param path Path for which to generate the alias
-	 * @return the generated alias name, or <code>null</code> if alias mode is not {@link AliasMode#AUTO}
-	 */
-	private String checkGenerateAlias(Path<?> path) {
-		if (getAliasMode() == AliasMode.AUTO) {
-			return generateAlias(path);
+	protected void parsePathAlias(final AliasablePath<?, ?> path) {
+		// check explicit path not provided and alias auto generation is enabled
+		if (!path.getAlias().isPresent() && getAliasMode() == AliasMode.AUTO) {
+			pathAlias.computeIfAbsent(path.getName(), t -> generateAlias(path));
 		}
-		return null;
 	}
 
 	/**

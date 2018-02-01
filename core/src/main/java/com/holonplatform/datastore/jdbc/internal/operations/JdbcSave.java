@@ -17,6 +17,7 @@ package com.holonplatform.datastore.jdbc.internal.operations;
 
 import java.util.Optional;
 
+import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
@@ -31,12 +32,12 @@ import com.holonplatform.core.internal.datastore.operation.AbstractSaveOperation
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction.Count;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
+import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
-import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
+import com.holonplatform.datastore.jdbc.internal.PrimaryKeyResolver;
 
 /**
  * JDBC {@link SaveOperation}.
@@ -65,9 +66,9 @@ public class JdbcSave extends AbstractSaveOperation {
 		}
 	};
 
-	private final JdbcStatementExecutionContext executionContext;
+	private final JdbcExecutionContext executionContext;
 
-	public JdbcSave(JdbcStatementExecutionContext executionContext) {
+	public JdbcSave(JdbcExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}
@@ -80,10 +81,15 @@ public class JdbcSave extends AbstractSaveOperation {
 	public OperationResult execute() {
 
 		// validate
-		getConfiguration().validate();
+		try {
+			getConfiguration().validate();
+		} catch (InvalidExpressionException e) {
+			throw new DataAccessException("Cannot execute operation", e);
+		}
 
-		// resolution context
-		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext, AliasMode.AUTO);
+		/// composition context
+		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		return executionContext.withSharedConnection(() -> {
 
@@ -98,7 +104,7 @@ public class JdbcSave extends AbstractSaveOperation {
 			} else {
 				// check existence using primary key
 				try {
-					QueryFilter pkFilter = JdbcOperationUtils.getPrimaryKeyFilter(executionContext.getDialect(),
+					QueryFilter pkFilter = PrimaryKeyResolver.getPrimaryKeyFilter(executionContext.getDialect(),
 							primaryKey.get(), getConfiguration().getValue());
 
 					final Path<?> singleKey = (primaryKey.get().getPaths().length == 1) ? primaryKey.get().getPaths()[0]

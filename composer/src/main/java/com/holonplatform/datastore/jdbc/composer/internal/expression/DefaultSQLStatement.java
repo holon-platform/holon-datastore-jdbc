@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
+import java.util.Arrays;
+
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
@@ -69,6 +71,15 @@ public class DefaultSQLStatement implements SQLStatement {
 		if (getSql() == null) {
 			throw new InvalidExpressionException("Null SQL statement");
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLStatement [sql=" + sql + ", parameters=" + Arrays.toString(parameters) + "]";
 	}
 
 }

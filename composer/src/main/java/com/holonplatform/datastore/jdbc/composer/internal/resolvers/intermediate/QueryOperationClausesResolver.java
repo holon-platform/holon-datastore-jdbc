@@ -29,19 +29,18 @@ import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLQueryClauses;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
- * {@link QueryOperation} to {@link SQLQuery} resolver.
+ * {@link QueryOperation} to {@link SQLQueryClauses} resolver.
  *
  * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum QueryOperationResolver implements SQLContextExpressionResolver<QueryOperation, SQLQuery> {
+public enum QueryOperationClausesResolver implements SQLContextExpressionResolver<QueryOperation, SQLQueryClauses> {
 
 	/**
 	 * Singleton instance.
@@ -62,8 +61,8 @@ public enum QueryOperationResolver implements SQLContextExpressionResolver<Query
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends SQLQuery> getResolvedType() {
-		return SQLQuery.class;
+	public Class<? extends SQLQueryClauses> getResolvedType() {
+		return SQLQueryClauses.class;
 	}
 
 	/*
@@ -72,11 +71,10 @@ public enum QueryOperationResolver implements SQLContextExpressionResolver<Query
 	 * com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<SQLQuery> resolve(QueryOperation expression, SQLCompositionContext context)
+	public Optional<SQLQueryClauses> resolve(QueryOperation expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
-
+		
 		// validate
 		expression.validate();
 
@@ -121,27 +119,10 @@ public enum QueryOperationResolver implements SQLContextExpressionResolver<Query
 		clauses.setSelect(projection.getSelection().stream()
 				.map(s -> s + projection.getSelectionAlias(s).map(a -> " AS " + a).orElse(""))
 				.collect(Collectors.joining(", ")));
+		// set projection
+		clauses.setProjection(projection);
 
-		// serialize query clauses to SQL
-		String sql = queryContext.resolveOrFail(clauses, SQLExpression.class).getValue();
-
-		// prepare SQL
-		SQLStatement preparedSQL = context.prepareStatement(sql);
-		preparedSQL.validate();
-
-		// limit and offset
-		if (configuration.getLimit().isPresent()) {
-			sql = queryContext.getDialect().getLimitHandler()
-					.orElseThrow(() -> new InvalidExpressionException(
-							"The dialect [" + queryContext.getDialect().getClass().getName()
-									+ "] does not supports query limit/offset"))
-					.limitResults(clauses, sql, configuration.getLimit().orElse(0),
-							configuration.getOffset().orElse(0));
-		}
-
-		// build SQLQuery
-		return Optional.of(SQLQuery.create(preparedSQL.getSql(), ((SQLProjection) projection).getType(),
-				((SQLProjection) projection).getConverter(), preparedSQL.getParameters()));
+		return Optional.of(clauses);
 	}
 
 }

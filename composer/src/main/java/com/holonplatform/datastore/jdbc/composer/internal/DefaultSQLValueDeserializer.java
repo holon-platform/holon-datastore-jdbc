@@ -37,7 +37,6 @@ import java.time.OffsetDateTime;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 import com.holonplatform.core.ConverterExpression;
 import com.holonplatform.core.ExpressionValueConverter;
@@ -57,7 +56,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
 public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 
 	INSTANCE;
-	
+
 	private final List<ValueProcessor> valueProcessors = new LinkedList<>();
 
 	/*
@@ -77,8 +76,9 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 	 * @see com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer#deserialize(com.holonplatform.core.Provider,
 	 * com.holonplatform.core.TypedExpression, java.lang.Object)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T> Optional<T> deserialize(Provider<Connection> connection, TypedExpression<T> expression,
+	public <T> T deserialize(Provider<Connection> connection, TypedExpression<T> expression,
 			final Object valueToDeserialize) throws SQLException {
 
 		Object value = valueToDeserialize;
@@ -110,10 +110,11 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 
 		// check type
 		if (TypeUtils.isAssignable(deserialized.getClass(), expression.getType())) {
-			return Optional.of((T) deserialized);
+			return (T) deserialized;
+		} else {
+			throw new SQLException(
+					"Failed to deserialize value [" + value + "] for required type [" + expression.getType() + "]");
 		}
-
-		return Optional.empty();
 	}
 
 	/**

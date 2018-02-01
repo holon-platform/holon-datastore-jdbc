@@ -20,8 +20,7 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
 import com.holonplatform.jdbc.DatabasePlatform;
 
 /**
@@ -29,7 +28,7 @@ import com.holonplatform.jdbc.DatabasePlatform;
  *
  * @since 5.0.0
  */
-public interface JdbcDatastoreCommodityContext extends JdbcDatastore, JdbcStatementExecutionContext, DatastoreCommodityContext {
+public interface JdbcDatastoreCommodityContext extends JdbcExecutionContext, DatastoreCommodityContext {
 
 	/**
 	 * Get the {@link DataSource} bound to the datastore.
@@ -42,11 +41,5 @@ public interface JdbcDatastoreCommodityContext extends JdbcDatastore, JdbcStatem
 	 * @return The {@link DatabasePlatform} of the {@link DataSource} database, empty if not available
 	 */
 	Optional<DatabasePlatform> getDatabase();
-
-	/**
-	 * Get whether to trace Datastore operations.
-	 * @return the trace <code>true</code> if tracing is enabled, <code>false</code> otherwise
-	 */
-	boolean isTraceEnabled();
 
 }

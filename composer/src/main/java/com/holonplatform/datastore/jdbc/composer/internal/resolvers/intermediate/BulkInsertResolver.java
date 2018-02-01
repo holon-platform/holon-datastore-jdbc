@@ -32,6 +32,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterizableExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
@@ -96,7 +97,7 @@ public enum BulkInsertResolver implements SQLContextExpressionResolver<BulkInser
 
 		// check single or multi value
 		final boolean singleValue = expression.getValues().size() == 1;
-		
+
 		if (singleValue) {
 			// single value
 			final Map<Path<?>, TypedExpression<?>> pathValues = expression.getValues().get(0);
@@ -107,7 +108,9 @@ public enum BulkInsertResolver implements SQLContextExpressionResolver<BulkInser
 				final TypedExpression<?> pathExpression = pathValues.get(path);
 				if (pathExpression != null) {
 					paths.add(context.resolveOrFail(path, SQLExpression.class).getValue());
-					values.add(context.resolveOrFail(pathExpression, SQLExpression.class).getValue());
+					values.add(context
+							.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
+							.getValue());
 				}
 			}
 		} else {
@@ -119,13 +122,13 @@ public enum BulkInsertResolver implements SQLContextExpressionResolver<BulkInser
 				values.add("?"); // TODO non parameter expressions such as CURRENT_DATE?
 			}
 		}
-		
+
 		operation.append(" (");
 		operation.append(paths.stream().collect(Collectors.joining(",")));
 		operation.append(") VALUES (");
 		operation.append(values.stream().collect(Collectors.joining(",")));
 		operation.append(")");
-		
+
 		if (singleValue) {
 			// prepare SQL and return SQLStatement
 			return Optional.of(context.prepareStatement(operation.toString()));

@@ -35,7 +35,7 @@ import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver
  * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE)
+@Priority(Integer.MAX_VALUE - 1000)
 public enum RelationalTargetResolver implements SQLExpressionResolver<RelationalTarget> {
 
 	/**

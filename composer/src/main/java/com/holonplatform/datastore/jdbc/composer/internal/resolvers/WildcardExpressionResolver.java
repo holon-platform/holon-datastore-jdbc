@@ -20,24 +20,21 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.datastore.relational.SubQuery;
-import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.internal.expression.WildcardExpression;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
- * {@link SubQuery} expression resolver.
+ * {@link WildcardExpression} resolver.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
-@SuppressWarnings("rawtypes")
-@Priority(Integer.MAX_VALUE - 100)
-public enum SubQueryResolver implements SQLExpressionResolver<SubQuery> {
+@Priority(Integer.MAX_VALUE)
+public enum WildcardExpressionResolver implements SQLExpressionResolver<WildcardExpression> {
 
 	/**
-	 * Singleton instance.
+	 * Singleton instance
 	 */
 	INSTANCE;
 
@@ -46,17 +43,8 @@ public enum SubQueryResolver implements SQLExpressionResolver<SubQuery> {
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends SubQuery> getExpressionType() {
-		return SubQuery.class;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
-	 */
-	@Override
-	public Class<? extends SQLExpression> getResolvedType() {
-		return SQLExpression.class;
+	public Class<? extends WildcardExpression> getExpressionType() {
+		return WildcardExpression.class;
 	}
 
 	/*
@@ -65,18 +53,10 @@ public enum SubQueryResolver implements SQLExpressionResolver<SubQuery> {
 	 * com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<SQLExpression> resolve(SubQuery expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(WildcardExpression expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
-
-		// resolve as SQLQueryClauses
-		final SQLQueryClauses clauses = context.resolveOrFail(
-				QueryOperation.create(expression.getQueryConfiguration(), expression.getSelection()),
-				SQLQueryClauses.class);
-
-		// serialize query
-		return context.resolve(clauses, SQLExpression.class);
+		return Optional.of(SQLExpression.create("*"));
 	}
 
 }

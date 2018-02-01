@@ -19,8 +19,9 @@ import java.util.Optional;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.core.ExpressionResolver;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.internal.DefaultSQLExpressionResolvers;
 
 /**
  * An {@link ExpressionResolver} to be used with a {@link SQLCompositionContext} resultion context.
@@ -33,7 +34,8 @@ import com.holonplatform.core.ExpressionResolver;
  *
  * @since 5.1.0
  */
-public interface SQLContextExpressionResolver<E extends Expression, R extends Expression> extends ExpressionResolver<E, R> {
+public interface SQLContextExpressionResolver<E extends Expression, R extends Expression>
+		extends ExpressionResolver<E, R> {
 
 	/*
 	 * (non-Javadoc)
@@ -49,6 +51,22 @@ public interface SQLContextExpressionResolver<E extends Expression, R extends Ex
 		return resolve(expression, (SQLCompositionContext) context);
 	}
 
+	/**
+	 * Resolve given <code>expression</code> into required expression type.
+	 * @param expression Expression to resolve
+	 * @param context Resolution context as a {@link SQLCompositionContext}
+	 * @return The resolved expression, or an empty Optional if this resolver is not able to resolve given expression.
+	 * @throws InvalidExpressionException If an expression resolution error occurred
+	 */
 	Optional<R> resolve(E expression, SQLCompositionContext context) throws InvalidExpressionException;
+
+	/**
+	 * Get the default {@link SQLContextExpressionResolver}s.
+	 * @return the default expression resolvers
+	 */
+	@SuppressWarnings("rawtypes")
+	static Iterable<SQLContextExpressionResolver> getDefaultResolvers() {
+		return DefaultSQLExpressionResolvers.getExpressionresolvers();
+	}
 
 }

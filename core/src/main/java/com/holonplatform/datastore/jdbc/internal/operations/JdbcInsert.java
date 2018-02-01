@@ -15,14 +15,16 @@
  */
 package com.holonplatform.datastore.jdbc.internal.operations;
 
+import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkInsert;
 import com.holonplatform.core.datastore.operation.InsertOperation;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsertOperation;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
 
 /**
  * JDBC {@link InsertOperation}.
@@ -49,9 +51,9 @@ public class JdbcInsert extends AbstractInsertOperation {
 		}
 	};
 
-	private final JdbcStatementExecutionContext executionContext;
+	private final JdbcExecutionContext executionContext;
 
-	public JdbcInsert(JdbcStatementExecutionContext executionContext) {
+	public JdbcInsert(JdbcExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}
@@ -62,14 +64,20 @@ public class JdbcInsert extends AbstractInsertOperation {
 	 */
 	@Override
 	public OperationResult execute() {
-
+		
 		// validate
-		getConfiguration().validate();
-
+		try {
+			getConfiguration().validate();
+		} catch (InvalidExpressionException e) {
+			throw new DataAccessException("Cannot execute operation", e);
+		}
+		
 		// execute using a BulkInsert
 		return executionContext.create(BulkInsert.class).target(getConfiguration().getTarget())
 				.operationPaths(getConfiguration().getValue()).withWriteOptions(getConfiguration().getWriteOptions())
+				.withExpressionResolvers(getConfiguration().getExpressionResolvers())
 				.singleValue(getConfiguration().getValue()).execute();
+		
 	}
 
 }

@@ -15,14 +15,14 @@
  */
 package com.holonplatform.datastore.jdbc.composer;
 
-import com.holonplatform.core.ExpressionResolver;
+import com.holonplatform.core.ExpressionResolver.ExpressionResolverProvider;
 
 /**
- * TODO
+ * SQL composer base context.
  *
  * @since 5.1.0
  */
-public interface SQLContext {
+public interface SQLContext extends ExpressionResolverProvider {
 
 	/**
 	 * Get the {@link SQLDialect} to use.
@@ -45,7 +45,7 @@ public interface SQLContext {
 	default SQLValueDeserializer getValueDeserializer() {
 		return SQLValueDeserializer.getDefault();
 	}
-	
+
 	/**
 	 * Get the {@link SQLTypeConverter}.
 	 * @return the {@link SQLTypeConverter}
@@ -53,13 +53,6 @@ public interface SQLContext {
 	default SQLTypeConverter getTypeConverter() {
 		return SQLTypeConverter.getDefault();
 	}
-
-	/**
-	 * Get all the registered {@link ExpressionResolver}s.
-	 * @return the registered {@link ExpressionResolver}s iterable
-	 */
-	@SuppressWarnings("rawtypes")
-	Iterable<ExpressionResolver> getExpressionResolvers();
 
 	/**
 	 * Trace given SQL statement.

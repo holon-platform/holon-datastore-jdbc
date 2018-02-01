@@ -13,29 +13,32 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal.context;
+package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
-import java.util.List;
-
-import com.holonplatform.datastore.jdbc.expressions.SQLParameterDefinition;
+import com.holonplatform.core.TypedExpression;
 
 /**
- * Represents a SQL statement prepared to be executed, including any parameter placeholder.
+ * Represents the <code>*</code> expression.
  *
  * @since 5.1.0
  */
-public interface PreparedSql {
+public class WildcardExpression implements TypedExpression<Object> {
 
-	/**
-	 * Get the SQL string
-	 * @return SQL
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.Expression#validate()
 	 */
-	String getSql();
+	@Override
+	public void validate() throws InvalidExpressionException {
+	}
 
-	/**
-	 * Get the parameter definitions.
-	 * @return the parameter definitions in the right sequence
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.TypedExpression#getType()
 	 */
-	List<SQLParameterDefinition> getParameters();
+	@Override
+	public Class<? extends Object> getType() {
+		return Object.class;
+	}
 
 }

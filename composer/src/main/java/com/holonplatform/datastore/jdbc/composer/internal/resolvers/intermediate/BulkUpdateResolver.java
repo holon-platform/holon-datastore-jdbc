@@ -30,6 +30,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterizableExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
@@ -98,7 +99,9 @@ public enum BulkUpdateResolver implements SQLContextExpressionResolver<BulkUpdat
 			TypedExpression<?> pathExpression = pathValues.get(path);
 			if (pathExpression != null) {
 				paths.add(context.resolveOrFail(path, SQLExpression.class).getValue());
-				values.add(context.resolveOrFail(pathExpression, SQLExpression.class).getValue());
+				values.add(
+						context.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
+								.getValue());
 			}
 		}
 

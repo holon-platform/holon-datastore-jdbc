@@ -16,15 +16,27 @@
 package com.holonplatform.datastore.jdbc.internal;
 
 import com.holonplatform.core.Path;
+import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.property.PathPropertySetAdapter.PathMatcher;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 
+/**
+ * A {@link PathMatcher} which uses {@link SQLDialect#getColumnName(String)} to normalize path names and ignores case
+ * when matching path names.
+ * 
+ * @since 5.1.0
+ */
 public class DialectPathMatcher implements PathMatcher {
 
-	private final JdbcDialect dialect;
+	private final SQLDialect dialect;
 
-	public DialectPathMatcher(JdbcDialect dialect) {
+	/**
+	 * Constructor.
+	 * @param dialect SQL dialect (not null)
+	 */
+	public DialectPathMatcher(SQLDialect dialect) {
 		super();
+		ObjectUtils.argumentNotNull(dialect, "Dialect must be not null");
 		this.dialect = dialect;
 	}
 

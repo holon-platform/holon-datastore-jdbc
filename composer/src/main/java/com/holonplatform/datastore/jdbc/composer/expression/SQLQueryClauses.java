@@ -56,4 +56,10 @@ public interface SQLQueryClauses extends Expression {
 	 */
 	Optional<String> getGroupBy();
 
+	/**
+	 * Get the optional {@link SQLProjection} bound to this query clauses expression.
+	 * @return Optional projection
+	 */
+	Optional<SQLProjection<?>> getProjection();
+
 }

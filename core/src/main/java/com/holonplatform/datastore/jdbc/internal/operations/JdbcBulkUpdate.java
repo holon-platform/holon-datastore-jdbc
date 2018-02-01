@@ -23,12 +23,10 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfi
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.expressions.SQLToken;
-import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
-import com.holonplatform.datastore.jdbc.internal.context.PreparedSql;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
+import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
 
 /**
  * JDBC datastore {@link BulkUpdate} implementation.
@@ -55,9 +53,9 @@ public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> impl
 		}
 	};
 
-	private final JdbcStatementExecutionContext executionContext;
+	private final JdbcExecutionContext executionContext;
 
-	public JdbcBulkUpdate(JdbcStatementExecutionContext executionContext) {
+	public JdbcBulkUpdate(JdbcExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}
@@ -78,26 +76,26 @@ public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> impl
 	@Override
 	public OperationResult execute() {
 
-		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext, AliasMode.UNSUPPORTED);
-
-		// add operation specific resolvers
+		// composition context
+		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		final String sql = context.resolveExpression(getConfiguration(), SQLToken.class).getValue();
+		// resolve
+		final SQLStatement statement = context.resolveOrFail(getConfiguration(), SQLStatement.class);
 
-		// prepare SQL
-		final PreparedSql preparedSql = executionContext.prepareSql(sql, context);
-		executionContext.trace(preparedSql.getSql());
+		// trace
+		executionContext.trace(statement.getSql());
 
 		// execute
 		return executionContext.withConnection(c -> {
 
-			try (PreparedStatement stmt = executionContext.createStatement(c, preparedSql)) {
+			try (PreparedStatement stmt = executionContext.prepareStatement(statement, c)) {
 				int count = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(count).build();
 			}
 
 		});
+
 	}
 
 }

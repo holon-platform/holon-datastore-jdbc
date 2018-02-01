@@ -29,9 +29,10 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QuerySort;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.JdbcDialect;
-import com.holonplatform.datastore.jdbc.JdbcOrderBySort;
-import com.holonplatform.datastore.jdbc.JdbcWhereFilter;
+import com.holonplatform.datastore.jdbc.SQLOrderBySort;
+import com.holonplatform.datastore.jdbc.SQLWhereFilter;
+import com.holonplatform.datastore.jdbc.composer.SQLDialect;
+import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
 
@@ -39,11 +40,10 @@ import com.holonplatform.jdbc.DatabasePlatform;
 public class ExampleJdbcDatastore {
 
 	@SuppressWarnings("serial")
-	private class MyDialect implements JdbcDialect {
+	private class MyDialect implements SQLDialect {
 
 		@Override
-		public void init(JdbcDatastore datastore) throws SQLException {
-		}
+		public void init(SQLDialectContext context) throws SQLException {}
 
 		@Override
 		public boolean supportsLikeEscapeClause() {
@@ -59,6 +59,7 @@ public class ExampleJdbcDatastore {
 		public boolean generatedKeyAlwaysReturned() {
 			return false;
 		}
+
 
 	}
 
@@ -113,13 +114,13 @@ public class ExampleJdbcDatastore {
 
 	public void where() {
 		// tag::where[]
-		QueryFilter filter = JdbcWhereFilter.create("name=? and id=?", "TestName", 1); // <1>
+		QueryFilter filter = SQLWhereFilter.create("name=? and id=?", "TestName", 1); // <1>
 		// end::where[]
 	}
 
 	public void orderby() {
 		// tag::orderby[]
-		QuerySort sort = JdbcOrderBySort.create("id asc, name desc"); // <1>
+		QuerySort sort = SQLOrderBySort.create("id asc, name desc"); // <1>
 		// end::orderby[]
 	}
 

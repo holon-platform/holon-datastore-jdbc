@@ -25,8 +25,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
+import com.holonplatform.datastore.jdbc.composer.dialect.H2Dialect;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.dialect.H2Dialect;
 import com.holonplatform.datastore.jdbc.test.config.TestCommodity;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DatabasePlatform;

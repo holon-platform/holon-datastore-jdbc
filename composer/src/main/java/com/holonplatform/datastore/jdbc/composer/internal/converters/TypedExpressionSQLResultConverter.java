@@ -47,12 +47,11 @@ public class TypedExpressionSQLResultConverter<T> implements SQLResultConverter<
 	/**
 	 * Constructor
 	 * @param expression Selection expression (not null)
-	 * @param selection Selection label (not null)
+	 * @param selection Selection label (optional)
 	 */
 	public TypedExpressionSQLResultConverter(TypedExpression<T> expression, String selection) {
 		super();
 		ObjectUtils.argumentNotNull(expression, "Selection expression must be not null");
-		ObjectUtils.argumentNotNull(selection, "Selection label must be not null");
 		this.expression = expression;
 		this.selection = selection;
 	}
@@ -66,10 +65,9 @@ public class TypedExpressionSQLResultConverter<T> implements SQLResultConverter<
 	@Override
 	public T convert(SQLContext context, Provider<Connection> connection, SQLResult result) throws SQLException {
 
-		final Object value = result.getValue(selection);
+		final Object value = (selection != null) ? result.getValue(selection) : result.getValue(1);
 
-		return context.getValueDeserializer().deserialize(connection, expression, value)
-				.orElseThrow(() -> new SQLException("Failed to deserialize value [" + value + "]"));
+		return context.getValueDeserializer().deserialize(connection, expression, value);
 	}
 
 }

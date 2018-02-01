@@ -21,6 +21,7 @@ import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
 import com.holonplatform.core.datastore.transaction.Transactional;
 import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
@@ -85,7 +86,7 @@ public interface JdbcDatastore extends Datastore, Transactional, ConnectionProvi
 		 * @param dialect The dialect to set (not null)
 		 * @return this
 		 */
-		Builder<D> dialect(JdbcDialect dialect);
+		Builder<D> dialect(SQLDialect dialect);
 
 		/**
 		 * Set the fully qualified dialect class name to use as datastore dialect.

@@ -44,14 +44,16 @@ public interface SQLResult {
 	/**
 	 * Get the number of available result values.
 	 * @return the number of available result values
+	 * @throws SQLException If an error occurred
 	 */
-	int getValueCount();
+	int getValueCount() throws SQLException;
 
 	/**
 	 * Get the result value name at given index, if available.
 	 * @param index Result value index, starting from <code>1</code>.
 	 * @return Optional result value name
+	 * @throws SQLException If an error occurred
 	 */
-	Optional<String> getValueName(int index);
+	Optional<String> getValueName(int index) throws SQLException;
 
 }

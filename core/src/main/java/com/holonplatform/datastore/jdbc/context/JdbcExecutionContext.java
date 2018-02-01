@@ -13,23 +13,23 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal.context;
+package com.holonplatform.datastore.jdbc.context;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.function.Supplier;
 
 import com.holonplatform.core.datastore.DatastoreCommodityHandler;
-import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 
 /**
- * JDBC {@link StatementExecutionContext}.
+ * JDBC datastore operations execution context.
  *
  * @since 5.1.0
  */
-public interface JdbcStatementExecutionContext
-		extends StatementExecutionContext, ConnectionProvider, DatastoreCommodityHandler {
+public interface JdbcExecutionContext extends SQLExecutionContext, DatastoreCommodityHandler {
 
 	/**
 	 * Execute given operations using a shared connection.
@@ -40,19 +40,12 @@ public interface JdbcStatementExecutionContext
 	<R> R withSharedConnection(Supplier<R> operations);
 
 	/**
-	 * Get the {@link SQLStatementConfigurator}.
-	 * @return the statement configurator
+	 * Create and configure a {@link PreparedStatement} using given {@link SQLStatement} and connection.
+	 * @param statement SQL statement (not null)
+	 * @param connection Connection (not null)
+	 * @return The JDBC statement
+	 * @throws DataAccessException If an error occurred
 	 */
-	SQLStatementConfigurator<PreparedStatement> getStatementConfigurator();
-
-	/**
-	 * Create a {@link PreparedStatement} using given prepared sql and set any parameter value using the
-	 * {@link SQLStatementConfigurator}.
-	 * @param connection Connection
-	 * @param sql Prepared sql
-	 * @return The configured {@link PreparedStatement}
-	 * @throws SQLException If an error occurred
-	 */
-	PreparedStatement createStatement(Connection connection, PreparedSql sql) throws SQLException;
+	PreparedStatement prepareStatement(SQLStatement statement, Connection connection);
 
 }

@@ -69,7 +69,7 @@ public class DefaultSQLParameter<T> implements SQLParameter<T> {
 	 */
 	@Override
 	public Optional<TemporalType> getTemporalType() {
-		return Optional.of(temporalType);
+		return Optional.ofNullable(temporalType);
 	}
 
 	/*

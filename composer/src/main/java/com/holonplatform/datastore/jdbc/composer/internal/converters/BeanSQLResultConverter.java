@@ -85,8 +85,7 @@ public class BeanSQLResultConverter<T> implements SQLResultConverter<T> {
 			// result value
 			Object value = result.getValue(entry.getKey());
 			// deserialize value
-			Object deserialized = deserializer.deserialize(connection, entry.getValue(), value)
-					.orElseThrow(() -> new SQLException("Failed to deserialize value [" + value + "]"));
+			Object deserialized = deserializer.deserialize(connection, entry.getValue(), value);
 			// write value in bean instance
 			beanPropertySet.write((Path) entry.getValue(), deserialized, instance);
 		}

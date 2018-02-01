@@ -17,6 +17,7 @@ package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
 import java.util.Optional;
 
+import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
 
 /**
@@ -50,6 +51,11 @@ public class DefaultSQLQueryClauses implements SQLQueryClauses {
 	 * GROUP BY clause
 	 */
 	private String groupBy;
+
+	/**
+	 * Projection
+	 */
+	private SQLProjection<?> projection;
 
 	public DefaultSQLQueryClauses() {
 		super();
@@ -138,6 +144,23 @@ public class DefaultSQLQueryClauses implements SQLQueryClauses {
 	 */
 	public void setGroupBy(String groupBy) {
 		this.groupBy = groupBy;
+	}
+
+	/**
+	 * Set the {@link SQLProjection}.
+	 * @param projection the projection to set
+	 */
+	public void setProjection(SQLProjection<?> projection) {
+		this.projection = projection;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses#getProjection()
+	 */
+	@Override
+	public Optional<SQLProjection<?>> getProjection() {
+		return Optional.ofNullable(projection);
 	}
 
 	/*

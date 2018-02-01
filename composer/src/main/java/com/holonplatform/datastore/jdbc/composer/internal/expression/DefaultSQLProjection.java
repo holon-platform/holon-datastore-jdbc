@@ -24,6 +24,7 @@ import java.util.Optional;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
+import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection.MutableSQLProjection;
 
@@ -82,7 +83,7 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 		ObjectUtils.argumentNotNull(projectionType, "Projection type must be not null");
 		ObjectUtils.argumentNotNull(context, "SQLCompositionContext must be not null");
 		this.projectionType = projectionType;
-		this.aliasMainSequence = SQLCompositionContext.getContextSequence(context, SQLCompositionContext.class);
+		this.aliasMainSequence = SQLCompositionContext.getContextSequence(context, SQLStatementCompositionContext.class);
 	}
 
 	/**
@@ -246,9 +247,11 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 			duplicateCount = generatedAlias.get(partialAlias) + 1;
 		}
 		generatedAlias.put(partialAlias, duplicateCount);
-		sb.append("_");
-		sb.append(duplicateCount);
-		sb.append("_");
+
+		if (duplicateCount > 0) {
+			sb.append("_");
+			sb.append(duplicateCount);
+		}
 
 		return sb.toString();
 	}

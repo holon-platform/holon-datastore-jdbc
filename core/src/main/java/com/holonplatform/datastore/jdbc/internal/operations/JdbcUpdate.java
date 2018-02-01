@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.internal.operations;
 
+import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
@@ -22,11 +23,11 @@ import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.datastore.operation.UpdateOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractUpdateOperation;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext;
-import com.holonplatform.datastore.jdbc.internal.expressions.JdbcResolutionContext.AliasMode;
+import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
+import com.holonplatform.datastore.jdbc.internal.PrimaryKeyResolver;
 
 /**
  * JDBC {@link UpdateOperation}.
@@ -53,9 +54,9 @@ public class JdbcUpdate extends AbstractUpdateOperation {
 		}
 	};
 
-	private final JdbcStatementExecutionContext executionContext;
+	private final JdbcExecutionContext executionContext;
 
-	public JdbcUpdate(JdbcStatementExecutionContext executionContext) {
+	public JdbcUpdate(JdbcExecutionContext executionContext) {
 		super();
 		this.executionContext = executionContext;
 	}
@@ -66,12 +67,17 @@ public class JdbcUpdate extends AbstractUpdateOperation {
 	 */
 	@Override
 	public OperationResult execute() {
-
+		
 		// validate
-		getConfiguration().validate();
+		try {
+			getConfiguration().validate();
+		} catch (InvalidExpressionException e) {
+			throw new DataAccessException("Cannot execute operation", e);
+		}
 
-		// resolution context
-		final JdbcResolutionContext context = JdbcResolutionContext.create(executionContext, AliasMode.AUTO);
+		/// composition context
+		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
+		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		return executionContext.withSharedConnection(() -> {
 
@@ -83,8 +89,10 @@ public class JdbcUpdate extends AbstractUpdateOperation {
 
 			// execute using a BulkUpdate
 			return executionContext.create(BulkUpdate.class).target(getConfiguration().getTarget())
-					.withWriteOptions(getConfiguration().getWriteOptions()).set(getConfiguration().getValue())
-					.filter(JdbcOperationUtils.getPrimaryKeyFilter(executionContext.getDialect(), primaryKey,
+					.withWriteOptions(getConfiguration().getWriteOptions())
+					.withExpressionResolvers(getConfiguration().getExpressionResolvers())
+					.set(getConfiguration().getValue())
+					.filter(PrimaryKeyResolver.getPrimaryKeyFilter(executionContext.getDialect(), primaryKey,
 							getConfiguration().getValue()))
 					.execute();
 

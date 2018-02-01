@@ -25,7 +25,19 @@ import com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport;
  *
  * @since 5.1.0
  */
-public interface SQLDialectContext extends SQLContext, ExpressionResolverSupport {
+public interface SQLDialectContext extends ExpressionResolverSupport {
+
+	/**
+	 * Get the {@link SQLValueSerializer} if this context.
+	 * @return The {@link SQLValueSerializer}
+	 */
+	SQLValueSerializer getValueSerializer();
+
+	/**
+	 * Get the {@link SQLValueDeserializer} if this context.
+	 * @return the {@link SQLValueDeserializer}
+	 */
+	SQLValueDeserializer getValueDeserializer();
 
 	/**
 	 * Get the database metadata information, if available.
