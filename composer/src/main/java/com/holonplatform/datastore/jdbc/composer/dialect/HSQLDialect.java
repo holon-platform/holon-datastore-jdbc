@@ -25,7 +25,7 @@ import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 
 /**
@@ -159,7 +159,7 @@ public class HSQLDialect implements SQLDialect {
 	private static final class HSQLLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" offset " + offset + " limit " + limit) : (" limit " + limit));
 		}
 

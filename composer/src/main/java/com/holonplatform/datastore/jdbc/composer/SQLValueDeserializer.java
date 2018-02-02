@@ -15,10 +15,8 @@
  */
 package com.holonplatform.datastore.jdbc.composer;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
-import com.holonplatform.core.Provider;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.jdbc.composer.internal.DefaultSQLValueDeserializer;
 
@@ -33,13 +31,13 @@ public interface SQLValueDeserializer {
 	 * Deserialize the <code>value</code> associated to given <code>expression</code>, to obtain a value type which
 	 * matches the expression type.
 	 * @param <T> Expression type
-	 * @param connection Optional {@link Connection} provider
+	 * @param context Execution context
 	 * @param expression Expression for which the deserialization is invoked
 	 * @param value Value to deserialize
 	 * @return Deserialized value
 	 * @throws SQLException If value cannot be deserialized using given expression type
 	 */
-	<T> T deserialize(Provider<Connection> connection, TypedExpression<T> expression, Object value) throws SQLException;
+	<T> T deserialize(SQLExecutionContext context, TypedExpression<T> expression, Object value) throws SQLException;
 
 	/**
 	 * Add a deserialized value processor.
@@ -63,13 +61,13 @@ public interface SQLValueDeserializer {
 
 		/**
 		 * Process a value to be deserialized.
-		 * @param connection Connection provider
+		 * @param context Execution context
 		 * @param expression Expression for which the deserialization is invoked
 		 * @param value Value to deserialize
 		 * @return Processed value
 		 * @throws SQLException If an error occurred
 		 */
-		Object processValue(Provider<Connection> connection, TypedExpression<?> expression, Object value)
+		Object processValue(SQLExecutionContext context, TypedExpression<?> expression, Object value)
 				throws SQLException;
 
 	}

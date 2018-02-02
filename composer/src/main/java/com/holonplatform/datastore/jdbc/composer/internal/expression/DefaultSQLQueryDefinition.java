@@ -17,15 +17,15 @@ package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
 import java.util.Optional;
 
-import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 
 /**
- * Default {@link SQLQueryClauses}.
+ * Default {@link SQLQueryDefinition}.
  *
  * @since 5.1.0
  */
-public class DefaultSQLQueryClauses implements SQLQueryClauses {
+public class DefaultSQLQueryDefinition implements SQLQueryDefinition {
 
 	/**
 	 * SELECT clause
@@ -53,11 +53,11 @@ public class DefaultSQLQueryClauses implements SQLQueryClauses {
 	private String groupBy;
 
 	/**
-	 * Projection
+	 * Result converter
 	 */
-	private SQLProjection<?> projection;
+	private SQLResultConverter<?> resultConverter;
 
-	public DefaultSQLQueryClauses() {
+	public DefaultSQLQueryDefinition() {
 		super();
 	}
 
@@ -147,20 +147,20 @@ public class DefaultSQLQueryClauses implements SQLQueryClauses {
 	}
 
 	/**
-	 * Set the {@link SQLProjection}.
-	 * @param projection the projection to set
+	 * Set the {@link SQLResultConverter}.
+	 * @param resultConverter the result converter to set
 	 */
-	public void setProjection(SQLProjection<?> projection) {
-		this.projection = projection;
+	public void setResultConverter(SQLResultConverter<?> resultConverter) {
+		this.resultConverter = resultConverter;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses#getProjection()
+	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition#getResultConverter()
 	 */
 	@Override
-	public Optional<SQLProjection<?>> getProjection() {
-		return Optional.ofNullable(projection);
+	public Optional<SQLResultConverter<?>> getResultConverter() {
+		return Optional.ofNullable(resultConverter);
 	}
 
 	/*

@@ -15,25 +15,25 @@
  */
 package com.holonplatform.datastore.jdbc.internal.operations;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.holonplatform.core.Provider;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.internal.query.QueryAdapterQuery;
 import com.holonplatform.core.internal.query.QueryDefinition;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
@@ -89,8 +89,16 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 		context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 
 		// resolve to SQLQuery
-		final SQLQuery<R> query = context.resolveOrFail(queryOperation, SQLQuery.class);
-		
+		final SQLQuery query = context.resolveOrFail(queryOperation, SQLQuery.class);
+
+		// check converter
+		final SQLResultConverter<R> converter = (SQLResultConverter<R>) query.getResultConverter();
+		if (!TypeUtils.isAssignable(converter.getConversionType(), queryOperation.getProjection().getType())) {
+			throw new QueryExecutionException("The query results converter type [" + converter.getConversionType()
+					+ "] is not compatible with the query projection type [" + queryOperation.getProjection().getType()
+					+ "]");
+		}
+
 		// trace
 		executionContext.trace(query.getSql());
 
@@ -98,13 +106,12 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 		return executionContext.withConnection(c -> {
 
 			try (PreparedStatement stmt = executionContext.prepareStatement(query, c)) {
-				final SQLResultConverter<R> converter = query.getResultConverter();
-				final Provider<Connection> connectionProvider = Provider.create(c);
+				final SQLExecutionContext ctx = SQLExecutionContext.create(executionContext, c);
 
 				try (ResultSet resultSet = stmt.executeQuery()) {
-					List<R> rows = new ArrayList<>();
+					final List<R> rows = new ArrayList<>();
 					while (resultSet.next()) {
-						rows.add(converter.convert(context, connectionProvider, ResultSetSQLResult.of(resultSet)));
+						rows.add(converter.convert(ctx, ResultSetSQLResult.of(resultSet)));
 					}
 					return rows.stream();
 				}

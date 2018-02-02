@@ -15,27 +15,45 @@
  */
 package com.holonplatform.datastore.jdbc.composer;
 
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.function.BiFunction;
 
-import com.holonplatform.core.Provider;
+import com.holonplatform.datastore.jdbc.composer.internal.CallbackSQLResultConverter;
 
 /**
- * TODO
+ * Converter to convert a {@link SQLResult} into another result type.
+ * 
+ * @param <R> Conversion result type
  *
  * @since 5.1.0
  */
-@FunctionalInterface
 public interface SQLResultConverter<R> {
 
 	/**
+	 * Get the type into which this converter is able to convert a {@link SQLResult}.
+	 * @return The conversion type
+	 */
+	Class<? extends R> getConversionType();
+
+	/**
 	 * Convert a {@link SQLResult} into expected result type.
-	 * @param context SQL context
-	 * @param connection Optional current JDBC connection
-	 * @param result Result to convert
+	 * @param context SQL execution context
+	 * @param result The result to convert
 	 * @return Converted result
 	 * @throws SQLException If an error occurred
 	 */
-	R convert(SQLContext context, Provider<Connection> connection, SQLResult result) throws SQLException;
+	R convert(SQLExecutionContext context, SQLResult result) throws SQLException;
+
+	/**
+	 * Create a new {@link SQLResultConverter} for given <code>conversionType</code>, using provided {@link BiFunction}
+	 * as result conversion strategy.
+	 * @param conversionType Conversion type (not null)
+	 * @param conversionFunction Conversion function (not null)
+	 * @return A new {@link SQLResultConverter}
+	 */
+	static <R> SQLResultConverter<R> create(Class<? extends R> conversionType,
+			BiFunction<SQLExecutionContext, SQLResult, R> conversionFunction) {
+		return new CallbackSQLResultConverter<>(conversionType, conversionFunction);
+	}
 
 }

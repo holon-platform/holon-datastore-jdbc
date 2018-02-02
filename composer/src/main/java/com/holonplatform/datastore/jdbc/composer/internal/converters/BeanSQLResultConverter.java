@@ -15,16 +15,14 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal.converters;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.holonplatform.core.Path;
-import com.holonplatform.core.Provider;
 import com.holonplatform.core.beans.BeanPropertySet;
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.jdbc.composer.SQLContext;
+import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResult;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
@@ -64,13 +62,22 @@ public class BeanSQLResultConverter<T> implements SQLResultConverter<T> {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLResultConverter#getConversionType()
+	 */
+	@Override
+	public Class<? extends T> getConversionType() {
+		return beanPropertySet.getBeanClass();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see
 	 * com.holonplatform.datastore.jdbc.composer.SQLResultConverter#convert(com.holonplatform.datastore.jdbc.composer.
-	 * SQLContext, com.holonplatform.core.Provider, com.holonplatform.datastore.jdbc.composer.SQLResult)
+	 * SQLExecutionContext, com.holonplatform.datastore.jdbc.composer.SQLResult)
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	@Override
-	public T convert(SQLContext context, Provider<Connection> connection, SQLResult result) throws SQLException {
+	public T convert(SQLExecutionContext context, SQLResult result) throws SQLException {
 
 		final SQLValueDeserializer deserializer = context.getValueDeserializer();
 
@@ -85,9 +92,9 @@ public class BeanSQLResultConverter<T> implements SQLResultConverter<T> {
 			// result value
 			Object value = result.getValue(entry.getKey());
 			// deserialize value
-			Object deserialized = deserializer.deserialize(connection, entry.getValue(), value);
+			Object deserialized = deserializer.deserialize(context, entry.getValue(), value);
 			// write value in bean instance
-			beanPropertySet.write((Path) entry.getValue(), deserialized, instance);
+			beanPropertySet.write((Path<Object>) entry.getValue(), deserialized, instance);
 		}
 
 		return instance;

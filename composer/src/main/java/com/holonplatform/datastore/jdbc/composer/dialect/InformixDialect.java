@@ -22,7 +22,7 @@ import java.util.Optional;
 
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 
 /**
  * Informix {@link SQLDialect}.
@@ -116,7 +116,7 @@ public class InformixDialect implements SQLDialect {
 	private static final class InformixLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset) {
 			return new StringBuilder(serializedSql.length() + 32).append(serializedSql)
 					.insert(serializedSql.toLowerCase(Locale.ROOT).indexOf("select") + 6,
 							(offset > -1) ? "skip " + offset + " first " + limit : " first " + limit)

@@ -18,13 +18,17 @@ package com.holonplatform.datastore.jdbc.composer.expression;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.Expression;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLProjection;
 
 /**
- * TODO
+ * {@link Expression} which represents a SQL query projection, providing the selection labels and an optional
+ * {@link SQLResultConverter}.
+ * 
+ * @param <R> Projection result type
  *
  * @since 5.1.0
  */
@@ -44,10 +48,10 @@ public interface SQLProjection<R> extends TypedExpression<R> {
 	Optional<String> getSelectionAlias(String selection);
 
 	/**
-	 * Get the SQL result converter to be used with this projection.
-	 * @return The projection {@link SQLResultConverter}
+	 * Get the SQL result converter to be used with this projection, if available.
+	 * @return Optional projection {@link SQLResultConverter}
 	 */
-	SQLResultConverter<R> getConverter();
+	Optional<SQLResultConverter<R>> getConverter();
 
 	// builders
 

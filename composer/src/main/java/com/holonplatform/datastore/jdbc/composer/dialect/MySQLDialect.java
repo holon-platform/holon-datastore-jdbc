@@ -21,7 +21,7 @@ import java.util.Optional;
 
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 
 /**
  * MySQL {@link SQLDialect}.
@@ -115,7 +115,7 @@ public class MySQLDialect implements SQLDialect {
 	private static final class MySQLLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" limit " + offset + "," + limit) : (" limit " + limit));
 		}
 

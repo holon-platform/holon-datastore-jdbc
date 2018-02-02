@@ -24,7 +24,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -40,12 +39,12 @@ import java.util.List;
 
 import com.holonplatform.core.ConverterExpression;
 import com.holonplatform.core.ExpressionValueConverter;
-import com.holonplatform.core.Provider;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
+import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
 
 /**
@@ -73,19 +72,19 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer#deserialize(com.holonplatform.core.Provider,
-	 * com.holonplatform.core.TypedExpression, java.lang.Object)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer#deserialize(com.holonplatform.datastore.jdbc.
+	 * composer.SQLExecutionContext, com.holonplatform.core.TypedExpression, java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T deserialize(Provider<Connection> connection, TypedExpression<T> expression,
+	public <T> T deserialize(SQLExecutionContext context, TypedExpression<T> expression,
 			final Object valueToDeserialize) throws SQLException {
 
 		Object value = valueToDeserialize;
 
 		// apply processors
 		for (ValueProcessor processor : valueProcessors) {
-			value = processor.processValue(connection, expression, value);
+			value = processor.processValue(context, expression, value);
 		}
 
 		// null always deserialized as null

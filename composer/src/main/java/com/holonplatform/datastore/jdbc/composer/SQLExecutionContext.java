@@ -15,19 +15,42 @@
  */
 package com.holonplatform.datastore.jdbc.composer;
 
+import java.sql.Connection;
+import java.util.Optional;
+
+import com.holonplatform.datastore.jdbc.composer.internal.DefaultSQLExecutionContext;
+
 /**
- * TODO
+ * SQL operation execution context.
  *
  * @since 5.1.0
  */
-public interface SQLExecutionContext extends SQLContext, ConnectionProvider {
+public interface SQLExecutionContext extends SQLContext {
 
 	/**
-	 * Get the {@link SQLStatementConfigurator}.
-	 * @return the {@link SQLStatementConfigurator}
+	 * Get the {@link Connection} used by current operation execution, if available.
+	 * @return Optional current connection
 	 */
-	default SQLStatementConfigurator getStatementConfigurator() {
-		return SQLStatementConfigurator.getDefault();
+	Optional<Connection> getConnection();
+
+	/**
+	 * Create a new {@link SQLExecutionContext} using given {@link SQLContext} and providing th current
+	 * {@link Connection}.
+	 * @param context SQL context (not null)
+	 * @param connection Operation execution connection
+	 * @return A new {@link SQLExecutionContext}
+	 */
+	static SQLExecutionContext create(SQLContext context, Connection connection) {
+		return new DefaultSQLExecutionContext(context, connection);
+	}
+
+	/**
+	 * Create a new {@link SQLExecutionContext} using given {@link SQLContext}.
+	 * @param context SQL context (not null)
+	 * @return A new {@link SQLExecutionContext}
+	 */
+	static SQLExecutionContext create(SQLContext context) {
+		return new DefaultSQLExecutionContext(context, null);
 	}
 
 }

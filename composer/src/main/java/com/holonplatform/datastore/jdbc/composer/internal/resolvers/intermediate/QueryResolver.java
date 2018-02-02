@@ -23,9 +23,8 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
@@ -67,17 +66,12 @@ public enum QueryResolver implements SQLContextExpressionResolver<QueryOperation
 	 * com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver#resolve(com.holonplatform.core.
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public Optional<SQLQuery> resolve(QueryOperation expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// resolve as SQLQueryClauses
-		final SQLQueryClauses clauses = context.resolveOrFail(expression, SQLQueryClauses.class);
-
-		// check projection
-		final SQLProjection<?> projection = clauses.getProjection()
-				.orElseThrow(() -> new InvalidExpressionException("Missing SQLProjection"));
+		final SQLQueryDefinition clauses = context.resolveOrFail(expression, SQLQueryDefinition.class);
 
 		// serialize query clauses to SQL
 		String sql = context.resolveOrFail(clauses, SQLExpression.class).getValue();
@@ -85,7 +79,7 @@ public enum QueryResolver implements SQLContextExpressionResolver<QueryOperation
 		// prepare SQL
 		SQLStatement preparedSQL = context.prepareStatement(sql);
 		preparedSQL.validate();
-		
+
 		// prepared SQL
 		sql = preparedSQL.getSql();
 
@@ -99,8 +93,10 @@ public enum QueryResolver implements SQLContextExpressionResolver<QueryOperation
 		}
 
 		// build SQLQuery
-		return Optional.of(SQLQuery.create(sql, ((SQLProjection) projection).getType(),
-				((SQLProjection) projection).getConverter(), preparedSQL.getParameters()));
+		return Optional.of(SQLQuery.create(sql,
+				clauses.getResultConverter()
+						.orElseThrow(() -> new InvalidExpressionException("Missing query results converter")),
+				preparedSQL.getParameters()));
 	}
 
 }

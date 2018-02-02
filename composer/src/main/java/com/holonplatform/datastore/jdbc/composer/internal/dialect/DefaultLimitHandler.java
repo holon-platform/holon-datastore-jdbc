@@ -16,7 +16,7 @@
 package com.holonplatform.datastore.jdbc.composer.internal.dialect;
 
 import com.holonplatform.datastore.jdbc.composer.SQLDialect.LimitHandler;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 
 /**
  * Default dialect {@link LimitHandler} implementation.
@@ -31,7 +31,7 @@ public enum DefaultLimitHandler implements LimitHandler {
 	INSTANCE;
 
 	@Override
-	public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
+	public String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset) {
 		return serializedSql + ((offset > -1) ? (" OFFSET  " + offset + " FETCH FIRST " + limit + " ROWS ONLY")
 				: (" FETCH FIRST " + limit + " ROWS ONLY"));
 	}

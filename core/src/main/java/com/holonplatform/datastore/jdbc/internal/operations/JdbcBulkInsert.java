@@ -27,7 +27,6 @@ import java.util.Optional;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
-import com.holonplatform.core.Provider;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
@@ -44,6 +43,7 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
@@ -167,11 +167,12 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 						final PathPropertyBoxAdapter adapter = isBringBackGeneratedIds ? PathPropertyBoxAdapter
 								.builder(singleValue).pathMatcher(generatedKeysPathMatcher).build() : null;
 
+						// TODO
 						// get generated keys
 						try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
 							if (generatedKeys.next()) {
 
-								final Provider<Connection> connectionProvider = Provider.create(c);
+								final SQLExecutionContext ctx = SQLExecutionContext.create(executionContext, c);
 
 								final int columns = generatedKeys.getMetaData().getColumnCount();
 								for (int i = 0; i < keys.length; i++) {
@@ -186,9 +187,8 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 														? (QueryExpression) property
 														: ConstantExpression.create(keyValue);
 												try {
-													adapter.setValue(keyPath,
-															executionContext.getValueDeserializer().deserialize(
-																	connectionProvider, valueExpression, keyValue));
+													adapter.setValue(keyPath, executionContext.getValueDeserializer()
+															.deserialize(ctx, valueExpression, keyValue));
 												} catch (SQLException e) {
 													// TODO
 													throw new RuntimeException(e);

@@ -13,46 +13,37 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.composer.internal.converters;
+package com.holonplatform.datastore.jdbc.composer.internal;
 
 import java.sql.SQLException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
-import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResult;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 
 /**
- * {@link TypedExpression} SQL result converter.
- * 
- * @param <T> Expression type
- * 
- * @since 5.0.0
+ * A {@link SQLResultConverter} implementation which uses a callback {@link Function} to perform actual result
+ * conversion.
+ *
+ * @param <R> Conversion result type
+ *
+ * @since 5.1.0
  */
-public class TypedExpressionSQLResultConverter<T> implements SQLResultConverter<T> {
+public class CallbackSQLResultConverter<R> implements SQLResultConverter<R> {
 
-	/**
-	 * Selection query expression
-	 */
-	private final TypedExpression<T> expression;
+	private final Class<? extends R> conversionType;
+	private final BiFunction<SQLExecutionContext, SQLResult, R> conversionFunction;
 
-	/**
-	 * Selection label
-	 */
-	private final String selection;
-
-	/**
-	 * Constructor
-	 * @param expression Selection expression (not null)
-	 * @param selection Selection label (optional)
-	 */
-	public TypedExpressionSQLResultConverter(TypedExpression<T> expression, String selection) {
+	public CallbackSQLResultConverter(Class<? extends R> conversionType,
+			BiFunction<SQLExecutionContext, SQLResult, R> conversionFunction) {
 		super();
-		ObjectUtils.argumentNotNull(expression, "Expression must be not null");
-		ObjectUtils.argumentNotNull(expression, "Selection expression must be not null");
-		this.expression = expression;
-		this.selection = selection;
+		ObjectUtils.argumentNotNull(conversionType, "Conversion type must be not null");
+		ObjectUtils.argumentNotNull(conversionFunction, "Conversion function must be not null");
+		this.conversionType = conversionType;
+		this.conversionFunction = conversionFunction;
 	}
 
 	/*
@@ -60,8 +51,8 @@ public class TypedExpressionSQLResultConverter<T> implements SQLResultConverter<
 	 * @see com.holonplatform.datastore.jdbc.composer.SQLResultConverter#getConversionType()
 	 */
 	@Override
-	public Class<? extends T> getConversionType() {
-		return expression.getType();
+	public Class<? extends R> getConversionType() {
+		return conversionType;
 	}
 
 	/*
@@ -71,11 +62,8 @@ public class TypedExpressionSQLResultConverter<T> implements SQLResultConverter<
 	 * SQLExecutionContext, com.holonplatform.datastore.jdbc.composer.SQLResult)
 	 */
 	@Override
-	public T convert(SQLExecutionContext context, SQLResult result) throws SQLException {
-
-		final Object value = (selection != null) ? result.getValue(selection) : result.getValue(1);
-
-		return context.getValueDeserializer().deserialize(context, expression, value);
+	public R convert(SQLExecutionContext context, SQLResult result) throws SQLException {
+		return conversionFunction.apply(context, result);
 	}
 
 }

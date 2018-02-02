@@ -24,7 +24,7 @@ import com.holonplatform.core.datastore.relational.SubQuery;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
@@ -71,9 +71,9 @@ public enum SubQueryResolver implements SQLExpressionResolver<SubQuery> {
 			throws InvalidExpressionException {
 
 		// resolve as SQLQueryClauses
-		final SQLQueryClauses clauses = context.resolveOrFail(
+		final SQLQueryDefinition clauses = context.resolveOrFail(
 				QueryOperation.create(expression.getQueryConfiguration(), expression.getSelection()),
-				SQLQueryClauses.class);
+				SQLQueryDefinition.class);
 
 		// serialize query
 		return context.resolve(clauses, SQLExpression.class);

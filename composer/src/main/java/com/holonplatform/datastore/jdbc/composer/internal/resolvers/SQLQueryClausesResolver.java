@@ -20,15 +20,15 @@ import java.util.Optional;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
- * {@link SQLQueryClauses} resolver.
+ * {@link SQLQueryDefinition} resolver.
  *
  * @since 5.1.0
  */
-public enum SQLQueryClausesResolver implements SQLExpressionResolver<SQLQueryClauses> {
+public enum SQLQueryClausesResolver implements SQLExpressionResolver<SQLQueryDefinition> {
 
 	/**
 	 * Singleton instance
@@ -40,8 +40,8 @@ public enum SQLQueryClausesResolver implements SQLExpressionResolver<SQLQueryCla
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends SQLQueryClauses> getExpressionType() {
-		return SQLQueryClauses.class;
+	public Class<? extends SQLQueryDefinition> getExpressionType() {
+		return SQLQueryDefinition.class;
 	}
 
 	/*
@@ -51,7 +51,7 @@ public enum SQLQueryClausesResolver implements SQLExpressionResolver<SQLQueryCla
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(SQLQueryClauses expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(SQLQueryDefinition expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate

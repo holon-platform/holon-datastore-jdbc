@@ -30,7 +30,7 @@ import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 
@@ -191,7 +191,7 @@ public class DerbyDialect implements SQLDialect {
 	private static final class DerbyLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" OFFSET " + offset + " ROWS FETCH NEXT " + limit + " ROWS ONLY")
 					: (" FETCH FIRST " + limit + " ROWS ONLY"));
 		}

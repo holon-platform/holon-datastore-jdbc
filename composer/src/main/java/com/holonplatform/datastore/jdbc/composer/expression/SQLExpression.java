@@ -16,28 +16,28 @@
 package com.holonplatform.datastore.jdbc.composer.expression;
 
 import com.holonplatform.core.Expression;
-import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLToken;
+import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLExpression;
 
 /**
- * Represents a SQL expression.
+ * Represents a SQL expression, i.e. a SQL statement part.
  * 
- * @since 5.0.0
+ * @since 5.1.0
  */
 public interface SQLExpression extends Expression {
 
 	/**
-	 * Get the SQL token {@link String} representation.
-	 * @return SQL token value
+	 * Get the SQL representation.
+	 * @return SQL value
 	 */
 	String getValue();
 
 	/**
 	 * Create a new {@link SQLExpression} with given value.
-	 * @param value SQL token value
+	 * @param value SQL value
 	 * @return A new {@link SQLExpression} with given value
 	 */
 	static SQLExpression create(String value) {
-		return new DefaultSQLToken(value);
+		return new DefaultSQLExpression(value);
 	}
 
 }

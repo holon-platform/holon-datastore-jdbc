@@ -15,16 +15,15 @@
  */
 package com.holonplatform.datastore.jdbc.composer.dialect;
 
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
-import com.holonplatform.core.Provider;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
+import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer.ValueProcessor;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 
 import oracle.jdbc.OracleConnection;
 import oracle.sql.TIMESTAMP;
@@ -133,7 +132,7 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	private static final class OracleLimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset) {
 			int maxRows = (offset > -1) ? limit + offset : limit;
 			final StringBuilder sb = new StringBuilder(serializedSql.length() + 100);
 			if (offset > -1) {
@@ -160,7 +159,7 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	private static final class Oracle12LimitHandler implements LimitHandler {
 
 		@Override
-		public String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset) {
+		public String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" OFFSET " + offset + " ROWS FETCH NEXT " + limit + " ROWS ONLY")
 					: (" FETCH FIRST " + limit + " ROWS ONLY"));
 		}
@@ -170,15 +169,15 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	private static final class OracleValueDeserializer implements ValueProcessor {
 
 		@Override
-		public Object processValue(Provider<Connection> connection, TypedExpression<?> expression, Object value)
+		public Object processValue(SQLExecutionContext context, TypedExpression<?> expression, Object value)
 				throws SQLException {
 			if (value != null) {
 				// Oracle TIMESTAMP
 				if (TIMESTAMP.class.isAssignableFrom(value.getClass())) {
 					return ((TIMESTAMP) value).timestampValue();
 				}
-				if (TIMESTAMPTZ.class.isAssignableFrom(value.getClass()) && connection.get().isPresent()) {
-					return TIMESTAMPTZ.toTimestamp(connection.get().get().unwrap(OracleConnection.class),
+				if (TIMESTAMPTZ.class.isAssignableFrom(value.getClass()) && context.getConnection().isPresent()) {
+					return TIMESTAMPTZ.toTimestamp(context.getConnection().get().unwrap(OracleConnection.class),
 							((TIMESTAMPTZ) value).toBytes());
 				}
 			}

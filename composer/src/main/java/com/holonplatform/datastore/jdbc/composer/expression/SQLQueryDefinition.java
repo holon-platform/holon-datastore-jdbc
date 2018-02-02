@@ -18,13 +18,14 @@ package com.holonplatform.datastore.jdbc.composer.expression;
 import java.util.Optional;
 
 import com.holonplatform.core.Expression;
+import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 
 /**
- * SQL query clauses expression.
+ * SQL query definition expression.
  * 
  * @since 5.0.0
  */
-public interface SQLQueryClauses extends Expression {
+public interface SQLQueryDefinition extends Expression {
 
 	/**
 	 * Get the <code>SELECT</code> clause.
@@ -57,9 +58,9 @@ public interface SQLQueryClauses extends Expression {
 	Optional<String> getGroupBy();
 
 	/**
-	 * Get the optional {@link SQLProjection} bound to this query clauses expression.
-	 * @return Optional projection
+	 * Get the optional {@link SQLResultConverter}.
+	 * @return Optional query result converter
 	 */
-	Optional<SQLProjection<?>> getProjection();
+	Optional<SQLResultConverter<?>> getResultConverter();
 
 }

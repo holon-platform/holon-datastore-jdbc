@@ -15,55 +15,37 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
-import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
 
 /**
  * Default {@link SQLQuery} implementation.
- * 
- * @param <T> Query result type
  *
  * @since 5.1.0
  */
-public class DefaultSQLQuery<T> extends DefaultSQLStatement implements SQLQuery<T> {
+public class DefaultSQLQuery extends DefaultSQLStatement implements SQLQuery {
 
-	private final Class<? extends T> resultType;
-	private final SQLResultConverter<T> resultConverter;
+	private final SQLResultConverter<?> resultConverter;
 
 	/**
 	 * Constructor
 	 * @param sql SQL statement (not null)
-	 * @param resultType Query result type (not null)
 	 * @param resultConverter Query result converter
 	 */
-	public DefaultSQLQuery(String sql, Class<? extends T> resultType, SQLResultConverter<T> resultConverter) {
-		this(sql, resultType, resultConverter, new SQLParameter[0]);
+	public DefaultSQLQuery(String sql, SQLResultConverter<?> resultConverter) {
+		this(sql, resultConverter, new SQLParameter[0]);
 	}
 
 	/**
 	 * Constructor
 	 * @param sql SQL statement (not null)
-	 * @param resultType Query result type (not null)
 	 * @param resultConverter Query result converter
 	 * @param parameters SQL statement parameters
 	 */
-	public DefaultSQLQuery(String sql, Class<? extends T> resultType, SQLResultConverter<T> resultConverter,
-			SQLParameter<?>[] parameters) {
+	public DefaultSQLQuery(String sql, SQLResultConverter<?> resultConverter, SQLParameter<?>[] parameters) {
 		super(sql, parameters);
-		ObjectUtils.argumentNotNull(resultType, "Result type must be not null");
-		this.resultType = resultType;
 		this.resultConverter = resultConverter;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.TypedExpression#getType()
-	 */
-	@Override
-	public Class<? extends T> getType() {
-		return resultType;
 	}
 
 	/*
@@ -71,7 +53,7 @@ public class DefaultSQLQuery<T> extends DefaultSQLStatement implements SQLQuery<
 	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLQuery#getResultConverter()
 	 */
 	@Override
-	public SQLResultConverter<T> getResultConverter() {
+	public SQLResultConverter<?> getResultConverter() {
 		return resultConverter;
 	}
 

@@ -15,12 +15,13 @@
  */
 package com.holonplatform.datastore.jdbc.composer.expression;
 
+import com.holonplatform.core.Expression;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLLiteral;
 
 /**
- * SQL literal value.
+ * {@link Expression} which represents a SQL literal value.
  * 
  * @param <T> Value type
  *
@@ -29,8 +30,8 @@ import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLL
 public interface SQLLiteral<T> extends TypedExpression<T> {
 
 	/**
-	 * Get the parameter value
-	 * @return the parameter value
+	 * Get the value which has to be represented as a SQL literal.
+	 * @return the literal value
 	 */
 	T getValue();
 

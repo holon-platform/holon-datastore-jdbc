@@ -22,7 +22,7 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
  *
  * @since 5.0.0
  */
-public class DefaultSQLToken implements SQLExpression {
+public class DefaultSQLExpression implements SQLExpression {
 
 	/**
 	 * SQL value
@@ -33,7 +33,7 @@ public class DefaultSQLToken implements SQLExpression {
 	 * Constructor.
 	 * @param value SQL value
 	 */
-	public DefaultSQLToken(String value) {
+	public DefaultSQLExpression(String value) {
 		super();
 		this.value = value;
 	}

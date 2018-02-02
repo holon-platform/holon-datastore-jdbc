@@ -21,7 +21,9 @@ import java.util.function.Supplier;
 
 import com.holonplatform.core.datastore.DatastoreCommodityHandler;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
+import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.datastore.jdbc.composer.SQLContext;
+import com.holonplatform.datastore.jdbc.composer.SQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 
 /**
@@ -29,7 +31,7 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
  *
  * @since 5.1.0
  */
-public interface JdbcExecutionContext extends SQLExecutionContext, DatastoreCommodityHandler {
+public interface JdbcExecutionContext extends SQLContext, ConnectionProvider, DatastoreCommodityHandler {
 
 	/**
 	 * Execute given operations using a shared connection.
@@ -38,6 +40,14 @@ public interface JdbcExecutionContext extends SQLExecutionContext, DatastoreComm
 	 * @return Operation result
 	 */
 	<R> R withSharedConnection(Supplier<R> operations);
+
+	/**
+	 * Get the {@link SQLStatementConfigurator}.
+	 * @return the {@link SQLStatementConfigurator}
+	 */
+	default SQLStatementConfigurator getStatementConfigurator() {
+		return SQLStatementConfigurator.getDefault();
+	}
 
 	/**
 	 * Create and configure a {@link PreparedStatement} using given {@link SQLStatement} and connection.

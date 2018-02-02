@@ -28,12 +28,12 @@ import com.holonplatform.datastore.jdbc.composer.internal.expression.ExtractSQLF
 /**
  * {@link Expression} which represents a SQL function.
  * 
- * @since 5.0.0
+ * @since 5.1.0
  */
 public interface SQLFunction extends Expression {
 
 	/**
-	 * Serialize the function as SQL
+	 * Serialize the function as SQL.
 	 * @param arguments Optional function arguments
 	 * @return Serialized function
 	 * @throws InvalidExpressionException If the function arguments are not valid
@@ -41,7 +41,7 @@ public interface SQLFunction extends Expression {
 	String serialize(List<String> arguments) throws InvalidExpressionException;
 
 	/**
-	 * Serialize the function as SQL
+	 * Serialize the function as SQL.
 	 * @param arguments Function arguments
 	 * @return Serialized function
 	 */

@@ -15,24 +15,21 @@
  */
 package com.holonplatform.datastore.jdbc.composer.expression;
 
-import com.holonplatform.core.TypedExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLQuery;
 
 /**
  * SQL query expression.
- * 
- * @param <T> Query result type
  *
  * @since 5.1.0
  */
-public interface SQLQuery<T> extends SQLStatement, TypedExpression<T> {
+public interface SQLQuery extends SQLStatement {
 
 	/**
 	 * Get the SQL result converter to be used with this query.
 	 * @return The query {@link SQLResultConverter}
 	 */
-	SQLResultConverter<T> getResultConverter();
+	SQLResultConverter<?> getResultConverter();
 
 	/**
 	 * Create a new {@link SQLQuery}.
@@ -42,9 +39,8 @@ public interface SQLQuery<T> extends SQLStatement, TypedExpression<T> {
 	 * @param parameters SQL statement parameters
 	 * @return A new {@link SQLQuery}
 	 */
-	static <T> SQLQuery<T> create(String sql, Class<? extends T> resultType, SQLResultConverter<T> resultConverter,
-			SQLParameter<?>[] parameters) {
-		return new DefaultSQLQuery<>(sql, resultType, resultConverter, parameters);
+	static SQLQuery create(String sql, SQLResultConverter<?> resultConverter, SQLParameter<?>[] parameters) {
+		return new DefaultSQLQuery(sql, resultConverter, parameters);
 	}
 
 	/**
@@ -54,8 +50,8 @@ public interface SQLQuery<T> extends SQLStatement, TypedExpression<T> {
 	 * @param resultConverter Query result converter
 	 * @return A new {@link SQLQuery}
 	 */
-	static <T> SQLQuery<T> create(String sql, Class<? extends T> resultType, SQLResultConverter<T> resultConverter) {
-		return new DefaultSQLQuery<>(sql, resultType, resultConverter);
+	static SQLQuery create(String sql, SQLResultConverter<?> resultConverter) {
+		return new DefaultSQLQuery(sql, resultConverter);
 	}
 
 }

@@ -83,7 +83,8 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 		ObjectUtils.argumentNotNull(projectionType, "Projection type must be not null");
 		ObjectUtils.argumentNotNull(context, "SQLCompositionContext must be not null");
 		this.projectionType = projectionType;
-		this.aliasMainSequence = SQLCompositionContext.getContextSequence(context, SQLStatementCompositionContext.class);
+		this.aliasMainSequence = SQLCompositionContext.getContextSequence(context,
+				SQLStatementCompositionContext.class);
 	}
 
 	/**
@@ -141,8 +142,8 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLProjection#getConverter()
 	 */
 	@Override
-	public SQLResultConverter<R> getConverter() {
-		return converter;
+	public Optional<SQLResultConverter<R>> getConverter() {
+		return Optional.ofNullable(converter);
 	}
 
 	/*

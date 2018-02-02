@@ -29,18 +29,18 @@ import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
-import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.expression.DefaultSQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
- * {@link QueryOperation} to {@link SQLQueryClauses} resolver.
+ * {@link QueryOperation} to {@link SQLQueryDefinition} resolver.
  *
  * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum QueryOperationClausesResolver implements SQLContextExpressionResolver<QueryOperation, SQLQueryClauses> {
+public enum QueryOperationClausesResolver implements SQLContextExpressionResolver<QueryOperation, SQLQueryDefinition> {
 
 	/**
 	 * Singleton instance.
@@ -61,8 +61,8 @@ public enum QueryOperationClausesResolver implements SQLContextExpressionResolve
 	 * @see com.holonplatform.core.ExpressionResolver#getResolvedType()
 	 */
 	@Override
-	public Class<? extends SQLQueryClauses> getResolvedType() {
-		return SQLQueryClauses.class;
+	public Class<? extends SQLQueryDefinition> getResolvedType() {
+		return SQLQueryDefinition.class;
 	}
 
 	/*
@@ -72,16 +72,16 @@ public enum QueryOperationClausesResolver implements SQLContextExpressionResolve
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLQueryClauses> resolve(QueryOperation expression, SQLCompositionContext context)
+	public Optional<SQLQueryDefinition> resolve(QueryOperation expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
-		
+
 		// validate
 		expression.validate();
 
 		final QueryConfiguration configuration = expression.getConfiguration();
 
 		// build query clauses
-		final DefaultSQLQueryClauses clauses = new DefaultSQLQueryClauses();
+		final DefaultSQLQueryDefinition clauses = new DefaultSQLQueryDefinition();
 
 		// check and resolve target
 		RelationalTarget<?> target = context.resolveOrFail(
@@ -119,8 +119,10 @@ public enum QueryOperationClausesResolver implements SQLContextExpressionResolve
 		clauses.setSelect(projection.getSelection().stream()
 				.map(s -> s + projection.getSelectionAlias(s).map(a -> " AS " + a).orElse(""))
 				.collect(Collectors.joining(", ")));
-		// set projection
-		clauses.setProjection(projection);
+		// set converter
+		projection.getConverter().ifPresent(rc -> {
+			clauses.setResultConverter(rc);
+		});
 
 		return Optional.of(clauses);
 	}

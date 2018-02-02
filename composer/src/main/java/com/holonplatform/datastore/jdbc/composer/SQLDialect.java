@@ -35,7 +35,7 @@ import com.holonplatform.datastore.jdbc.composer.dialect.PostgreSQLDialect;
 import com.holonplatform.datastore.jdbc.composer.dialect.SQLServerDialect;
 import com.holonplatform.datastore.jdbc.composer.dialect.SQLiteDialect;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryClauses;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DefaultLimitHandler;
 import com.holonplatform.jdbc.DatabasePlatform;
 
@@ -184,7 +184,7 @@ public interface SQLDialect extends Serializable {
 		 * @param offset Offset to use
 		 * @return Modified SQL query
 		 */
-		String limitResults(SQLQueryClauses query, String serializedSql, int limit, int offset);
+		String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset);
 
 	}
 
