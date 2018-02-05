@@ -58,7 +58,9 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 				.withInitScriptResource("h2/schema.sql").withInitScriptResource("h2/data.sql").build();
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
-				.withExpressionResolver(new IfNullFunctionResolver()).traceEnabled(true).build();
+				.withExpressionResolver(new IfNullFunctionResolver())
+				//.traceEnabled(true)
+				.build();
 
 		ms = System.currentTimeMillis();
 	}

@@ -24,7 +24,7 @@ import com.holonplatform.core.datastore.operation.InsertOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsertOperation;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 
 /**
  * JDBC {@link InsertOperation}.
@@ -51,11 +51,11 @@ public class JdbcInsert extends AbstractInsertOperation {
 		}
 	};
 
-	private final JdbcExecutionContext executionContext;
+	private final JdbcOperationContext operationContext;
 
-	public JdbcInsert(JdbcExecutionContext executionContext) {
+	public JdbcInsert(JdbcOperationContext operationContext) {
 		super();
-		this.executionContext = executionContext;
+		this.operationContext = operationContext;
 	}
 
 	/*
@@ -73,7 +73,7 @@ public class JdbcInsert extends AbstractInsertOperation {
 		}
 		
 		// execute using a BulkInsert
-		return executionContext.create(BulkInsert.class).target(getConfiguration().getTarget())
+		return operationContext.create(BulkInsert.class).target(getConfiguration().getTarget())
 				.operationPaths(getConfiguration().getValue()).withWriteOptions(getConfiguration().getWriteOptions())
 				.withExpressionResolvers(getConfiguration().getExpressionResolvers())
 				.singleValue(getConfiguration().getValue()).execute();

@@ -20,7 +20,7 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 import com.holonplatform.jdbc.DatabasePlatform;
 
 /**
@@ -28,7 +28,7 @@ import com.holonplatform.jdbc.DatabasePlatform;
  *
  * @since 5.0.0
  */
-public interface JdbcDatastoreCommodityContext extends JdbcExecutionContext, DatastoreCommodityContext {
+public interface JdbcDatastoreCommodityContext extends JdbcOperationContext, DatastoreCommodityContext {
 
 	/**
 	 * Get the {@link DataSource} bound to the datastore.

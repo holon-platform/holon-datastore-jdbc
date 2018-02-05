@@ -25,7 +25,6 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfi
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.internal.query.QueryAdapterQuery;
 import com.holonplatform.core.internal.query.QueryDefinition;
-import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryAdapter;
@@ -37,7 +36,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 
 /**
  * JDBC {@link QueryAdapter}.
@@ -61,19 +60,11 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 		}
 	};
 
-	/**
-	 * Execution context
-	 */
-	private final JdbcExecutionContext executionContext;
+	private final JdbcOperationContext operationContext;
 
-	/**
-	 * Constructor
-	 * @param executionContext Execution context
-	 */
-	public JdbcQuery(JdbcExecutionContext executionContext) {
+	public JdbcQuery(JdbcOperationContext operationContext) {
 		super();
-		ObjectUtils.argumentNotNull(executionContext, "Execution context must be not null");
-		this.executionContext = executionContext;
+		this.operationContext = operationContext;
 	}
 
 	/*
@@ -85,7 +76,7 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws QueryExecutionException {
 
 		/// composition context
-		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
+		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 
 		// resolve to SQLQuery
@@ -100,13 +91,13 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 		}
 
 		// trace
-		executionContext.trace(query.getSql());
+		operationContext.trace(query.getSql());
 
 		// execute
-		return executionContext.withConnection(c -> {
+		return operationContext.withConnection(c -> {
 
-			try (PreparedStatement stmt = executionContext.prepareStatement(query, c)) {
-				final SQLExecutionContext ctx = SQLExecutionContext.create(executionContext, c);
+			try (PreparedStatement stmt = operationContext.prepareStatement(query, c)) {
+				final SQLExecutionContext ctx = SQLExecutionContext.create(operationContext, c);
 
 				try (ResultSet resultSet = stmt.executeQuery()) {
 					final List<R> rows = new ArrayList<>();

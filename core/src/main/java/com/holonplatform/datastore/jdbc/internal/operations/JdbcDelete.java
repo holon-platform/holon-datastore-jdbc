@@ -26,8 +26,7 @@ import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperati
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
-import com.holonplatform.datastore.jdbc.internal.PrimaryKeyResolver;
+import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 
 /**
  * JDBC {@link DeleteOperation}.
@@ -54,11 +53,11 @@ public class JdbcDelete extends AbstractDeleteOperation {
 		}
 	};
 
-	private final JdbcExecutionContext executionContext;
+	private final JdbcOperationContext operationContext;
 
-	public JdbcDelete(JdbcExecutionContext executionContext) {
+	public JdbcDelete(JdbcOperationContext operationContext) {
 		super();
-		this.executionContext = executionContext;
+		this.operationContext = operationContext;
 	}
 
 	/*
@@ -76,22 +75,21 @@ public class JdbcDelete extends AbstractDeleteOperation {
 		}
 
 		// composition context
-		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
+		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		return executionContext.withSharedConnection(() -> {
+		return operationContext.withSharedConnection(() -> {
 
 			// resolve primary key
-			final SQLPrimaryKey primaryKey = context
-					.resolve(getConfiguration().getTarget(), SQLPrimaryKey.class, context)
+			final SQLPrimaryKey primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class, context)
 					.orElseThrow(() -> new DataAccessException(
-							"Cannot obtain the primary key for target [" + getConfiguration().getTarget() + "]"));
+							"Cannot obtain the primary key to use for operation [" + getConfiguration() + "]"));
 
 			// execute using a BulkDelete
-			return executionContext.create(BulkDelete.class).target(getConfiguration().getTarget())
+			return operationContext.create(BulkDelete.class).target(getConfiguration().getTarget())
 					.withWriteOptions(getConfiguration().getWriteOptions())
 					.withExpressionResolvers(getConfiguration().getExpressionResolvers())
-					.filter(PrimaryKeyResolver.getPrimaryKeyFilter(executionContext.getDialect(), primaryKey,
+					.filter(JdbcOperationUtils.getPrimaryKeyFilter(operationContext.getDialect(), primaryKey,
 							getConfiguration().getValue()))
 					.execute();
 

@@ -27,9 +27,8 @@ import com.holonplatform.core.query.Query;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 import com.holonplatform.datastore.jdbc.internal.DialectPathMatcher;
-import com.holonplatform.datastore.jdbc.internal.PrimaryKeyResolver;
 
 /**
  * JDBC {@link RefreshOperation}.
@@ -56,11 +55,11 @@ public class JdbcRefresh extends AbstractRefreshOperation {
 		}
 	};
 
-	private final JdbcExecutionContext executionContext;
+	private final JdbcOperationContext operationContext;
 
-	public JdbcRefresh(JdbcExecutionContext executionContext) {
+	public JdbcRefresh(JdbcOperationContext operationContext) {
 		super();
-		this.executionContext = executionContext;
+		this.operationContext = operationContext;
 	}
 
 	/*
@@ -78,20 +77,19 @@ public class JdbcRefresh extends AbstractRefreshOperation {
 		}
 
 		// composition context
-		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
+		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		return executionContext.withSharedConnection(() -> {
+		return operationContext.withSharedConnection(() -> {
 
 			// resolve primary key
-			final SQLPrimaryKey primaryKey = context
-					.resolve(getConfiguration().getTarget(), SQLPrimaryKey.class, context)
+			final SQLPrimaryKey primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class, context)
 					.orElseThrow(() -> new DataAccessException(
-							"Cannot obtain the primary key for target [" + getConfiguration().getTarget() + "]"));
+							"Cannot obtain the primary key to use for operation [" + getConfiguration() + "]"));
 
 			// execute using Query
-			return executionContext.create(Query.class).target(getConfiguration().getTarget())
-					.filter(PrimaryKeyResolver.getPrimaryKeyFilter(executionContext.getDialect(), primaryKey,
+			return operationContext.create(Query.class).target(getConfiguration().getTarget())
+					.filter(JdbcOperationUtils.getPrimaryKeyFilter(operationContext.getDialect(), primaryKey,
 							getConfiguration().getValue()))
 					.findOne(getConfiguration().getValue())
 					.orElseThrow(() -> new DataAccessException("No data found for primary key ["
@@ -103,7 +101,7 @@ public class JdbcRefresh extends AbstractRefreshOperation {
 	private String printPrimaryKey(SQLPrimaryKey primaryKey, PropertyBox value) {
 
 		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(value)
-				.pathMatcher(new DialectPathMatcher(executionContext.getDialect())).build();
+				.pathMatcher(new DialectPathMatcher(operationContext.getDialect())).build();
 
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < primaryKey.getPaths().length; i++) {

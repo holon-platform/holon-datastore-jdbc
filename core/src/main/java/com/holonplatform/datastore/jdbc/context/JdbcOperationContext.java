@@ -25,13 +25,20 @@ import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 
 /**
  * JDBC datastore operations execution context.
  *
  * @since 5.1.0
  */
-public interface JdbcExecutionContext extends SQLContext, ConnectionProvider, DatastoreCommodityHandler {
+public interface JdbcOperationContext extends SQLContext, ConnectionProvider, DatastoreCommodityHandler {
+
+	/**
+	 * Get the {@link IdentifierResolutionStrategy}.
+	 * @return the identifier resolution strategy
+	 */
+	IdentifierResolutionStrategy getIdentifierResolutionStrategy();
 
 	/**
 	 * Execute given operations using a shared connection.

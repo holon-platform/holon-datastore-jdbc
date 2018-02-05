@@ -20,8 +20,10 @@ import javax.sql.DataSource;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
 import com.holonplatform.core.datastore.transaction.Transactional;
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
@@ -116,6 +118,18 @@ public interface JdbcDatastore extends Datastore, Transactional, ConnectionProvi
 		 * @return this
 		 */
 		Builder<D> connectionHandler(JdbcConnectionHandler connectionHandler);
+
+		/**
+		 * Set the {@link IdentifierResolutionStrategy}.
+		 * <p>
+		 * The identifier resolution strategy is used by the datastore to perform operations which involve a
+		 * {@link PropertyBox} and for which the {@link PropertyBox} identifier properties are required to match the
+		 * {@link PropertyBox} data with the database table primary key.
+		 * </p>
+		 * @param identifierResolutionStrategy The identifier resolution strategy to set (not null)
+		 * @return this
+		 */
+		Builder<D> identifierResolutionStrategy(IdentifierResolutionStrategy identifierResolutionStrategy);
 
 	}
 

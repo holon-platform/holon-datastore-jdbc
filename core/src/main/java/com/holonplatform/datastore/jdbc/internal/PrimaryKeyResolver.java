@@ -21,7 +21,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -32,15 +31,9 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.core.property.PathPropertyBoxAdapter;
-import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
-import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLType;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
@@ -119,6 +112,13 @@ public class PrimaryKeyResolver implements SQLContextExpressionResolver<DataTarg
 		return getPrimaryKeyFromDatabaseMetadata(context, target.getName());
 	}
 
+	/**
+	 * Get the table primary key from JDBC database metedata.
+	 * @param context SQL context
+	 * @param tableName The name of the table for which to obtain the primary key
+	 * @return The table primary key as a {@link SQLPrimaryKey}, if available
+	 * @throws InvalidExpressionException If an error occurred
+	 */
 	private Optional<SQLPrimaryKey> getPrimaryKeyFromDatabaseMetadata(SQLContext context, String tableName)
 			throws InvalidExpressionException {
 		if (tableName == null) {
@@ -158,6 +158,16 @@ public class PrimaryKeyResolver implements SQLContextExpressionResolver<DataTarg
 
 	}
 
+	/**
+	 * Get the Java type which corresponds to the JDBC type of the column with given <code>columnName</code> of the
+	 * provided <code>tableName</code>.
+	 * @param context SQL context
+	 * @param databaseMetaData Database metadata
+	 * @param tableName Table name
+	 * @param columnName Column name
+	 * @return The Java type which corresponds to the JDBC type of given column
+	 * @throws SQLException If an error occurred or the Java type of given column cannot be resolved
+	 */
 	private static Class<?> getColumnType(SQLContext context, DatabaseMetaData databaseMetaData, String tableName,
 			String columnName) throws SQLException {
 		try (ResultSet rs = databaseMetaData.getColumns(null, null, tableName, columnName)) {
@@ -166,7 +176,8 @@ public class PrimaryKeyResolver implements SQLContextExpressionResolver<DataTarg
 						.orElse(Object.class);
 			}
 		}
-		return null;
+		throw new SQLException(
+				"Failed to obtain the Java type for the column [" + columnName + "] of the table [" + tableName + "]");
 	}
 
 	/**
@@ -182,38 +193,6 @@ public class PrimaryKeyResolver implements SQLContextExpressionResolver<DataTarg
 			return ((Short) sequence).compareTo(o.sequence);
 		}
 
-	}
-
-	// -------
-
-	/**
-	 * Get the {@link QueryFilter} to select the row which corresponds to given <code>primaryKey</code> using the
-	 * primary key values provided by given {@link PropertyBox}.
-	 * @param dialect Dialect to perform path-property matching (not null)
-	 * @param primaryKey Primary keys (not null)
-	 * @param propertyBox Primary key values (not null)
-	 * @return The primary key filter
-	 * @throws DataAccessException If a primary key path has no value correspondence in given PropertyBox
-	 */
-	@SuppressWarnings("unchecked")
-	public static QueryFilter getPrimaryKeyFilter(SQLDialect dialect, SQLPrimaryKey primaryKey,
-			PropertyBox propertyBox) {
-		ObjectUtils.argumentNotNull(primaryKey, "Primary key must be not null");
-		ObjectUtils.argumentNotNull(propertyBox, "Primary key values must be not null");
-
-		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(propertyBox)
-				.pathMatcher(new DialectPathMatcher(dialect)).build();
-
-		List<QueryFilter> filters = new LinkedList<>();
-		for (Path path : primaryKey.getPaths()) {
-			Optional<Object> value = adapter.getValue(path);
-			if (!value.isPresent()) {
-				throw new DataAccessException("Primary key path [" + path + "] value not available in PropertyBox");
-			}
-			filters.add(QueryFilter.eq(path, value.get()));
-		}
-		return QueryFilter.allOf(filters)
-				.orElseThrow(() -> new DataAccessException("Invalid table primary key: no paths available"));
 	}
 
 }

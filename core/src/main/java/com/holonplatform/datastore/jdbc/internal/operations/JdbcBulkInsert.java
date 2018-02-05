@@ -48,7 +48,7 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 import com.holonplatform.datastore.jdbc.internal.DialectPathMatcher;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 
@@ -79,16 +79,15 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 
 	private static final Logger LOGGER = JdbcDatastoreLogger.create();
 
-	private final JdbcExecutionContext executionContext;
+	private final JdbcOperationContext operationContext;
+	private final PathMatcher generatedKeysPathMatcher;
 
 	private PropertyBox singleValue;
 
-	private final PathMatcher generatedKeysPathMatcher;
-
-	public JdbcBulkInsert(JdbcExecutionContext executionContext) {
+	public JdbcBulkInsert(JdbcOperationContext operationContext) {
 		super();
-		this.executionContext = executionContext;
-		this.generatedKeysPathMatcher = new DialectPathMatcher(executionContext.getDialect());
+		this.operationContext = operationContext;
+		this.generatedKeysPathMatcher = new DialectPathMatcher(operationContext.getDialect());
 	}
 
 	/*
@@ -119,14 +118,14 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 	public OperationResult execute() {
 
 		// composition context
-		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
+		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// resolve
 		final SQLStatement statement = context.resolveOrFail(getConfiguration(), SQLStatement.class);
 
 		// trace
-		executionContext.trace(statement.getSql());
+		operationContext.trace(statement.getSql());
 
 		// check multi value
 		if (getConfiguration().getValues().size() == 1) {
@@ -141,7 +140,7 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 				keys = pk.get();
 				pkNames = new String[keys.length];
 				for (int i = 0; i < keys.length; i++) {
-					pkNames[i] = executionContext.getDialect().getColumnName(keys[i].getName());
+					pkNames[i] = operationContext.getDialect().getColumnName(keys[i].getName());
 				}
 			} else {
 				keys = null;
@@ -151,9 +150,9 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 			final boolean isBringBackGeneratedIds = (singleValue != null)
 					&& getConfiguration().hasWriteOption(DefaultWriteOption.BRING_BACK_GENERATED_IDS);
 
-			return executionContext.withConnection(c -> {
+			return operationContext.withConnection(c -> {
 
-				try (PreparedStatement stmt = createInsertStatement(c, executionContext, statement, pkNames)) {
+				try (PreparedStatement stmt = createInsertStatement(c, operationContext, statement, pkNames)) {
 
 					// execute
 					int count = stmt.executeUpdate();
@@ -172,7 +171,7 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 						try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
 							if (generatedKeys.next()) {
 
-								final SQLExecutionContext ctx = SQLExecutionContext.create(executionContext, c);
+								final SQLExecutionContext ctx = SQLExecutionContext.create(operationContext, c);
 
 								final int columns = generatedKeys.getMetaData().getColumnCount();
 								for (int i = 0; i < keys.length; i++) {
@@ -187,7 +186,7 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 														? (QueryExpression) property
 														: ConstantExpression.create(keyValue);
 												try {
-													adapter.setValue(keyPath, executionContext.getValueDeserializer()
+													adapter.setValue(keyPath, operationContext.getValueDeserializer()
 															.deserialize(ctx, valueExpression, keyValue));
 												} catch (SQLException e) {
 													// TODO
@@ -213,7 +212,7 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 			final Path<?>[] operationPaths = getConfiguration().getOperationPaths()
 					.orElseThrow(() -> new InvalidExpressionException("Missing operation value paths"));
 
-			return executionContext.withConnection(c -> {
+			return operationContext.withConnection(c -> {
 
 				final String sql = statement.getSql();
 
@@ -236,7 +235,7 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 							}
 						}
 
-						executionContext.getStatementConfigurator().configureStatement(executionContext, stmt,
+						operationContext.getStatementConfigurator().configureStatement(operationContext, stmt,
 								SQLStatement.create(sql, parameters.toArray(new SQLParameter<?>[parameters.size()])));
 						// add batch
 						stmt.addBatch();
@@ -274,7 +273,7 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 	 * @throws SQLException If an error occurred
 	 */
 	@SuppressWarnings("resource")
-	private static PreparedStatement createInsertStatement(Connection connection, JdbcExecutionContext context,
+	private static PreparedStatement createInsertStatement(Connection connection, JdbcOperationContext context,
 			SQLStatement statement, String[] pkNames) throws SQLException {
 		PreparedStatement stmt;
 		if (context.getDialect().supportsGetGeneratedKeys()) {

@@ -26,7 +26,7 @@ import com.holonplatform.core.internal.datastore.bulk.AbstractBulkDeleteOperatio
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 
 /**
  * JDBC datastore {@link BulkDelete} implementation.
@@ -53,11 +53,11 @@ public class JdbcBulkDelete extends AbstractBulkDeleteOperation<BulkDelete> impl
 		}
 	};
 
-	private final JdbcExecutionContext executionContext;
+	private final JdbcOperationContext operationContext;
 
-	public JdbcBulkDelete(JdbcExecutionContext executionContext) {
+	public JdbcBulkDelete(JdbcOperationContext operationContext) {
 		super();
-		this.executionContext = executionContext;
+		this.operationContext = operationContext;
 	}
 
 	/*
@@ -77,19 +77,19 @@ public class JdbcBulkDelete extends AbstractBulkDeleteOperation<BulkDelete> impl
 	public OperationResult execute() {
 
 		// composition context
-		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
+		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
 		// resolve
 		final SQLStatement statement = context.resolveOrFail(getConfiguration(), SQLStatement.class);
 
 		// trace
-		executionContext.trace(statement.getSql());
+		operationContext.trace(statement.getSql());
 
 		// execute
-		return executionContext.withConnection(c -> {
+		return operationContext.withConnection(c -> {
 
-			try (PreparedStatement stmt = executionContext.prepareStatement(statement, c)) {
+			try (PreparedStatement stmt = operationContext.prepareStatement(statement, c)) {
 				int count = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.DELETE).affectedCount(count).build();
 			}

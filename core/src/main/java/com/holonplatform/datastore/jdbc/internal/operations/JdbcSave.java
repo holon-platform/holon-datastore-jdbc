@@ -35,9 +35,8 @@ import com.holonplatform.core.query.QueryFunction.Count;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.context.JdbcExecutionContext;
+import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
-import com.holonplatform.datastore.jdbc.internal.PrimaryKeyResolver;
 
 /**
  * JDBC {@link SaveOperation}.
@@ -66,11 +65,11 @@ public class JdbcSave extends AbstractSaveOperation {
 		}
 	};
 
-	private final JdbcExecutionContext executionContext;
+	private final JdbcOperationContext operationContext;
 
-	public JdbcSave(JdbcExecutionContext executionContext) {
+	public JdbcSave(JdbcOperationContext operationContext) {
 		super();
-		this.executionContext = executionContext;
+		this.operationContext = operationContext;
 	}
 
 	/*
@@ -88,28 +87,28 @@ public class JdbcSave extends AbstractSaveOperation {
 		}
 
 		/// composition context
-		final SQLCompositionContext context = SQLCompositionContext.create(executionContext);
+		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		return executionContext.withSharedConnection(() -> {
+		return operationContext.withSharedConnection(() -> {
 
 			// resolve primary key
-			final Optional<SQLPrimaryKey> primaryKey = context.resolve(getConfiguration().getTarget(),
-					SQLPrimaryKey.class, context);
+			final Optional<SQLPrimaryKey> primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class,
+					context);
 
 			if (!primaryKey.isPresent()) {
-				LOGGER.warn("(Save operation) Cannot obtain the primary key for target ["
-						+ getConfiguration().getTarget() + "]: an INSERT operation will be performed by default");
+				LOGGER.warn("(Save operation) Cannot obtain the primary key for operation [" + getConfiguration()
+						+ "]: an INSERT operation will be performed by default");
 				return insert(getConfiguration());
 			} else {
 				// check existence using primary key
 				try {
-					QueryFilter pkFilter = PrimaryKeyResolver.getPrimaryKeyFilter(executionContext.getDialect(),
+					QueryFilter pkFilter = JdbcOperationUtils.getPrimaryKeyFilter(operationContext.getDialect(),
 							primaryKey.get(), getConfiguration().getValue());
 
 					final Path<?> singleKey = (primaryKey.get().getPaths().length == 1) ? primaryKey.get().getPaths()[0]
 							: null;
-					Query q = executionContext.create(Query.class).target(getConfiguration().getTarget())
+					Query q = operationContext.create(Query.class).target(getConfiguration().getTarget())
 							.filter(pkFilter);
 					boolean exists = ((singleKey != null) ? q.findOne(Count.create(singleKey)).orElse(0L)
 							: q.count()) > 0;
@@ -128,12 +127,12 @@ public class JdbcSave extends AbstractSaveOperation {
 	}
 
 	private OperationResult insert(PropertyBoxOperationConfiguration configuration) {
-		return executionContext.create(InsertOperation.class).target(configuration.getTarget())
+		return operationContext.create(InsertOperation.class).target(configuration.getTarget())
 				.value(configuration.getValue()).withWriteOptions(configuration.getWriteOptions()).execute();
 	}
 
 	private OperationResult update(PropertyBoxOperationConfiguration configuration) {
-		return executionContext.create(UpdateOperation.class).target(configuration.getTarget())
+		return operationContext.create(UpdateOperation.class).target(configuration.getTarget())
 				.value(configuration.getValue()).withWriteOptions(configuration.getWriteOptions()).execute();
 	}
 

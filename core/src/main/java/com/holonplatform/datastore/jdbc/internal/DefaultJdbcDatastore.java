@@ -46,6 +46,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.composer.dialect.DefaultDialect;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver;
@@ -123,6 +124,11 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	protected SQLDialect dialect;
 
 	/**
+	 * Identifier resolution strategy
+	 */
+	private IdentifierResolutionStrategy identifierResolutionStrategy = IdentifierResolutionStrategy.AUTO;
+
+	/**
 	 * Whether to auto-initialize the Datastore at DataSource/Dialect setup
 	 */
 	private final boolean autoInitialize;
@@ -147,9 +153,10 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		super(JdbcDatastoreCommodityFactory.class, JdbcDatastoreExpressionResolver.class);
 		this.autoInitialize = autoInitialize;
 
-		// primary key resolver
+		// operation identifiers and primary key resolvers
+		addExpressionResolver(new OperationIdentifierResolver(this));
 		addExpressionResolver(new PrimaryKeyResolver(this));
-		
+
 		// default resolvers
 		addExpressionResolvers(SQLContextExpressionResolver.getDefaultResolvers());
 
@@ -364,6 +371,24 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		if (dataSource != null) {
 			checkInitialize();
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.context.JdbcExecutionContext#getIdentifierResolutionStrategy()
+	 */
+	@Override
+	public IdentifierResolutionStrategy getIdentifierResolutionStrategy() {
+		return identifierResolutionStrategy;
+	}
+
+	/**
+	 * Set the {@link IdentifierResolutionStrategy}.
+	 * @param identifierResolutionStrategy the identifier resolution strategy to set (not null)
+	 */
+	public void setIdentifierResolutionStrategy(IdentifierResolutionStrategy identifierResolutionStrategy) {
+		ObjectUtils.argumentNotNull(identifierResolutionStrategy, "IdentifierResolutionStrategy must be not null");
+		this.identifierResolutionStrategy = identifierResolutionStrategy;
 	}
 
 	/**
@@ -852,6 +877,18 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		@Override
 		public JdbcDatastore.Builder<D> connectionHandler(JdbcConnectionHandler connectionHandler) {
 			datastore.setConnectionHandler(connectionHandler);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#identifierResolutionStrategy(com.holonplatform.
+		 * datastore.jdbc.config.IdentifierResolutionStrategy)
+		 */
+		@Override
+		public JdbcDatastore.Builder<D> identifierResolutionStrategy(
+				IdentifierResolutionStrategy identifierResolutionStrategy) {
+			datastore.setIdentifierResolutionStrategy(identifierResolutionStrategy);
 			return this;
 		}
 

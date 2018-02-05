@@ -54,8 +54,8 @@ public final class TestProperties implements Serializable {
 
 	public final static TemporalProperty<LocalTime> TIME = TemporalProperty.localTime("tm");
 
-	public final static PropertySet<?> PROPS = PropertySet.of(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC,
-			TMS, LTMS, TIME);
+	public final static PropertySet<?> PROPERTIES = PropertySet.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC,
+			TMS, LTMS, TIME).identifier(KEY).build();
 
 	// with parent
 	public final static PathProperty<Long> KEY_P = NAMED_TARGET.property(KEY);

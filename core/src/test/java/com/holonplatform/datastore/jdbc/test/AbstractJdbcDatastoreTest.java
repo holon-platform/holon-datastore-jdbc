@@ -25,7 +25,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestProperties.LTMS;
 import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NBOOL;
 import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NST_DEC;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.PROPS;
+import static com.holonplatform.datastore.jdbc.test.data.TestProperties.PROPERTIES;
 import static com.holonplatform.datastore.jdbc.test.data.TestProperties.STR;
 import static com.holonplatform.datastore.jdbc.test.data.TestProperties.STR_P;
 import static com.holonplatform.datastore.jdbc.test.data.TestProperties.TIME;
@@ -91,11 +91,11 @@ public abstract class AbstractJdbcDatastoreTest {
 
 	@Test
 	public void testQueryResults() {
-		List<PropertyBox> results = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(-100L)).list(PROPS);
+		List<PropertyBox> results = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(-100L)).list(PROPERTIES);
 		assertNotNull(results);
 		assertEquals(0, results.size());
 
-		PropertyBox result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPS).orElse(null);
+		PropertyBox result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES).orElse(null);
 		assertNotNull(result);
 		assertEquals(Long.valueOf(1), result.getValue(KEY));
 		assertEquals("One", result.getValue(STR));
@@ -106,7 +106,7 @@ public abstract class AbstractJdbcDatastoreTest {
 
 	@Test
 	public void testFindByKey() {
-		Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPS);
+		Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES);
 		assertTrue(pb.isPresent());
 		assertEquals("One", pb.get().getValue(STR));
 	}
@@ -130,7 +130,7 @@ public abstract class AbstractJdbcDatastoreTest {
 
 	@Test
 	public void testBeanConversion() {
-		List<TestData> results = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc()).stream(PROPS)
+		List<TestData> results = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc()).stream(PROPERTIES)
 				.map(r -> BeanIntrospector.get().write(r, new TestDataImpl())).collect(Collectors.toList());
 		assertNotNull(results);
 		assertEquals(2, results.size());
@@ -142,7 +142,7 @@ public abstract class AbstractJdbcDatastoreTest {
 	@Test
 	public void testQueryProjection() {
 
-		List<PropertyBox> results = getDatastore().query().target(NAMED_TARGET).list(PROPS);
+		List<PropertyBox> results = getDatastore().query().target(NAMED_TARGET).list(PROPERTIES);
 		assertNotNull(results);
 		assertEquals(2, results.size());
 
@@ -160,7 +160,7 @@ public abstract class AbstractJdbcDatastoreTest {
 
 		// results converter
 
-		List<Long> keys = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc()).stream(PROPS)
+		List<Long> keys = getDatastore().query().target(NAMED_TARGET).sort(KEY.asc()).stream(PROPERTIES)
 				.map((r) -> r.getValue(KEY)).collect(Collectors.toList());
 		assertNotNull(keys);
 		assertEquals(2, keys.size());
@@ -703,11 +703,11 @@ public abstract class AbstractJdbcDatastoreTest {
 		inTransaction(() -> {
 
 			// insert
-			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 3L).set(STR, "Three").set(NBOOL, false)
+			PropertyBox box = PropertyBox.builder(PROPERTIES).set(KEY, 3L).set(STR, "Three").set(NBOOL, false)
 					.set(ENM, TestEnum.THIRD).build();
 			getDatastore().save(NAMED_TARGET, box);
 
-			PropertyBox saved = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(3L)).findOne(PROPS)
+			PropertyBox saved = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(3L)).findOne(PROPERTIES)
 					.orElse(null);
 			assertNotNull(saved);
 			assertEquals("Three", saved.getValue(STR));
@@ -716,7 +716,7 @@ public abstract class AbstractJdbcDatastoreTest {
 			saved.setValue(STR, "Three UPD");
 			getDatastore().save(NAMED_TARGET, saved);
 
-			saved = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(3L)).findOne(PROPS).orElse(null);
+			saved = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(3L)).findOne(PROPERTIES).orElse(null);
 			assertNotNull(saved);
 			assertEquals("Three UPD", saved.getValue(STR));
 
@@ -732,7 +732,7 @@ public abstract class AbstractJdbcDatastoreTest {
 
 		inTransaction(() -> {
 
-			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 3L).set(STR, "Three").set(NBOOL, true)
+			PropertyBox box = PropertyBox.builder(PROPERTIES).set(KEY, 3L).set(STR, "Three").set(NBOOL, true)
 					.set(ENM, TestEnum.THIRD).set(DAT, new Date()).set(LDAT, LocalDate.of(2017, Month.MARCH, 24))
 					.build();
 			getDatastore().save(NAMED_TARGET, box);
@@ -749,7 +749,7 @@ public abstract class AbstractJdbcDatastoreTest {
 
 		inTransaction(() -> {
 
-			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 4L).set(STR, "Three").set(NBOOL, true).build();
+			PropertyBox box = PropertyBox.builder(PROPERTIES).set(KEY, 4L).set(STR, "Three").set(NBOOL, true).build();
 			getDatastore().save(NAMED_TARGET, box);
 
 			OperationResult deleted = getDatastore().delete(NAMED_TARGET,
@@ -761,7 +761,7 @@ public abstract class AbstractJdbcDatastoreTest {
 
 	@Test
 	public void testRefresh() {
-		PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPS).orElse(null);
+		PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES).orElse(null);
 		assertNotNull(value);
 
 		PropertyBox refreshed = getDatastore().refresh(NAMED_TARGET, value);
@@ -774,11 +774,11 @@ public abstract class AbstractJdbcDatastoreTest {
 
 		inTransaction(() -> {
 
-			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 10L).set(STR, "k10").set(NBOOL, false).build();
+			PropertyBox box = PropertyBox.builder(PROPERTIES).set(KEY, 10L).set(STR, "k10").set(NBOOL, false).build();
 			getDatastore().save(NAMED_TARGET, box);
-			box = PropertyBox.builder(PROPS).set(KEY, 11L).set(STR, "k11").set(NBOOL, false).build();
+			box = PropertyBox.builder(PROPERTIES).set(KEY, 11L).set(STR, "k11").set(NBOOL, false).build();
 			getDatastore().save(NAMED_TARGET, box);
-			box = PropertyBox.builder(PROPS).set(KEY, 12L).set(STR, "k12").set(NBOOL, false).build();
+			box = PropertyBox.builder(PROPERTIES).set(KEY, 12L).set(STR, "k12").set(NBOOL, false).build();
 			getDatastore().save(NAMED_TARGET, box);
 
 			OperationResult result = getDatastore().bulkDelete(NAMED_TARGET).filter(KEY.between(10L, 12L)).execute();
@@ -792,11 +792,11 @@ public abstract class AbstractJdbcDatastoreTest {
 
 		inTransaction(() -> {
 
-			PropertyBox box = PropertyBox.builder(PROPS).set(KEY, 10L).set(STR, "k10").set(NBOOL, false).build();
+			PropertyBox box = PropertyBox.builder(PROPERTIES).set(KEY, 10L).set(STR, "k10").set(NBOOL, false).build();
 			getDatastore().save(NAMED_TARGET, box);
-			box = PropertyBox.builder(PROPS).set(KEY, 11L).set(STR, "k11").set(NBOOL, false).build();
+			box = PropertyBox.builder(PROPERTIES).set(KEY, 11L).set(STR, "k11").set(NBOOL, false).build();
 			getDatastore().save(NAMED_TARGET, box);
-			box = PropertyBox.builder(PROPS).set(KEY, 12L).set(STR, "k12").set(NBOOL, false).build();
+			box = PropertyBox.builder(PROPERTIES).set(KEY, 12L).set(STR, "k12").set(NBOOL, false).build();
 			getDatastore().save(NAMED_TARGET, box);
 
 			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).filter(KEY.between(10L, 12L))
@@ -819,11 +819,11 @@ public abstract class AbstractJdbcDatastoreTest {
 		inTransaction(() -> {
 
 			OperationResult result = getDatastore().bulkInsert(NAMED_TARGET, PropertySet.of(KEY, STR, NBOOL))
-					.add(PropertyBox.builder(PROPS).set(KEY, 201L).set(STR, "k201").set(NBOOL, false).build())
-					.add(PropertyBox.builder(PROPS).set(KEY, 202L).set(STR, "k202").set(NBOOL, false).build())
-					.add(PropertyBox.builder(PROPS).set(KEY, 203L).set(STR, "k203").set(NBOOL, false).build())
-					.add(PropertyBox.builder(PROPS).set(KEY, 204L).set(STR, "k204").set(NBOOL, false).build())
-					.add(PropertyBox.builder(PROPS).set(KEY, 205L).set(STR, "k205").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPERTIES).set(KEY, 201L).set(STR, "k201").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPERTIES).set(KEY, 202L).set(STR, "k202").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPERTIES).set(KEY, 203L).set(STR, "k203").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPERTIES).set(KEY, 204L).set(STR, "k204").set(NBOOL, false).build())
+					.add(PropertyBox.builder(PROPERTIES).set(KEY, 205L).set(STR, "k205").set(NBOOL, false).build())
 					.execute();
 			assertEquals(5, result.getAffectedCount());
 
@@ -872,13 +872,13 @@ public abstract class AbstractJdbcDatastoreTest {
 			result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.FIRST).filter(new KeyIs(1)).execute();
 			assertEquals(1, result.getAffectedCount());
 
-			Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(2)).findOne(PROPS);
+			Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(2)).findOne(PROPERTIES);
 			assertEquals(TestEnum.SECOND, pb.get().getValue(ENM));
 
 			result = getDatastore().bulkUpdate(NAMED_TARGET).filter(new KeyIs(2)).setNull(DAT).execute();
 			assertEquals(1, result.getAffectedCount());
 
-			pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).findOne(PROPS);
+			pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).findOne(PROPERTIES);
 			assertEquals("One", pb.get().getValue(STR));
 
 		});
