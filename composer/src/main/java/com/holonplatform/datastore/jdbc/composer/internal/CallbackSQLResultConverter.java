@@ -37,6 +37,11 @@ public class CallbackSQLResultConverter<R> implements SQLResultConverter<R> {
 	private final Class<? extends R> conversionType;
 	private final BiFunction<SQLExecutionContext, SQLResult, R> conversionFunction;
 
+	/**
+	 * Constructor.
+	 * @param conversionType Conversion type (not null)
+	 * @param conversionFunction Conversion function (not null)
+	 */
 	public CallbackSQLResultConverter(Class<? extends R> conversionType,
 			BiFunction<SQLExecutionContext, SQLResult, R> conversionFunction) {
 		super();

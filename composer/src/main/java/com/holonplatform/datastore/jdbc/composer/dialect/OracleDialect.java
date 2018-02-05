@@ -32,7 +32,7 @@ import oracle.sql.TIMESTAMPTZ;
 /**
  * Oracle {@link com.holonplatform.datastore.jdbc.composer.SQLDialect}.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.SQLDialect {
 

@@ -31,7 +31,7 @@ import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctio
 /**
  * H2 {@link SQLDialect}.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 public class H2Dialect implements SQLDialect {
 

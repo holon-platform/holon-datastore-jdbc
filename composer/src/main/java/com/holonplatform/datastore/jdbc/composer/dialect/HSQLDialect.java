@@ -35,7 +35,7 @@ import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctio
  * Note: only version 2.x or higher is supported for query pagination using limit/offset.
  * </p>
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 public class HSQLDialect implements SQLDialect {
 

@@ -24,7 +24,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 /**
  * Default {@link SQLDialect} implementation.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 public class DefaultDialect implements SQLDialect {
 

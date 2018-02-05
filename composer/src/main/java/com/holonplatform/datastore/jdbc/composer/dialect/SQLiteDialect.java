@@ -53,7 +53,7 @@ import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionR
 /**
  * SQLite {@link SQLDialect}.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 public class SQLiteDialect implements SQLDialect {
 

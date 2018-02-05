@@ -59,6 +59,8 @@ import com.holonplatform.datastore.jdbc.internal.operations.JdbcQuery;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcRefresh;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcSave;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcUpdate;
+import com.holonplatform.datastore.jdbc.internal.resolvers.OperationIdentifierResolver;
+import com.holonplatform.datastore.jdbc.internal.resolvers.PrimaryKeyResolver;
 import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransaction;
 import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransactionProvider;
 import com.holonplatform.jdbc.DataSourceBuilder;

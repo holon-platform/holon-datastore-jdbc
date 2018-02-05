@@ -23,7 +23,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 /**
  * SQL query definition expression.
  * 
- * @since 5.0.0
+ * @since 5.1.0
  */
 public interface SQLQueryDefinition extends Expression {
 

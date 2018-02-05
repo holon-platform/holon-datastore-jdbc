@@ -32,7 +32,7 @@ import com.holonplatform.datastore.jdbc.composer.internal.dialect.ReaderToString
 /**
  * DB2 {@link SQLDialect}.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 public class DB2Dialect implements SQLDialect {
 

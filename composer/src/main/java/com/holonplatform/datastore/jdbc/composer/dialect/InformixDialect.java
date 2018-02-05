@@ -27,7 +27,7 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 /**
  * Informix {@link SQLDialect}.
  *
- * @since 5.0.0
+ * @since 5.1.0
  */
 public class InformixDialect implements SQLDialect {
 
