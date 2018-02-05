@@ -15,16 +15,19 @@
  */
 package com.holonplatform.datastore.jdbc.internal.operations;
 
-import com.holonplatform.core.Expression.InvalidExpressionException;
+import java.sql.PreparedStatement;
+
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.bulk.BulkDelete;
 import com.holonplatform.core.datastore.operation.DeleteOperation;
+import com.holonplatform.core.datastore.operation.DeleteOperationConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 
@@ -68,30 +71,37 @@ public class JdbcDelete extends AbstractDeleteOperation {
 	public OperationResult execute() {
 
 		// validate
-		try {
-			getConfiguration().validate();
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Cannot execute operation", e);
-		}
+		getConfiguration().validate();
 
 		// composition context
 		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		return operationContext.withSharedConnection(() -> {
+		// resolve primary key
+		final SQLPrimaryKey primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class, context)
+				.orElseThrow(() -> new DataAccessException(
+						"Cannot obtain the primary key to use for operation [" + getConfiguration() + "]"));
 
-			// resolve primary key
-			final SQLPrimaryKey primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class, context)
-					.orElseThrow(() -> new DataAccessException(
-							"Cannot obtain the primary key to use for operation [" + getConfiguration() + "]"));
+		// create operation configuration
+		final DeleteOperationConfiguration configuration = DeleteOperationConfiguration.builder()
+				.target(getConfiguration().getTarget()).withWriteOptions(getConfiguration().getWriteOptions())
+				.withExpressionResolvers(getConfiguration().getExpressionResolvers()).filter(JdbcOperationUtils
+						.getPrimaryKeyFilter(operationContext.getDialect(), primaryKey, getConfiguration().getValue()))
+				.build();
 
-			// execute using a BulkDelete
-			return operationContext.create(BulkDelete.class).target(getConfiguration().getTarget())
-					.withWriteOptions(getConfiguration().getWriteOptions())
-					.withExpressionResolvers(getConfiguration().getExpressionResolvers())
-					.filter(JdbcOperationUtils.getPrimaryKeyFilter(operationContext.getDialect(), primaryKey,
-							getConfiguration().getValue()))
-					.execute();
+		// resolve
+		final SQLStatement statement = context.resolveOrFail(configuration, SQLStatement.class);
+
+		// trace
+		operationContext.trace(statement.getSql());
+
+		// execute
+		return operationContext.withConnection(c -> {
+
+			try (PreparedStatement stmt = operationContext.prepareStatement(statement, c)) {
+				int count = stmt.executeUpdate();
+				return OperationResult.builder().type(OperationType.DELETE).affectedCount(count).build();
+			}
 
 		});
 

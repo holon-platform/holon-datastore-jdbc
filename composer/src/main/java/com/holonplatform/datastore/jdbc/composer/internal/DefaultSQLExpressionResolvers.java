@@ -31,6 +31,7 @@ import com.holonplatform.datastore.jdbc.composer.internal.resolvers.QuerySortRes
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.RelationalTargetResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLLiteralResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLOrderBySortResolver;
+import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLParameterPlaceholderResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLParameterResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLParameterizableExpressionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLQueryClausesResolver;
@@ -40,14 +41,14 @@ import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SubQueryReso
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.VisitableQueryFilterResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.VisitableQuerySortResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.WildcardExpressionResolver;
-import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.BulkDeleteResolver;
-import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.BulkInsertResolver;
-import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.BulkUpdateResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DataTargetResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DefaultQueryFunctionResolver;
+import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DeleteOperationConfigurationResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DialectQueryFunctionResolver;
+import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.InsertOperationConfigurationResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.QueryOperationClausesResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.QueryResolver;
+import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.UpdateOperationConfigurationResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.BeanProjectionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.ConstantExpressionProjectionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.CountAllProjectionResolver;
@@ -68,6 +69,7 @@ public class DefaultSQLExpressionResolvers {
 
 	static {
 		expressionResolvers.add(NullExpressionResolver.INSTANCE);
+		expressionResolvers.add(SQLParameterPlaceholderResolver.INSTANCE);
 		expressionResolvers.add(WildcardExpressionResolver.INSTANCE);
 		expressionResolvers.add(ConstantExpressionResolver.INSTANCE);
 		expressionResolvers.add(CollectionExpressionResolver.INSTANCE);
@@ -95,9 +97,9 @@ public class DefaultSQLExpressionResolvers {
 		expressionResolvers.add(DefaultQueryFunctionResolver.INSTANCE);
 		expressionResolvers.add(QueryOperationClausesResolver.INSTANCE);
 		expressionResolvers.add(QueryResolver.INSTANCE);
-		expressionResolvers.add(BulkInsertResolver.INSTANCE);
-		expressionResolvers.add(BulkUpdateResolver.INSTANCE);
-		expressionResolvers.add(BulkDeleteResolver.INSTANCE);
+		expressionResolvers.add(InsertOperationConfigurationResolver.INSTANCE);
+		expressionResolvers.add(UpdateOperationConfigurationResolver.INSTANCE);
+		expressionResolvers.add(DeleteOperationConfigurationResolver.INSTANCE);
 
 		expressionResolvers.add(QueryProjectionResolver.INSTANCE);
 		expressionResolvers.add(TypedExpressionProjectionResolver.INSTANCE);

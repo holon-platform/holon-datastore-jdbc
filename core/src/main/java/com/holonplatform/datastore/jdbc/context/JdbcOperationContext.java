@@ -24,6 +24,7 @@ import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementConfigurator;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 
@@ -64,5 +65,7 @@ public interface JdbcOperationContext extends SQLContext, ConnectionProvider, Da
 	 * @throws DataAccessException If an error occurred
 	 */
 	PreparedStatement prepareStatement(SQLStatement statement, Connection connection);
+	
+	PreparedStatement prepareInsertStatement(SQLStatement statement, Connection connection, SQLPrimaryKey primaryKey);
 
 }

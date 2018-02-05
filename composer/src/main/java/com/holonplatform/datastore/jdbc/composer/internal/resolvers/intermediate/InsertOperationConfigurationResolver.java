@@ -26,7 +26,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.datastore.bulk.BulkInsertConfiguration;
+import com.holonplatform.core.datastore.operation.InsertOperationConfiguration;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
@@ -37,13 +37,17 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
- * {@link BulkInsertConfiguration} resolver.
- * 
+ * {@link InsertOperationConfiguration} resolver.
+ *
  * @since 5.1.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum BulkInsertResolver implements SQLContextExpressionResolver<BulkInsertConfiguration, SQLStatement> {
+public enum InsertOperationConfigurationResolver
+		implements SQLContextExpressionResolver<InsertOperationConfiguration, SQLStatement> {
 
+	/**
+	 * Singleton instance
+	 */
 	INSTANCE;
 
 	/*
@@ -51,8 +55,8 @@ public enum BulkInsertResolver implements SQLContextExpressionResolver<BulkInser
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends BulkInsertConfiguration> getExpressionType() {
-		return BulkInsertConfiguration.class;
+	public Class<? extends InsertOperationConfiguration> getExpressionType() {
+		return InsertOperationConfiguration.class;
 	}
 
 	/*
@@ -71,7 +75,7 @@ public enum BulkInsertResolver implements SQLContextExpressionResolver<BulkInser
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLStatement> resolve(BulkInsertConfiguration expression, SQLCompositionContext context)
+	public Optional<SQLStatement> resolve(InsertOperationConfiguration expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -92,36 +96,17 @@ public enum BulkInsertResolver implements SQLContextExpressionResolver<BulkInser
 		// target
 		operation.append(operationContext.resolveOrFail(target, SQLExpression.class).getValue());
 
-		final List<String> paths = new ArrayList<>();
-		final List<String> values = new ArrayList<>();
+		// get value as path-expression map
+		final Map<Path<?>, TypedExpression<?>> pathValues = expression.getValues();
 
-		// check single or multi value
-		final boolean singleValue = expression.getValues().size() == 1;
+		final List<String> paths = new ArrayList<>(pathValues.size());
+		final List<String> values = new ArrayList<>(pathValues.size());
 
-		if (singleValue) {
-			// single value
-			final Map<Path<?>, TypedExpression<?>> pathValues = expression.getValues().get(0);
-			// use operation paths if available
-			Path<?>[] operationPaths = expression.getOperationPaths()
-					.orElse(pathValues.keySet().toArray(new Path<?>[0]));
-			for (Path<?> path : operationPaths) {
-				final TypedExpression<?> pathExpression = pathValues.get(path);
-				if (pathExpression != null) {
-					paths.add(context.resolveOrFail(path, SQLExpression.class).getValue());
-					values.add(context
-							.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
-							.getValue());
-				}
-			}
-		} else {
-			// multi value, operation paths are required
-			Path<?>[] operationPaths = expression.getOperationPaths()
-					.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation paths"));
-			for (Path<?> path : operationPaths) {
-				paths.add(context.resolveOrFail(path, SQLExpression.class).getValue());
-				values.add("?"); // TODO non parameter expressions such as CURRENT_DATE?
-			}
-		}
+		pathValues.forEach((path, pathExpression) -> {
+			paths.add(context.resolveOrFail(path, SQLExpression.class).getValue());
+			values.add(context.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
+					.getValue());
+		});
 
 		operation.append(" (");
 		operation.append(paths.stream().collect(Collectors.joining(",")));
@@ -129,12 +114,9 @@ public enum BulkInsertResolver implements SQLContextExpressionResolver<BulkInser
 		operation.append(values.stream().collect(Collectors.joining(",")));
 		operation.append(")");
 
-		if (singleValue) {
-			// prepare SQL and return SQLStatement
-			return Optional.of(context.prepareStatement(operation.toString()));
-		} else {
-			return Optional.of(SQLStatement.create(operation.toString()));
-		}
+		// prepare SQL and return SQLStatement
+		return Optional.of(context.prepareStatement(operation.toString()));
+
 	}
 
 }

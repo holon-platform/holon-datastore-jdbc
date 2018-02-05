@@ -15,16 +15,19 @@
  */
 package com.holonplatform.datastore.jdbc.internal.operations;
 
-import com.holonplatform.core.Expression.InvalidExpressionException;
+import java.sql.PreparedStatement;
+
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.bulk.BulkUpdate;
 import com.holonplatform.core.datastore.operation.UpdateOperation;
+import com.holonplatform.core.datastore.operation.UpdateOperationConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.datastore.operation.AbstractUpdateOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 
@@ -68,33 +71,38 @@ public class JdbcUpdate extends AbstractUpdateOperation {
 	public OperationResult execute() {
 
 		// validate
-		try {
-			getConfiguration().validate();
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Cannot execute operation", e);
-		}
+		getConfiguration().validate();
 
-		/// composition context
+		// composition context
 		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		return operationContext.withSharedConnection(() -> {
+		// resolve primary key
+		final SQLPrimaryKey primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class, context)
+				.orElseThrow(() -> new DataAccessException(
+						"Cannot obtain the primary key to use for operation [" + getConfiguration() + "]"));
 
-			// resolve primary key
-			final SQLPrimaryKey primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class, context)
-					.orElseThrow(() -> new DataAccessException(
-							"Cannot obtain the primary key to use for operation [" + getConfiguration() + "]"));
+		// create operation configuration
+		final UpdateOperationConfiguration configuration = UpdateOperationConfiguration.builder()
+				.target(getConfiguration().getTarget()).withWriteOptions(getConfiguration().getWriteOptions())
+				.withExpressionResolvers(getConfiguration().getExpressionResolvers())
+				.values(getConfiguration().getValueExpressions(true)).filter(JdbcOperationUtils
+						.getPrimaryKeyFilter(operationContext.getDialect(), primaryKey, getConfiguration().getValue()))
+				.build();
 
-			// execute using a BulkUpdate
-			return operationContext.create(BulkUpdate.class).target(getConfiguration().getTarget())
-					.withWriteOptions(getConfiguration().getWriteOptions())
-					.withExpressionResolvers(getConfiguration().getExpressionResolvers())
-					.set(getConfiguration().getValue())
-					.filter(JdbcOperationUtils.getPrimaryKeyFilter(operationContext.getDialect(), primaryKey,
-							getConfiguration().getValue()))
-					.execute();
+		// resolve
+		final SQLStatement statement = context.resolveOrFail(configuration, SQLStatement.class);
 
+		// trace
+		operationContext.trace(statement.getSql());
+
+		return operationContext.withConnection(c -> {
+			try (PreparedStatement stmt = operationContext.prepareStatement(statement, c)) {
+				int count = stmt.executeUpdate();
+				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(count).build();
+			}
 		});
+
 	}
 
 }

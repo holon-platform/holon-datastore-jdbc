@@ -15,33 +15,32 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Priority;
 
-import com.holonplatform.core.Path;
-import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.datastore.bulk.BulkUpdateConfiguration;
+import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.datastore.operation.DeleteOperationConfiguration;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext.AliasMode;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterizableExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
- * {@link BulkUpdateConfiguration} resolver.
- * 
+ * {@link DeleteOperationConfiguration} resolver.
+ *
  * @since 5.1.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum BulkUpdateResolver implements SQLContextExpressionResolver<BulkUpdateConfiguration, SQLStatement> {
+public enum DeleteOperationConfigurationResolver
+		implements SQLContextExpressionResolver<DeleteOperationConfiguration, SQLStatement> {
 
+	/**
+	 * Singleton instance
+	 */
 	INSTANCE;
 
 	/*
@@ -49,8 +48,8 @@ public enum BulkUpdateResolver implements SQLContextExpressionResolver<BulkUpdat
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends BulkUpdateConfiguration> getExpressionType() {
-		return BulkUpdateConfiguration.class;
+	public Class<? extends DeleteOperationConfiguration> getExpressionType() {
+		return DeleteOperationConfiguration.class;
 	}
 
 	/*
@@ -69,7 +68,8 @@ public enum BulkUpdateResolver implements SQLContextExpressionResolver<BulkUpdat
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLStatement> resolve(BulkUpdateConfiguration expression, SQLCompositionContext context) {
+	public Optional<SQLStatement> resolve(DeleteOperationConfiguration expression, SQLCompositionContext context)
+			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
@@ -79,41 +79,24 @@ public enum BulkUpdateResolver implements SQLContextExpressionResolver<BulkUpdat
 
 		// build a statement context
 		final SQLStatementCompositionContext operationContext = SQLStatementCompositionContext.asChild(context, target,
-				AliasMode.UNSUPPORTED); // TODO why not AUTO? check sub queries
+				context.getDialect().deleteStatementAliasSupported() ? AliasMode.AUTO : AliasMode.UNSUPPORTED);
 
 		final StringBuilder operation = new StringBuilder();
 
-		operation.append("UPDATE");
+		if (operationContext.getDialect().deleteStatementTargetRequired()) {
+			operation.append("DELETE");
+			operationContext.getAlias(target, false).ifPresent(a -> {
+				operation.append(" ");
+				operation.append(a);
+			});
+			operation.append(" FROM");
+		} else {
+			operation.append("DELETE FROM");
+		}
 		operation.append(" ");
 
 		// target
 		operation.append(operationContext.resolveOrFail(target, SQLExpression.class).getValue());
-
-		// values
-		final Map<Path<?>, TypedExpression<?>> pathValues = expression.getValues();
-
-		final List<String> paths = new ArrayList<>(pathValues.size());
-		final List<String> values = new ArrayList<>(pathValues.size());
-
-		for (Path<?> path : pathValues.keySet()) {
-			TypedExpression<?> pathExpression = pathValues.get(path);
-			if (pathExpression != null) {
-				paths.add(context.resolveOrFail(path, SQLExpression.class).getValue());
-				values.add(
-						context.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
-								.getValue());
-			}
-		}
-
-		operation.append(" SET ");
-		for (int i = 0; i < paths.size(); i++) {
-			if (i > 0) {
-				operation.append(",");
-			}
-			operation.append(paths.get(i));
-			operation.append("=");
-			operation.append(values.get(i));
-		}
 
 		// filter
 		expression.getFilter().ifPresent(f -> {

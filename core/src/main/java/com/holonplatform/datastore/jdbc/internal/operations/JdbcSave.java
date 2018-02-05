@@ -17,7 +17,6 @@ package com.holonplatform.datastore.jdbc.internal.operations;
 
 import java.util.Optional;
 
-import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
@@ -80,11 +79,7 @@ public class JdbcSave extends AbstractSaveOperation {
 	public OperationResult execute() {
 
 		// validate
-		try {
-			getConfiguration().validate();
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Cannot execute operation", e);
-		}
+		getConfiguration().validate();
 
 		/// composition context
 		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);

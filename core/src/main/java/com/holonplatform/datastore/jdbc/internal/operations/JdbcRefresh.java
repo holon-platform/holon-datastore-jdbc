@@ -15,7 +15,6 @@
  */
 package com.holonplatform.datastore.jdbc.internal.operations;
 
-import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.RefreshOperation;
@@ -70,11 +69,7 @@ public class JdbcRefresh extends AbstractRefreshOperation {
 	public PropertyBox execute() {
 
 		// validate
-		try {
-			getConfiguration().validate();
-		} catch (InvalidExpressionException e) {
-			throw new DataAccessException("Cannot execute operation", e);
-		}
+		getConfiguration().validate();
 
 		// composition context
 		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
@@ -99,10 +94,8 @@ public class JdbcRefresh extends AbstractRefreshOperation {
 	}
 
 	private String printPrimaryKey(SQLPrimaryKey primaryKey, PropertyBox value) {
-
 		final PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.builder(value)
 				.pathMatcher(new DialectPathMatcher(operationContext.getDialect())).build();
-
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < primaryKey.getPaths().length; i++) {
 			if (i > 0) {

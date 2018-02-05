@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Supplier;
@@ -44,6 +45,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
 import com.holonplatform.datastore.jdbc.composer.SQLValueSerializer;
 import com.holonplatform.datastore.jdbc.composer.dialect.DefaultDialect;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
@@ -636,6 +638,49 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 
 		try {
 			PreparedStatement stmt = connection.prepareStatement(statement.getSql());
+
+			// configure
+			getStatementConfigurator().configureStatement(this, stmt, statement);
+
+			return stmt;
+		} catch (Exception e) {
+			throw new DataAccessException("Failed to prepare JDBC statement for statement [" + statement + "]", e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.context.JdbcOperationContext#prepareInsertStatement(com.holonplatform.datastore.
+	 * jdbc.composer.expression.SQLStatement, java.sql.Connection,
+	 * com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey)
+	 */
+	@SuppressWarnings("resource")
+	@Override
+	public PreparedStatement prepareInsertStatement(SQLStatement statement, Connection connection,
+			SQLPrimaryKey primaryKey) {
+		ObjectUtils.argumentNotNull(statement, "SQLStatement must be not null");
+		ObjectUtils.argumentNotNull(connection, "Connection must be not null");
+
+		try {
+			PreparedStatement stmt;
+
+			String[] pkNames = null;
+			if (primaryKey != null && primaryKey.getPaths() != null && primaryKey.getPaths().length > 0
+					&& getDialect().supportsGetGeneratedKeys()) {
+				pkNames = new String[primaryKey.getPaths().length];
+				for (int i = 0; i < primaryKey.getPaths().length; i++) {
+					pkNames[i] = getDialect().getColumnName(primaryKey.getPaths()[i].getName());
+				}
+
+				if (getDialect().supportGetGeneratedKeyByName()) {
+					stmt = connection.prepareStatement(statement.getSql(), pkNames);
+				} else {
+					stmt = connection.prepareStatement(statement.getSql(), Statement.RETURN_GENERATED_KEYS);
+				}
+			} else {
+				stmt = connection.prepareStatement(statement.getSql());
+			}
 
 			// configure
 			getStatementConfigurator().configureStatement(this, stmt, statement);

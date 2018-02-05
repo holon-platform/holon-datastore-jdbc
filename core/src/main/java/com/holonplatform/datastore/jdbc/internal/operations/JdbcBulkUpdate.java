@@ -22,6 +22,7 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
+import com.holonplatform.core.datastore.operation.UpdateOperationConfiguration;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
@@ -76,24 +77,30 @@ public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> impl
 	@Override
 	public OperationResult execute() {
 
+		// validate
+		getConfiguration().validate();
+
 		// composition context
 		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(getConfiguration().getExpressionResolvers());
 
+		// create operation configuration
+		final UpdateOperationConfiguration configuration = UpdateOperationConfiguration.builder()
+				.target(getConfiguration().getTarget()).withWriteOptions(getConfiguration().getWriteOptions())
+				.withExpressionResolvers(getConfiguration().getExpressionResolvers())
+				.values(getConfiguration().getValues()).filter(getConfiguration().getFilter().orElse(null)).build();
+
 		// resolve
-		final SQLStatement statement = context.resolveOrFail(getConfiguration(), SQLStatement.class);
+		final SQLStatement statement = context.resolveOrFail(configuration, SQLStatement.class);
 
 		// trace
 		operationContext.trace(statement.getSql());
 
-		// execute
 		return operationContext.withConnection(c -> {
-
 			try (PreparedStatement stmt = operationContext.prepareStatement(statement, c)) {
 				int count = stmt.executeUpdate();
 				return OperationResult.builder().type(OperationType.UPDATE).affectedCount(count).build();
 			}
-
 		});
 
 	}
