@@ -39,7 +39,7 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
-import com.holonplatform.datastore.jdbc.internal.DialectPathMatcher;
+import com.holonplatform.datastore.jdbc.internal.support.DialectPathMatcher;
 
 /**
  * JDBC {@link InsertOperation}.

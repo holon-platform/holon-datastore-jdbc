@@ -27,7 +27,8 @@ import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
-import com.holonplatform.datastore.jdbc.internal.DialectPathMatcher;
+import com.holonplatform.datastore.jdbc.internal.support.DialectPathMatcher;
+import com.holonplatform.datastore.jdbc.internal.support.JdbcOperationUtils;
 
 /**
  * JDBC {@link RefreshOperation}.

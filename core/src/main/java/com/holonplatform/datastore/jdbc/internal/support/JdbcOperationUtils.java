@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal.operations;
+package com.holonplatform.datastore.jdbc.internal.support;
 
 import java.io.Serializable;
 import java.util.LinkedList;
@@ -28,7 +28,6 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
-import com.holonplatform.datastore.jdbc.internal.DialectPathMatcher;
 
 /**
  * JDBC operations utility class.

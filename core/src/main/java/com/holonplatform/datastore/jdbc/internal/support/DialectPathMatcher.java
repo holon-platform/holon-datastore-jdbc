@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.internal.support;
 
 import com.holonplatform.core.Path;
 import com.holonplatform.core.internal.utils.ObjectUtils;

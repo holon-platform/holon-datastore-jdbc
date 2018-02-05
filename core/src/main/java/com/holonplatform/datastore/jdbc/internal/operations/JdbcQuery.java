@@ -37,6 +37,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
+import com.holonplatform.datastore.jdbc.internal.support.ResultSetSQLResult;
 
 /**
  * JDBC {@link QueryAdapter}.
