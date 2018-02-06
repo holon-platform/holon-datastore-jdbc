@@ -61,11 +61,8 @@ public enum SQLParameterResolver implements SQLExpressionResolver<SQLParameter> 
 		// validate
 		expression.validate();
 
-		// intermediate resolution
-		SQLParameter<?> parameter = context.resolve(expression, SQLParameter.class).orElse(expression);
-
 		// serialize parameter placeholder
-		return Optional.of(SQLExpression.create(parameter.getSerializationFunction().apply("?")));
+		return Optional.of(SQLExpression.create(((SQLParameter<?>) expression).getSerializationFunction().apply("?")));
 	}
 
 }

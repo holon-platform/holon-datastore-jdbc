@@ -196,14 +196,17 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 					throw new SQLStatementPreparationException("The named parameter " + namedParameterPlaceholder
 							+ " at index " + i + " was not found in SQL composition context");
 				}
+				
+				// intermediate parameter resolution
+				final SQLParameter<?> actualParameter = resolve(parameter, SQLParameter.class).orElse(parameter);
 
 				// resolve parameter as SQL
-				SQLExpression parameterExpression = resolve(parameter, SQLExpression.class).orElseThrow(
-						() -> new InvalidExpressionException("Failed to resolve parameter [" + parameter + "]"));
+				SQLExpression parameterExpression = resolve(actualParameter, SQLExpression.class).orElseThrow(
+						() -> new InvalidExpressionException("Failed to resolve parameter [" + actualParameter + "]"));
 
 				// replace parameter
 				sb.append(parameterExpression.getValue());
-				parameters.add(parameter);
+				parameters.add(actualParameter);
 
 				i = i + 6;
 				continue;

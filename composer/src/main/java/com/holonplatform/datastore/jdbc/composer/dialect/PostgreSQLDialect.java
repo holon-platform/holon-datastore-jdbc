@@ -15,14 +15,23 @@
  */
 package com.holonplatform.datastore.jdbc.composer.dialect;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import javax.annotation.Priority;
+
+import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.internal.utils.ConversionUtils;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.ReaderToStringParameterResolver;
+import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
  * PostgreSQL {@link SQLDialect}.
@@ -57,6 +66,7 @@ public class PostgreSQLDialect implements SQLDialect {
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 		}
 		context.addExpressionResolver(ReaderToStringParameterResolver.INSTANCE);
+		context.addExpressionResolver(new ReaderParameterResolver());
 	}
 
 	/*
@@ -111,6 +121,39 @@ public class PostgreSQLDialect implements SQLDialect {
 	@Override
 	public String getColumnName(String columnName) {
 		return (columnName != null) ? columnName.toLowerCase() : null;
+	}
+
+	@SuppressWarnings({ "rawtypes", "serial" })
+	@Priority(Integer.MAX_VALUE - 10000)
+	private static final class ReaderParameterResolver
+			implements SQLContextExpressionResolver<SQLParameter, SQLParameter> {
+
+		@Override
+		public Class<? extends SQLParameter> getExpressionType() {
+			return SQLParameter.class;
+		}
+
+		@Override
+		public Class<? extends SQLParameter> getResolvedType() {
+			return SQLParameter.class;
+		}
+
+		@Override
+		public Optional<SQLParameter> resolve(SQLParameter expression, SQLCompositionContext context)
+				throws InvalidExpressionException {
+			if (expression.getValue() != null && expression.getValue() instanceof Reader
+					&& (Reader.class.isAssignableFrom(expression.getType())
+							|| String.class.isAssignableFrom(expression.getType()))) {
+				try {
+					return Optional.of(SQLParameter.create(
+							ConversionUtils.readerToString((Reader) expression.getValue(), false), String.class));
+				} catch (IOException e) {
+					throw new InvalidExpressionException("Failed to convert Reader parameter to String", e);
+				}
+			}
+			return Optional.empty();
+		}
+
 	}
 
 	@SuppressWarnings("serial")
