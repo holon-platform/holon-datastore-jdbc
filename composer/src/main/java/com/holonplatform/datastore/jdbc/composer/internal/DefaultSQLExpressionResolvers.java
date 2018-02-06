@@ -40,7 +40,7 @@ import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLWhereFilt
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SubQueryResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.VisitableQueryFilterResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.VisitableQuerySortResolver;
-import com.holonplatform.datastore.jdbc.composer.internal.resolvers.WildcardExpressionResolver;
+import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLTokenResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DataTargetResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DefaultQueryFunctionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DeleteOperationConfigurationResolver;
@@ -70,7 +70,7 @@ public class DefaultSQLExpressionResolvers {
 	static {
 		expressionResolvers.add(NullExpressionResolver.INSTANCE);
 		expressionResolvers.add(SQLParameterPlaceholderResolver.INSTANCE);
-		expressionResolvers.add(WildcardExpressionResolver.INSTANCE);
+		expressionResolvers.add(SQLTokenResolver.INSTANCE);
 		expressionResolvers.add(ConstantExpressionResolver.INSTANCE);
 		expressionResolvers.add(CollectionExpressionResolver.INSTANCE);
 		expressionResolvers.add(PathResolver.INSTANCE);

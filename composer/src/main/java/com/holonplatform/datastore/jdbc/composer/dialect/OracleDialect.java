@@ -38,8 +38,6 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 
 	private static final long serialVersionUID = 7693711472395387628L;
 
-	private static final String ANSI_DATE_FORMAT = "yyyy-MM-dd";
-
 	private static final OracleValueDeserializer DESERIALIZER = new OracleValueDeserializer();
 
 	private static final OracleLimitHandler LIMIT_HANDLER = new OracleLimitHandler();
@@ -185,16 +183,5 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 		}
 
 	}
-
-	// TODO
-	/*
-	 * private static final class OracleParameterProcessor implements SQLParameterProcessor {
-	 * @Override public SQLProcessedParameter processParameter(SQLContext context, SQLParameter parameter) {
-	 * TemporalType temporalType = parameter.getTemporalType().orElse(null); if (temporalType != null &&
-	 * TemporalType.DATE == temporalType) { Optional<String> value =
-	 * context.getValueSerializer().serializeTemporal(parameter.getValue(), temporalType); if (value.isPresent()) {
-	 * return SQLProcessedParameter.create(SQLParameter.create(value.get()), p -> "to_date(" + p + ", '" +
-	 * ANSI_DATE_FORMAT.toUpperCase() + "')"); } } return SQLProcessedParameter.create(parameter); } }
-	 */
 
 }

@@ -24,7 +24,7 @@ import com.holonplatform.core.query.CountAllProjection;
 import com.holonplatform.core.query.QueryFunction.Count;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
-import com.holonplatform.datastore.jdbc.composer.internal.expression.WildcardExpression;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLToken;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
@@ -73,7 +73,7 @@ public enum CountAllProjectionResolver implements SQLContextExpressionResolver<C
 		expression.validate();
 
 		// use Count(*)
-		return context.resolve(Count.create(new WildcardExpression()), SQLProjection.class);
+		return context.resolve(Count.create(SQLToken.create("*")), SQLProjection.class);
 	}
 
 }

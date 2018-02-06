@@ -22,16 +22,16 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
-import com.holonplatform.datastore.jdbc.composer.internal.expression.WildcardExpression;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLToken;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
- * {@link WildcardExpression} resolver.
+ * {@link SQLToken} resolver.
  *
  * @since 5.1.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum WildcardExpressionResolver implements SQLExpressionResolver<WildcardExpression> {
+public enum SQLTokenResolver implements SQLExpressionResolver<SQLToken> {
 
 	/**
 	 * Singleton instance
@@ -43,8 +43,8 @@ public enum WildcardExpressionResolver implements SQLExpressionResolver<Wildcard
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends WildcardExpression> getExpressionType() {
-		return WildcardExpression.class;
+	public Class<? extends SQLToken> getExpressionType() {
+		return SQLToken.class;
 	}
 
 	/*
@@ -54,9 +54,14 @@ public enum WildcardExpressionResolver implements SQLExpressionResolver<Wildcard
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(WildcardExpression expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(SQLToken expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
-		return Optional.of(SQLExpression.create("*"));
+
+		// validate
+		expression.validate();
+
+		// return the token value
+		return Optional.of(SQLExpression.create(expression.getValue()));
 	}
 
 }
