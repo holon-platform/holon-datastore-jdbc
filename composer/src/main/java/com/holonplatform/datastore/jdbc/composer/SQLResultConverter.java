@@ -47,6 +47,7 @@ public interface SQLResultConverter<R> {
 	/**
 	 * Create a new {@link SQLResultConverter} for given <code>conversionType</code>, using provided {@link BiFunction}
 	 * as result conversion strategy.
+	 * @param <R> Conversion result type
 	 * @param conversionType Conversion type (not null)
 	 * @param conversionFunction Conversion function (not null)
 	 * @return A new {@link SQLResultConverter}

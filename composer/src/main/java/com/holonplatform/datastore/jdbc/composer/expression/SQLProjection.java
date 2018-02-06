@@ -108,7 +108,6 @@ public interface SQLProjection<R> extends TypedExpression<R> {
 		/**
 		 * Add a selection expression, with selection alias auto-generation.
 		 * @param selection Selection to add (not null)
-		 * @param generateAlias Whether to generate an alias label for the selection expression
 		 * @return The generated selection alias
 		 */
 		default String addSelection(String selection) {

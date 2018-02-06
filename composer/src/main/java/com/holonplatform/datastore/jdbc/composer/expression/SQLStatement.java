@@ -41,7 +41,7 @@ public interface SQLStatement extends Expression {
 	 * Create a new {@link SQLStatement}.
 	 * @param sql SQL statement (not null)
 	 * @param parameters Optional statement parameters
-	 * @return
+	 * @return A new {@link SQLStatement}
 	 */
 	@SuppressWarnings("rawtypes")
 	static SQLStatement create(String sql, SQLParameter... parameters) {

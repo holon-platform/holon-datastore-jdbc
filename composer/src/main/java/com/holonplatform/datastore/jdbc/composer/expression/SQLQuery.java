@@ -34,7 +34,6 @@ public interface SQLQuery extends SQLStatement {
 	/**
 	 * Create a new {@link SQLQuery}.
 	 * @param sql Query SQL statement (not null)
-	 * @param resultType Query result type (not null)
 	 * @param resultConverter Query result converter
 	 * @param parameters SQL statement parameters
 	 * @return A new {@link SQLQuery}
@@ -46,7 +45,6 @@ public interface SQLQuery extends SQLStatement {
 	/**
 	 * Create a new {@link SQLQuery}.
 	 * @param sql Query SQL statement (not null)
-	 * @param resultType Query result type (not null)
 	 * @param resultConverter Query result converter
 	 * @return A new {@link SQLQuery}
 	 */

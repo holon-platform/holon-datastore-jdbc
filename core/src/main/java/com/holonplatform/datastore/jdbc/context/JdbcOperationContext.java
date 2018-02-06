@@ -44,7 +44,7 @@ public interface JdbcOperationContext extends SQLContext, ConnectionProvider, Da
 	/**
 	 * Execute given operations using a shared connection.
 	 * @param <R> Operation result type
-	 * @param operation Operations to execute (not null)
+	 * @param operations Operations to execute (not null)
 	 * @return Operation result
 	 */
 	<R> R withSharedConnection(Supplier<R> operations);
