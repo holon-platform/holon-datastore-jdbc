@@ -439,6 +439,8 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			// get a connection from connection handler
 			return operation.execute(connection = obtainConnection(connectionType));
 
+		} catch (DataAccessException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new DataAccessException("Failed to execute operation", e);
 		} finally {
@@ -643,7 +645,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			getStatementConfigurator().configureStatement(this, stmt, statement);
 
 			return stmt;
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			throw new DataAccessException("Failed to prepare JDBC statement for statement [" + statement + "]", e);
 		}
 	}
@@ -686,7 +688,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			getStatementConfigurator().configureStatement(this, stmt, statement);
 
 			return stmt;
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			throw new DataAccessException("Failed to prepare JDBC statement for statement [" + statement + "]", e);
 		}
 	}

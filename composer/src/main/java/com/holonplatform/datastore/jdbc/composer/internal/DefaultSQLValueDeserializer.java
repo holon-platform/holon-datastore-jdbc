@@ -41,6 +41,7 @@ import com.holonplatform.core.ConverterExpression;
 import com.holonplatform.core.ExpressionValueConverter;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
@@ -54,8 +55,16 @@ import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
  */
 public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 
+	/**
+	 * Singleton instance
+	 */
 	INSTANCE;
 
+	private static final Logger LOGGER = SQLComposerLogger.create();
+
+	/**
+	 * Additional value processors
+	 */
 	private final List<ValueProcessor> valueProcessors = new LinkedList<>();
 
 	/*
@@ -80,24 +89,37 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 	public <T> T deserialize(SQLExecutionContext context, TypedExpression<T> expression,
 			final Object valueToDeserialize) throws SQLException {
 
+		ObjectUtils.argumentNotNull(expression, "Vaue deserialization expression must be not null");
+
+		LOGGER.debug(() -> "<DefaultSQLValueDeserializer> Deserializing value [" + valueToDeserialize + "] of type ["
+				+ ((valueToDeserialize == null) ? "NULL" : valueToDeserialize.getClass()) + "] for expression type ["
+				+ expression.getType() + "]");
+
 		Object value = valueToDeserialize;
 
 		// apply processors
 		for (ValueProcessor processor : valueProcessors) {
 			value = processor.processValue(context, expression, value);
+			LOGGER.debug(() -> "<DefaultSQLValueDeserializer> Value to deserialize processed by ValueProcessor ["
+					+ processor.getClass() + "]");
 		}
 
 		// null always deserialized as null
 		if (value == null) {
+			LOGGER.debug(() -> "<DefaultSQLValueDeserializer> Value to deserialize is NULL, return it as NULL");
 			return null;
 		}
 
 		// check converter
-		ExpressionValueConverter<?, ?> converter = (expression instanceof ConverterExpression)
+		final ExpressionValueConverter<?, ?> converter = (expression instanceof ConverterExpression)
 				? ((ConverterExpression<?>) expression).getExpressionValueConverter().orElse(null) : null;
 
 		// actual type to deserialize
 		Class<?> targetType = (converter != null) ? converter.getModelType() : expression.getType();
+
+		LOGGER.debug(() -> "<DefaultSQLValueDeserializer> ExpressionValueConverter "
+				+ ((converter != null) ? "detected" : "not detected") + " - deserialization target type: [" + targetType
+				+ "]");
 
 		Object deserialized = deserialize(targetType, value);
 
@@ -107,9 +129,13 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 			}
 		}
 
+		final Object deserializedValue = deserialized;
+		LOGGER.debug(() -> "<DefaultSQLValueDeserializer> Deserialized value: [" + deserializedValue + "] - Type: ["
+				+ ((deserializedValue == null) ? "NULL" : deserializedValue.getClass()) + "]");
+
 		// check type
-		if (TypeUtils.isAssignable(deserialized.getClass(), expression.getType())) {
-			return (T) deserialized;
+		if (TypeUtils.isAssignable(deserializedValue.getClass(), expression.getType())) {
+			return (T) deserializedValue;
 		} else {
 			throw new SQLException(
 					"Failed to deserialize value [" + value + "] for required type [" + expression.getType() + "]");
@@ -183,6 +209,12 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 			if (Timestamp.class.isAssignableFrom(targetType)) {
 				return Timestamp.valueOf(((LocalDateTime) value));
 			}
+			if (LocalDate.class.isAssignableFrom(targetType)) {
+				return ((LocalDateTime) value).toLocalDate();
+			}
+			if (LocalTime.class.isAssignableFrom(targetType)) {
+				return ((LocalDateTime) value).toLocalTime();
+			}
 		}
 		if (OffsetDateTime.class.isAssignableFrom(value.getClass())) {
 			if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
@@ -190,6 +222,15 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 			}
 			if (Timestamp.class.isAssignableFrom(targetType)) {
 				return Timestamp.valueOf(((OffsetDateTime) value).toLocalDateTime());
+			}
+			if (LocalDateTime.class.isAssignableFrom(targetType)) {
+				return ((OffsetDateTime) value).toLocalDateTime();
+			}
+			if (LocalDate.class.isAssignableFrom(targetType)) {
+				return ((OffsetDateTime) value).toLocalDate();
+			}
+			if (LocalTime.class.isAssignableFrom(targetType)) {
+				return ((OffsetDateTime) value).toLocalTime();
 			}
 		}
 

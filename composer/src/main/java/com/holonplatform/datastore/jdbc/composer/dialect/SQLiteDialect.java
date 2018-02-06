@@ -200,7 +200,7 @@ public class SQLiteDialect implements SQLDialect {
 
 	}
 
-	private static Object asDateTime(String value, TemporalType type) {
+	private static LocalDateTime asDateTime(String value, TemporalType type) {
 		if (value != null) {
 			switch (type) {
 			case DATE:

@@ -68,7 +68,7 @@ public enum ReaderToStringParameterResolver implements SQLContextExpressionResol
 		if (expression.getValue() != null && expression.getValue() instanceof Reader) {
 			final Reader reader = (Reader) expression.getValue();
 			try {
-				return Optional.of(SQLParameter.create(ConversionUtils.readerToString(reader), String.class));
+				return Optional.of(SQLParameter.create(ConversionUtils.readerToString(reader, false), String.class));
 			} catch (IOException e) {
 				throw new InvalidExpressionException("Failed to convert Reader [" + reader + "] to String", e);
 			}

@@ -40,7 +40,8 @@ public final class TestProperties implements Serializable {
 	public final static NumericProperty<Long> KEY = NumericProperty.create("keycode", long.class);
 	public final static StringProperty STR = StringProperty.create("strv");
 	public final static NumericProperty<Double> DBL = NumericProperty.doubleType("decv");
-	public final static TemporalProperty<Date> DAT = TemporalProperty.create("datv", Date.class);
+	public final static TemporalProperty<Date> DAT = TemporalProperty.create("datv", Date.class)
+			.temporalType(TemporalType.DATE);
 	public final static TemporalProperty<LocalDate> LDAT = TemporalProperty.localDate("datv2");
 	public final static PathProperty<TestEnum> ENM = PathProperty.create("enmv", TestEnum.class);
 	public final static PathProperty<Boolean> NBOOL = PathProperty.create("nbv", boolean.class)
@@ -54,8 +55,8 @@ public final class TestProperties implements Serializable {
 
 	public final static TemporalProperty<LocalTime> TIME = TemporalProperty.localTime("tm");
 
-	public final static PropertySet<?> PROPERTIES = PropertySet.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC,
-			TMS, LTMS, TIME).identifier(KEY).build();
+	public final static PropertySet<?> PROPERTIES = PropertySet
+			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME).identifier(KEY).build();
 
 	// with parent
 	public final static PathProperty<Long> KEY_P = NAMED_TARGET.property(KEY);

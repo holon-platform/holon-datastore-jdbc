@@ -104,4 +104,13 @@ public class DefaultSQLParameter<T> implements SQLParameter<T> {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLParameter [value=" + value + ", type=" + type + ", temporalType=" + temporalType + "]";
+	}
+
 }
