@@ -15,12 +15,22 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
+import static com.holonplatform.datastore.jdbc.test.data.TestProperties.LTMS;
+import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NAMED_TARGET;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.junit.BeforeClass;
 
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.data.KeyIs;
+import com.holonplatform.datastore.jdbc.test.function.CastFunction;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
@@ -34,7 +44,7 @@ public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
 		initSQL(dataSource, "oracle/schema.sql", "oracle/data.sql");
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
-				.traceEnabled(true).build();
+				.withExpressionResolver(new CastFunction.Resolver()).traceEnabled(true).build();
 
 	}
 
@@ -43,9 +53,14 @@ public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
 		return datastore;
 	}
 
+	// in Oracle, use the trunc() function timestamp
 	@Override
 	public void testLocalDateTimeWithTimestampFilter() {
-		// in Oracle the trunc() function is required for timestamp
+		List<LocalDateTime> ltvalues = getDatastore().query().target(NAMED_TARGET)
+				.filter(new CastFunction<>(LTMS, "date").eq(LocalDateTime.of(2017, Month.MARCH, 23, 15, 30, 25)))
+				.list(LTMS);
+		assertNotNull(ltvalues);
+		assertEquals(1, ltvalues.size());
 	}
 
 	/*
