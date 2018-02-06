@@ -104,32 +104,11 @@
 							</includes>
 						</configuration>
 					</plugin>
-					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>docker-maven-plugin</artifactId>
-						<configuration>
-							<images>
-								<image>
-									<name>holon/db2</name>
-									<build>
-										<dockerFileDir>db2</dockerFileDir>
-									</build>
-									<run>
-										<env>
-											<DB2INST1_PASSWORD>test-pwd</DB2INST1_PASSWORD>
-											<LICENSE>accept</LICENSE>
-										</env>
-										<ports>
-											<port>50000:50000</port>
-										</ports>
-										<wait>
-											<time>15000</time>
-										</wait>
-									</run>
-								</image>
-							</images>
-						</configuration>
-					</plugin>
+					<!-- <plugin> <groupId>io.fabric8</groupId> <artifactId>docker-maven-plugin</artifactId> 
+						<configuration> <images> <image> <name>holon/db2</name> <build> <dockerFileDir>db2</dockerFileDir> 
+						</build> <run> <env> <DB2INST1_PASSWORD>testdb2-pwd</DB2INST1_PASSWORD> <LICENSE>accept</LICENSE> 
+						</env> <ports> <port>50000:50000</port> </ports> <wait> <time>15000</time> 
+						</wait> </run> </image> </images> </configuration> </plugin> -->
 				</plugins>
 			</build>
 		</profile>
@@ -307,7 +286,6 @@
 							</includes>
 						</configuration>
 					</plugin>
-					<!-- Not using docker by now -->
 					<!-- <plugin> <groupId>io.fabric8</groupId> <artifactId>docker-maven-plugin</artifactId> 
 						<configuration> <images> <image> <name>holon/sqlserver</name> <build> <dockerFileDir>sqlserver</dockerFileDir> 
 						</build> <run> <env> <SA_PASSWORD>sa123pwd</SA_PASSWORD> <ACCEPT_EULA>Y</ACCEPT_EULA> 

@@ -31,7 +31,7 @@ public class JdbcDatastoreDB2IT extends AbstractJdbcDatastoreIT {
 	public static void initDatastore() {
 
 		final DataSource dataSource = DataSourceBuilder.build("db2/datasource.properties");
-		initSQL(dataSource, "db2/schema.sql", "db2/data.sql");
+		// initSQL(dataSource, "db2/schema.sql", "db2/data.sql");
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
 				.traceEnabled(true).build();

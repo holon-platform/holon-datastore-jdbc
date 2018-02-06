@@ -1,5 +1,5 @@
 # holon/sqlserver
 
-FROM microsoft/mssql-server-windows-express:2016
+FROM microsoft/mssql-server-windows-express:latest
 
 EXPOSE 1433

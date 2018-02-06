@@ -17,15 +17,10 @@ package com.holonplatform.datastore.jdbc.composer.dialect;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Priority;
-
-import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.internal.Logger;
-import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.core.query.TemporalFunction.CurrentDate;
@@ -34,16 +29,12 @@ import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
-import com.holonplatform.core.temporal.TemporalType;
-import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
-import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
-import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
  * MSSQL {@link SQLDialect}.
@@ -57,8 +48,6 @@ public class SQLServerDialect implements SQLDialect {
 	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
-
-	private static final TimeParameterResolver TIME_PARAMETER_RESOLVER = new TimeParameterResolver();
 
 	private static final SQLServer2012LimitHandler LIMIT_HANDLER_2012 = new SQLServer2012LimitHandler();
 
@@ -96,7 +85,6 @@ public class SQLServerDialect implements SQLDialect {
 		} else {
 			LOGGER.warn("Failed to detect SQLServer database version - a limit handler will not be available");
 		}
-		context.addExpressionResolver(TIME_PARAMETER_RESOLVER);
 	}
 
 	/*
@@ -215,42 +203,6 @@ public class SQLServerDialect implements SQLDialect {
 		public void validate() throws InvalidExpressionException {
 		}
 
-	}
-
-	@SuppressWarnings({ "rawtypes", "serial" })
-	@Priority(Integer.MAX_VALUE - 10000)
-	private static final class TimeParameterResolver
-			implements SQLContextExpressionResolver<SQLParameter, SQLParameter> {
-
-		@Override
-		public Class<? extends SQLParameter> getExpressionType() {
-			return SQLParameter.class;
-		}
-
-		@Override
-		public Class<? extends SQLParameter> getResolvedType() {
-			return SQLParameter.class;
-		}
-
-		@Override
-		public Optional<SQLParameter> resolve(SQLParameter expression, SQLCompositionContext context)
-				throws InvalidExpressionException {
-			expression.validate();
-
-			if (expression.getValue() != null) {
-				if (TypeUtils.isDate(expression.getValue().getClass())
-						|| Temporal.class.isAssignableFrom(expression.getValue().getClass())) {
-					TemporalType tt = ((SQLParameter<?>) expression).getTemporalType().orElse(null);
-					if (tt != null && tt == TemporalType.TIME) {
-						// serialize time as string
-						return Optional.of(SQLParameter.create(context.getValueSerializer()
-								.serializeTemporal(expression.getValue(), TemporalType.TIME), String.class));
-					}
-				}
-			}
-
-			return Optional.empty();
-		}
 	}
 
 	@SuppressWarnings("serial")
