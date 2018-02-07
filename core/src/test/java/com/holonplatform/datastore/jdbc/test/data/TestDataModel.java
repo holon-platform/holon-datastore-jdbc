@@ -15,7 +15,6 @@
  */
 package com.holonplatform.datastore.jdbc.test.data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,9 +30,7 @@ import com.holonplatform.core.property.StringProperty;
 import com.holonplatform.core.property.TemporalProperty;
 import com.holonplatform.core.temporal.TemporalType;
 
-public final class TestProperties implements Serializable {
-
-	private static final long serialVersionUID = -820043080015011043L;
+public interface TestDataModel {
 
 	public final static DataTarget<String> NAMED_TARGET = DataTarget.named("test1");
 
@@ -58,11 +55,11 @@ public final class TestProperties implements Serializable {
 	public final static PropertySet<?> PROPERTIES = PropertySet
 			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME).identifier(KEY).build();
 
+	public final static PropertySet<?> PROPERTIES_NOID = PropertySet.of(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR,
+			NST_DEC, TMS, LTMS, TIME);
+
 	// with parent
 	public final static PathProperty<Long> KEY_P = NAMED_TARGET.property(KEY);
 	public final static PathProperty<String> STR_P = NAMED_TARGET.property(STR);
-
-	private TestProperties() {
-	}
 
 }

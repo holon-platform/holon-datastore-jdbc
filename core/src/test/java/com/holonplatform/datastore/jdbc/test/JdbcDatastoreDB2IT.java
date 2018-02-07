@@ -20,7 +20,7 @@ import javax.sql.DataSource;
 import org.junit.BeforeClass;
 
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.data.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreDB2IT extends AbstractJdbcDatastoreIT {

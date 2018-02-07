@@ -15,9 +15,9 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.KEY;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NAMED_TARGET;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -39,7 +39,7 @@ import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.data.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
 import com.holonplatform.datastore.jdbc.test.function.IfNullFunction;
 import com.holonplatform.datastore.jdbc.test.function.IfNullFunctionResolver;
 import com.holonplatform.jdbc.DataSourceBuilder;

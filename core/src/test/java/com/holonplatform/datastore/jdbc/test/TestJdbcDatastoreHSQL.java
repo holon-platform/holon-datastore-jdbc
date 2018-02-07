@@ -30,7 +30,7 @@ import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.data.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class TestJdbcDatastoreHSQL extends AbstractJdbcDatastoreTest {

@@ -15,8 +15,8 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.LTMS;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NAMED_TARGET;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.LTMS;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -29,7 +29,7 @@ import javax.sql.DataSource;
 import org.junit.BeforeClass;
 
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.data.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
 import com.holonplatform.datastore.jdbc.test.function.CastFunction;
 import com.holonplatform.jdbc.DataSourceBuilder;
 

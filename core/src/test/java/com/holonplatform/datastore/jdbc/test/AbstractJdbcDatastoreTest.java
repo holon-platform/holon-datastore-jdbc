@@ -15,21 +15,21 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.DAT;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.DBL;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.ENM;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.KEY;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.KEY_P;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.LDAT;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.LTMS;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NAMED_TARGET;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NBOOL;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.NST_DEC;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.PROPERTIES;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.STR;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.STR_P;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.TIME;
-import static com.holonplatform.datastore.jdbc.test.data.TestProperties.TMS;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.DAT;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.DBL;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.ENM;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY_P;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.LDAT;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.LTMS;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NBOOL;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NST_DEC;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR_P;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TIME;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TMS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -72,11 +72,11 @@ import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.SQLWhereFilter;
-import com.holonplatform.datastore.jdbc.test.data.KeyIs;
 import com.holonplatform.datastore.jdbc.test.data.TestData;
 import com.holonplatform.datastore.jdbc.test.data.TestDataImpl;
 import com.holonplatform.datastore.jdbc.test.data.TestEnum;
 import com.holonplatform.datastore.jdbc.test.data.TestProjectionBean;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
 
 public abstract class AbstractJdbcDatastoreTest {
 
