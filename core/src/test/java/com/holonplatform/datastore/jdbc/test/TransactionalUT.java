@@ -34,7 +34,7 @@ import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DatabasePlatform;
 
-public class TestTransactional {
+public class TransactionalUT {
 
 	private final static String INIT_SQL = "create table testtx (code bigint primary key, text varchar(100) not null); INSERT INTO testtx VALUES (1, 'TheOne');";
 

@@ -24,6 +24,7 @@ import javax.sql.DataSource;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.composer.dialect.H2Dialect;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
@@ -31,9 +32,9 @@ import com.holonplatform.datastore.jdbc.test.config.TestCommodity;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DatabasePlatform;
 
-public class TestDatastoreConfiguration {
+public class DatastoreConfigurationUT {
 
-	private JdbcDatastore datastore;
+	private Datastore datastore;
 
 	@Before
 	public void initDatastore() {

@@ -57,6 +57,7 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.beans.BeanIntrospector;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.DataTarget.DataTargetResolver;
+import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.core.datastore.relational.SubQuery;
@@ -70,7 +71,6 @@ import com.holonplatform.core.query.ConstantExpressionProjection;
 import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction;
-import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.SQLWhereFilter;
 import com.holonplatform.datastore.jdbc.test.data.TestData;
 import com.holonplatform.datastore.jdbc.test.data.TestDataImpl;
@@ -80,10 +80,10 @@ import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
 
 public abstract class AbstractJdbcDatastoreTest {
 
-	protected abstract JdbcDatastore getDatastore();
+	protected abstract Datastore getDatastore();
 
 	protected void inTransaction(Runnable operation) {
-		getDatastore().withTransaction(tx -> {
+		getDatastore().requireTransactional().withTransaction(tx -> {
 			tx.setRollbackOnly();
 			operation.run();
 		});

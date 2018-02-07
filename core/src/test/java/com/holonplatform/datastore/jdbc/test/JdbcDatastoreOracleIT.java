@@ -28,6 +28,7 @@ import javax.sql.DataSource;
 
 import org.junit.BeforeClass;
 
+import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
 import com.holonplatform.datastore.jdbc.test.function.CastFunction;
@@ -35,7 +36,7 @@ import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
 
-	private static JdbcDatastore datastore;
+	private static Datastore datastore;
 
 	@BeforeClass
 	public static void initDatastore() {
@@ -49,7 +50,7 @@ public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
 	}
 
 	@Override
-	protected JdbcDatastore getDatastore() {
+	protected Datastore getDatastore() {
 		return datastore;
 	}
 

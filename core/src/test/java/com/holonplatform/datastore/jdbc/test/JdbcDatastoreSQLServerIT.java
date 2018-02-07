@@ -26,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
@@ -37,7 +38,7 @@ import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreSQLServerIT extends AbstractJdbcDatastoreIT {
 
-	private static JdbcDatastore datastore;
+	private static Datastore datastore;
 
 	@BeforeClass
 	public static void initDatastore() {
@@ -51,7 +52,7 @@ public class JdbcDatastoreSQLServerIT extends AbstractJdbcDatastoreIT {
 	}
 
 	@Override
-	protected JdbcDatastore getDatastore() {
+	protected Datastore getDatastore() {
 		return datastore;
 	}
 
@@ -65,7 +66,7 @@ public class JdbcDatastoreSQLServerIT extends AbstractJdbcDatastoreIT {
 
 		inTransaction(() -> {
 
-			datastore.withConnection(c -> {
+			((JdbcDatastore)datastore).withConnection(c -> {
 				c.createStatement().executeUpdate("DROP TABLE IF EXISTS test2");
 				c.createStatement().executeUpdate(
 						"create table test2 (code int NOT NULL IDENTITY (1,1) PRIMARY KEY, text varchar(100) not null)");

@@ -24,6 +24,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
@@ -35,7 +36,7 @@ import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreMariaDBIT extends AbstractJdbcDatastoreIT {
 
-	private static JdbcDatastore datastore;
+	private static Datastore datastore;
 
 	@BeforeClass
 	public static void initDatastore() {
@@ -49,7 +50,7 @@ public class JdbcDatastoreMariaDBIT extends AbstractJdbcDatastoreIT {
 	}
 
 	@Override
-	protected JdbcDatastore getDatastore() {
+	protected Datastore getDatastore() {
 		return datastore;
 	}
 

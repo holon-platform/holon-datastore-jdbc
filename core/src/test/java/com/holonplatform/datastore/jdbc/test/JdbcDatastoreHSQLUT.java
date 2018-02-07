@@ -24,6 +24,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
@@ -33,9 +34,9 @@ import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
-public class TestJdbcDatastoreHSQL extends AbstractJdbcDatastoreTest {
+public class JdbcDatastoreHSQLUT extends AbstractJdbcDatastoreTest {
 
-	private static JdbcDatastore datastore;
+	private static Datastore datastore;
 
 	@BeforeClass
 	public static void initDatastore() {
@@ -49,7 +50,7 @@ public class TestJdbcDatastoreHSQL extends AbstractJdbcDatastoreTest {
 	}
 
 	@Override
-	protected JdbcDatastore getDatastore() {
+	protected Datastore getDatastore() {
 		return datastore;
 	}
 

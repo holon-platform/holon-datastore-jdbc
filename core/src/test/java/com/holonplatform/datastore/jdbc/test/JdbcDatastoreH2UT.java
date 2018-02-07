@@ -31,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
@@ -44,9 +45,9 @@ import com.holonplatform.datastore.jdbc.test.function.IfNullFunction;
 import com.holonplatform.datastore.jdbc.test.function.IfNullFunctionResolver;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
-public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
+public class JdbcDatastoreH2UT extends AbstractJdbcDatastoreTest {
 
-	private static JdbcDatastore datastore;
+	private static Datastore datastore;
 
 	private static long ms;
 
@@ -59,7 +60,7 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
 				.withExpressionResolver(new IfNullFunctionResolver())
-				//.traceEnabled(true)
+				// .traceEnabled(true)
 				.build();
 
 		ms = System.currentTimeMillis();
@@ -71,7 +72,7 @@ public class TestJdbcDatastoreH2 extends AbstractJdbcDatastoreTest {
 	}
 
 	@Override
-	protected JdbcDatastore getDatastore() {
+	protected Datastore getDatastore() {
 		return datastore;
 	}
 

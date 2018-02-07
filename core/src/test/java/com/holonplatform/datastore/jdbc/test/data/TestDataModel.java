@@ -28,6 +28,7 @@ import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.property.PropertyValueConverter;
 import com.holonplatform.core.property.StringProperty;
 import com.holonplatform.core.property.TemporalProperty;
+import com.holonplatform.core.property.VirtualProperty;
 import com.holonplatform.core.temporal.TemporalType;
 
 public interface TestDataModel {
@@ -58,8 +59,25 @@ public interface TestDataModel {
 	public final static PropertySet<?> PROPERTIES_NOID = PropertySet.of(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR,
 			NST_DEC, TMS, LTMS, TIME);
 
+	// virtual
+
+	public static final VirtualProperty<String> VIRTUAL_STR = VirtualProperty.create(String.class, pb -> {
+		return pb.getValueIfPresent(STR).map(str -> "[" + str + "]").orElse("NONE");
+	});
+
+	public final static PropertySet<?> PROPERTIES_V = PropertySet
+			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME, VIRTUAL_STR)
+			.identifier(KEY).build();
+
 	// with parent
 	public final static PathProperty<Long> KEY_P = NAMED_TARGET.property(KEY);
 	public final static PathProperty<String> STR_P = NAMED_TARGET.property(STR);
+
+	// ------- no pk
+
+	public final static DataTarget<String> NOPK_TARGET = DataTarget.named("test_nopk");
+
+	public final static NumericProperty<Integer> NOPK_NMB = NumericProperty.create("nmb", Integer.class);
+	public final static StringProperty NOPK_TXT = StringProperty.create("txt");
 
 }
