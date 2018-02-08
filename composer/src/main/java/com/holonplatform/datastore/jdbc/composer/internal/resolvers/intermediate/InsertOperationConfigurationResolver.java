@@ -103,8 +103,8 @@ public enum InsertOperationConfigurationResolver
 		final List<String> values = new ArrayList<>(pathValues.size());
 
 		pathValues.forEach((path, pathExpression) -> {
-			paths.add(context.resolveOrFail(path, SQLExpression.class).getValue());
-			values.add(context.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
+			paths.add(operationContext.resolveOrFail(path, SQLExpression.class).getValue());
+			values.add(operationContext.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
 					.getValue());
 		});
 
@@ -115,7 +115,7 @@ public enum InsertOperationConfigurationResolver
 		operation.append(")");
 
 		// prepare SQL and return SQLStatement
-		return Optional.of(context.prepareStatement(operation.toString()));
+		return Optional.of(operationContext.prepareStatement(operation.toString()));
 
 	}
 

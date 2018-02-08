@@ -105,7 +105,7 @@ public enum DeleteOperationConfigurationResolver
 		});
 
 		// prepare SQL and return SQLStatement
-		return Optional.of(context.prepareStatement(operation.toString()));
+		return Optional.of(operationContext.prepareStatement(operation.toString()));
 	}
 
 }

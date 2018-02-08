@@ -72,6 +72,22 @@ public interface SQLDialect extends Serializable {
 	}
 
 	/**
+	 * Get whether alias is supported in the UPDATE clause.
+	 * @return <code>true</code> if alias is supported in the UPDATE clause
+	 */
+	default boolean updateStatementAliasSupported() {
+		return true;
+	}
+
+	/**
+	 * Get whether a FROM clause is supported in the UPDATE clause.
+	 * @return <code>true</code> if a FROM clause is supported in the UPDATE clause
+	 */
+	default boolean updateStatementFromSupported() {
+		return false;
+	}
+
+	/**
 	 * Get whether alias is supported in the DELETE clause.
 	 * @return <code>true</code> if alias is supported in the DELETE clause
 	 */

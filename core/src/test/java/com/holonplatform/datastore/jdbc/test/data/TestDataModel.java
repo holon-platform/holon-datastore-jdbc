@@ -78,7 +78,7 @@ public interface TestDataModel {
 
 	public final static PathProperty<byte[]> BLOB_BYS = PathProperty.create("blb", byte[].class);
 	public final static PathProperty<InputStream> BLOB_IST = PathProperty.create("blb", InputStream.class);
-	
+
 	public final static byte[] DEFAULT_BLOB_VALUE = hexStringToByteArray("C9CBBBCCCEB9C8CABCCCCEB9C9CBBB");
 
 	// with parent
@@ -91,17 +91,29 @@ public interface TestDataModel {
 
 	public final static NumericProperty<Integer> NOPK_NMB = NumericProperty.create("nmb", Integer.class);
 	public final static StringProperty NOPK_TXT = StringProperty.create("txt");
-	
+
+	// test3
+
+	public final static DataTarget<String> TEST3 = DataTarget.named("test3");
+
+	public final static PathProperty<Long> TEST3_CODE = PathProperty.create("code", long.class);
+	public final static PathProperty<String> TEST3_TEXT = PathProperty.create("text", String.class);
+
+	public final static PathProperty<Long> TEST3_CODE_P = PathProperty.create("code", long.class).parent(TEST3);
+	public final static PathProperty<String> TEST3_TEXT_P = PathProperty.create("text", String.class).parent(TEST3);
+
+	public final static PropertySet<?> TEST3_SET = PropertySet.builderOf(TEST3_CODE, TEST3_TEXT).identifier(TEST3_CODE)
+			.build();
+
 	// utils
 
 	static byte[] hexStringToByteArray(String s) {
-	    int len = s.length();
-	    byte[] data = new byte[len / 2];
-	    for (int i = 0; i < len; i += 2) {
-	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-	                             + Character.digit(s.charAt(i+1), 16));
-	    }
-	    return data;
+		int len = s.length();
+		byte[] data = new byte[len / 2];
+		for (int i = 0; i < len; i += 2) {
+			data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+		}
+		return data;
 	}
 
 }

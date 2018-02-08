@@ -85,7 +85,7 @@ public enum UpdateOperationConfigurationResolver
 
 		// build a statement context
 		final SQLStatementCompositionContext operationContext = SQLStatementCompositionContext.asChild(context, target,
-				AliasMode.UNSUPPORTED); // TODO why not AUTO? check sub queries
+				context.getDialect().updateStatementAliasSupported() ? AliasMode.AUTO : AliasMode.UNSUPPORTED);
 
 		final StringBuilder operation = new StringBuilder();
 
@@ -95,6 +95,15 @@ public enum UpdateOperationConfigurationResolver
 		// target
 		operation.append(operationContext.resolveOrFail(target, SQLExpression.class).getValue());
 
+		// optional from
+		if (operationContext.getDialect().updateStatementAliasSupported()
+				&& operationContext.getDialect().updateStatementFromSupported()) {
+			operationContext.getAlias(target, false).ifPresent(a -> {
+				operation.append(" FROM ");
+				operation.append(a);
+			});
+		}
+
 		// values
 		final Map<Path<?>, TypedExpression<?>> pathValues = expression.getValues();
 
@@ -102,8 +111,9 @@ public enum UpdateOperationConfigurationResolver
 		final List<String> values = new ArrayList<>(pathValues.size());
 
 		pathValues.forEach((path, pathExpression) -> {
-			paths.add(context.resolveOrFail(path, SQLExpression.class).getValue());
-			values.add(context.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
+			paths.add(operationContext.resolveOrFail(path, SQLExpression.class).getValue());
+			values.add(operationContext
+					.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
 					.getValue());
 		});
 
@@ -124,7 +134,7 @@ public enum UpdateOperationConfigurationResolver
 		});
 
 		// prepare SQL and return SQLStatement
-		return Optional.of(context.prepareStatement(operation.toString()));
+		return Optional.of(operationContext.prepareStatement(operation.toString()));
 	}
 
 }

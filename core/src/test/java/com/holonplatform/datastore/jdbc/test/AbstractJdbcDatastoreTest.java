@@ -95,7 +95,8 @@ public abstract class AbstractJdbcDatastoreTest {
 		assertNotNull(results);
 		assertEquals(0, results.size());
 
-		PropertyBox result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES).orElse(null);
+		PropertyBox result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
+				.orElse(null);
 		assertNotNull(result);
 		assertEquals(Long.valueOf(1), result.getValue(KEY));
 		assertEquals("One", result.getValue(STR));
@@ -551,7 +552,7 @@ public abstract class AbstractJdbcDatastoreTest {
 			PropertyBox box = PropertyBox.builder(KEY, STR, NBOOL, BLOB2).set(KEY, 87L).set(STR, "Test blob")
 					.set(NBOOL, false).set(BLOB2, bytes).build();
 			getDatastore().save(NAMED_TARGET, box);
-			
+
 			byte[] value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(87L)).findOne(BLOB2).orElse(null);
 			assertNotNull(value);
 			assertTrue(Arrays.equals(bytes, value));
@@ -761,7 +762,8 @@ public abstract class AbstractJdbcDatastoreTest {
 
 	@Test
 	public void testRefresh() {
-		PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES).orElse(null);
+		PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
+				.orElse(null);
 		assertNotNull(value);
 
 		PropertyBox refreshed = getDatastore().refresh(NAMED_TARGET, value);
@@ -872,7 +874,8 @@ public abstract class AbstractJdbcDatastoreTest {
 			result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.FIRST).filter(new KeyIs(1)).execute();
 			assertEquals(1, result.getAffectedCount());
 
-			Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(2)).findOne(PROPERTIES);
+			Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(2))
+					.findOne(PROPERTIES);
 			assertEquals(TestEnum.SECOND, pb.get().getValue(ENM));
 
 			result = getDatastore().bulkUpdate(NAMED_TARGET).filter(new KeyIs(2)).setNull(DAT).execute();
