@@ -172,11 +172,11 @@ public class DerbyDialect implements SQLDialect {
 		@Override
 		public String serialize(List<String> arguments) {
 			final StringBuilder sb = new StringBuilder();
-			sb.append("avg");
+			sb.append("AVG");
 			sb.append("(");
-			sb.append("cast(");
+			sb.append("CAST(");
 			sb.append(arguments.get(0));
-			sb.append(" as double)");
+			sb.append(" AS double)");
 			sb.append(")");
 			return sb.toString();
 		}
