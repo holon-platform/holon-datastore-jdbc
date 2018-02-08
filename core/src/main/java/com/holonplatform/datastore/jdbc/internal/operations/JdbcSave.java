@@ -21,6 +21,7 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.operation.InsertOperation;
 import com.holonplatform.core.datastore.operation.PropertyBoxOperationConfiguration;
 import com.holonplatform.core.datastore.operation.SaveOperation;
@@ -88,16 +89,26 @@ public class JdbcSave extends AbstractSaveOperation {
 
 		return operationContext.withSharedConnection(() -> {
 
+			final boolean fallbackToInsert = !getConfiguration()
+					.hasWriteOption(DefaultWriteOption.SAVE_DISABLE_INSERT_FALLBACK);
+
 			// resolve primary key
 			final Optional<SQLPrimaryKey> primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class,
 					context);
 
 			if (!primaryKey.isPresent()) {
-				LOGGER.warn("(Save operation) Cannot obtain the primary key for operation [" + getConfiguration()
-						+ "]: an INSERT operation will be performed by default");
-				return insert(getConfiguration());
+				if (fallbackToInsert) {
+					LOGGER.warn("(Save operation) Cannot obtain the primary key for operation [" + getConfiguration()
+							+ "]: an INSERT operation will be performed by default");
+					return insert(getConfiguration());
+				} else {
+					throw new DataAccessException(
+							"Failed to perform a consistent SAVE operation: cannot obtain the primary key to use for operation ["
+									+ getConfiguration() + "]");
+				}
 			} else {
 				// check existence using primary key
+				final boolean exists;
 				try {
 					QueryFilter pkFilter = JdbcOperationUtils.getPrimaryKeyFilter(operationContext.getDialect(),
 							primaryKey.get(), getConfiguration().getValue());
@@ -106,27 +117,43 @@ public class JdbcSave extends AbstractSaveOperation {
 							: null;
 					Query q = operationContext.create(Query.class).target(getConfiguration().getTarget())
 							.filter(pkFilter);
-					boolean exists = ((singleKey != null) ? q.findOne(Count.create(singleKey)).orElse(0L)
-							: q.count()) > 0;
-
-					return exists ? update(getConfiguration()) : insert(getConfiguration());
-
+					exists = ((singleKey != null) ? q.findOne(Count.create(singleKey)).orElse(0L) : q.count()) > 0;
 				} catch (DataAccessException dae) {
-					LOGGER.warn(
-							"(Save operation) Cannot build a primary key filter: an INSERT operation will be performed by default ["
-									+ dae.getMessage() + "]");
-					return insert(getConfiguration());
+					if (fallbackToInsert) {
+						LOGGER.warn(
+								"(Save operation) Failed to check value existence using primary key: an INSERT operation will be performed by default ["
+										+ dae.getMessage() + "]");
+						LOGGER.debug(() -> "(Save operation) Failed to check value existence using primary key", dae);
+						return insert(getConfiguration());
+					} else {
+						throw new DataAccessException(
+								"Failed to perform a consistent SAVE operation: cannot check value existence using primary",
+								dae);
+					}
 				}
+
+				// perform an update or insert operation according to key existence
+				return exists ? update(getConfiguration()) : insert(getConfiguration());
 			}
 
 		});
 	}
 
+	/**
+	 * Perform an insert operation using given <code>configuration</code>.
+	 * @param configuration Operation configuration
+	 * @return Operation result
+	 */
 	private OperationResult insert(PropertyBoxOperationConfiguration configuration) {
 		return operationContext.create(InsertOperation.class).target(configuration.getTarget())
 				.value(configuration.getValue()).withWriteOptions(configuration.getWriteOptions()).execute();
 	}
 
+	/**
+	 * Perform an update operation using given <code>configuration</code>.
+	 * @param configuration Operation configuration
+	 * @return Operation result
+	 */
 	private OperationResult update(PropertyBoxOperationConfiguration configuration) {
 		return operationContext.create(UpdateOperation.class).target(configuration.getTarget())
 				.value(configuration.getValue()).withWriteOptions(configuration.getWriteOptions()).execute();

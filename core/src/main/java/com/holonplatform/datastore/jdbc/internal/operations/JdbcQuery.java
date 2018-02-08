@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.query.QueryAdapterQuery;
 import com.holonplatform.core.internal.query.QueryDefinition;
 import com.holonplatform.core.internal.utils.TypeUtils;
@@ -30,7 +31,6 @@ import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
-import com.holonplatform.core.query.QueryResults.QueryExecutionException;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
@@ -74,7 +74,7 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws QueryExecutionException {
+	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws DataAccessException {
 
 		/// composition context
 		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
@@ -86,7 +86,7 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 		// check converter
 		final SQLResultConverter<R> converter = (SQLResultConverter<R>) query.getResultConverter();
 		if (!TypeUtils.isAssignable(converter.getConversionType(), queryOperation.getProjection().getType())) {
-			throw new QueryExecutionException("The query results converter type [" + converter.getConversionType()
+			throw new DataAccessException("The query results converter type [" + converter.getConversionType()
 					+ "] is not compatible with the query projection type [" + queryOperation.getProjection().getType()
 					+ "]");
 		}
