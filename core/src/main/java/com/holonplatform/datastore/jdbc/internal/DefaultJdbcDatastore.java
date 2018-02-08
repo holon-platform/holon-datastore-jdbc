@@ -28,6 +28,7 @@ import javax.sql.DataSource;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.ExpressionResolver;
+import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.datastore.transaction.Transaction.TransactionException;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
@@ -938,6 +939,19 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		public JdbcDatastore.Builder<D> identifierResolutionStrategy(
 				IdentifierResolutionStrategy identifierResolutionStrategy) {
 			datastore.setIdentifierResolutionStrategy(identifierResolutionStrategy);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#registerCommodity(com.holonplatform.datastore.jdbc.
+		 * config.JdbcDatastoreCommodityFactory)
+		 */
+		@Override
+		public <C extends DatastoreCommodity> JdbcDatastore.Builder<D> withCommodity(
+				JdbcDatastoreCommodityFactory<C> commodityFactory) {
+			datastore.registerCommodity(commodityFactory);
 			return this;
 		}
 

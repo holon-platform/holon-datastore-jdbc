@@ -18,6 +18,7 @@ package com.holonplatform.datastore.jdbc;
 import javax.sql.DataSource;
 
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
 import com.holonplatform.core.datastore.transaction.Transactional;
 import com.holonplatform.core.property.PropertyBox;
@@ -25,6 +26,7 @@ import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
+import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory;
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
@@ -130,6 +132,14 @@ public interface JdbcDatastore extends Datastore, Transactional, ConnectionProvi
 		 * @return this
 		 */
 		Builder<D> identifierResolutionStrategy(IdentifierResolutionStrategy identifierResolutionStrategy);
+
+		/**
+		 * Register a {@link JdbcDatastoreCommodityFactory}.
+		 * @param <C> Commodity type
+		 * @param commodityFactory The factory to register (not null)
+		 * @return this
+		 */
+		<C extends DatastoreCommodity> Builder<D> withCommodity(JdbcDatastoreCommodityFactory<C> commodityFactory);
 
 	}
 
