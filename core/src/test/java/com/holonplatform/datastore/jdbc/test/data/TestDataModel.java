@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.jdbc.test.data;
 
+import java.io.InputStream;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -69,6 +71,16 @@ public interface TestDataModel {
 			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME, VIRTUAL_STR)
 			.identifier(KEY).build();
 
+	// lobs
+
+	public final static PathProperty<String> CLOB_STR = PathProperty.create("clb", String.class);
+	public final static PathProperty<Reader> CLOB_RDR = PathProperty.create("clb", Reader.class);
+
+	public final static PathProperty<byte[]> BLOB_BYS = PathProperty.create("blb", byte[].class);
+	public final static PathProperty<InputStream> BLOB_IST = PathProperty.create("blb", InputStream.class);
+	
+	public final static byte[] DEFAULT_BLOB_VALUE = hexStringToByteArray("C9CBBBCCCEB9C8CABCCCCEB9C9CBBB");
+
 	// with parent
 	public final static PathProperty<Long> KEY_P = NAMED_TARGET.property(KEY);
 	public final static PathProperty<String> STR_P = NAMED_TARGET.property(STR);
@@ -79,5 +91,17 @@ public interface TestDataModel {
 
 	public final static NumericProperty<Integer> NOPK_NMB = NumericProperty.create("nmb", Integer.class);
 	public final static StringProperty NOPK_TXT = StringProperty.create("txt");
+	
+	// utils
+
+	static byte[] hexStringToByteArray(String s) {
+	    int len = s.length();
+	    byte[] data = new byte[len / 2];
+	    for (int i = 0; i < len; i += 2) {
+	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+	                             + Character.digit(s.charAt(i+1), 16));
+	    }
+	    return data;
+	}
 
 }

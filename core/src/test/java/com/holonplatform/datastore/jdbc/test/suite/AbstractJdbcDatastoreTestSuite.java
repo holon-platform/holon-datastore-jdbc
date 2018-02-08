@@ -21,7 +21,8 @@ import org.junit.runners.Suite;
 import com.holonplatform.core.datastore.Datastore;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ RefreshTest.class, InsertTest.class, UpdateTest.class, SaveTest.class, DeleteTest.class })
+@Suite.SuiteClasses({ RefreshTest.class, InsertTest.class, UpdateTest.class, SaveTest.class, DeleteTest.class,
+		ClobTest.class, BlobTest.class })
 public abstract class AbstractJdbcDatastoreTestSuite {
 
 	public static Datastore datastore;
