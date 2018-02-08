@@ -29,8 +29,8 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QuerySort;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.SQLOrderBySort;
-import com.holonplatform.datastore.jdbc.SQLWhereFilter;
+import com.holonplatform.datastore.jdbc.OrderBySort;
+import com.holonplatform.datastore.jdbc.WhereFilter;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
@@ -114,13 +114,13 @@ public class ExampleJdbcDatastore {
 
 	public void where() {
 		// tag::where[]
-		QueryFilter filter = SQLWhereFilter.create("name=? and id=?", "TestName", 1); // <1>
+		QueryFilter filter = WhereFilter.create("name=? and id=?", "TestName", 1); // <1>
 		// end::where[]
 	}
 
 	public void orderby() {
 		// tag::orderby[]
-		QuerySort sort = SQLOrderBySort.create("id asc, name desc"); // <1>
+		QuerySort sort = OrderBySort.create("id asc, name desc"); // <1>
 		// end::orderby[]
 	}
 

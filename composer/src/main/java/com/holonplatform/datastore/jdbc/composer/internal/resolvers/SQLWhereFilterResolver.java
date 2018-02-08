@@ -20,19 +20,19 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.datastore.jdbc.SQLWhereFilter;
+import com.holonplatform.datastore.jdbc.WhereFilter;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
- * {@link SQLWhereFilter} resolver.
+ * {@link WhereFilter} resolver.
  *
  * @since 5.1.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum SQLWhereFilterResolver implements SQLExpressionResolver<SQLWhereFilter> {
+public enum SQLWhereFilterResolver implements SQLExpressionResolver<WhereFilter> {
 
 	/**
 	 * Singleton instance
@@ -44,8 +44,8 @@ public enum SQLWhereFilterResolver implements SQLExpressionResolver<SQLWhereFilt
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends SQLWhereFilter> getExpressionType() {
-		return SQLWhereFilter.class;
+	public Class<? extends WhereFilter> getExpressionType() {
+		return WhereFilter.class;
 	}
 
 	/*
@@ -55,7 +55,7 @@ public enum SQLWhereFilterResolver implements SQLExpressionResolver<SQLWhereFilt
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(SQLWhereFilter expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(WhereFilter expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate

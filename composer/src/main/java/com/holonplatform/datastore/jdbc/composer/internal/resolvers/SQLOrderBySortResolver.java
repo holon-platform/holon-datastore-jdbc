@@ -20,18 +20,18 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.datastore.jdbc.SQLOrderBySort;
+import com.holonplatform.datastore.jdbc.OrderBySort;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
- * {@link SQLOrderBySort} resolver.
+ * {@link OrderBySort} resolver.
  *
  * @since 5.1.0
  */
 @Priority(Integer.MAX_VALUE)
-public enum SQLOrderBySortResolver implements SQLExpressionResolver<SQLOrderBySort> {
+public enum SQLOrderBySortResolver implements SQLExpressionResolver<OrderBySort> {
 
 	/**
 	 * Singleton instance
@@ -43,8 +43,8 @@ public enum SQLOrderBySortResolver implements SQLExpressionResolver<SQLOrderBySo
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends SQLOrderBySort> getExpressionType() {
-		return SQLOrderBySort.class;
+	public Class<? extends OrderBySort> getExpressionType() {
+		return OrderBySort.class;
 	}
 
 	/*
@@ -54,7 +54,7 @@ public enum SQLOrderBySortResolver implements SQLExpressionResolver<SQLOrderBySo
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(SQLOrderBySort expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(OrderBySort expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate

@@ -19,14 +19,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.jdbc.SQLWhereFilter;
+import com.holonplatform.datastore.jdbc.WhereFilter;
 
 /**
- * Default {@link SQLWhereFilter} implementation.
+ * Default {@link WhereFilter} implementation.
  * 
  * @since 5.0.0
  */
-public class DefaultSQLWhereFilter implements SQLWhereFilter {
+public class DefaultWhereFilter implements WhereFilter {
 
 	private static final long serialVersionUID = -6314461958625265966L;
 
@@ -44,7 +44,7 @@ public class DefaultSQLWhereFilter implements SQLWhereFilter {
 	 * Constructor.
 	 * @param sql The SQL filter predicate
 	 */
-	public DefaultSQLWhereFilter(String sql) {
+	public DefaultWhereFilter(String sql) {
 		super();
 		this.sql = sql;
 	}
@@ -85,6 +85,15 @@ public class DefaultSQLWhereFilter implements SQLWhereFilter {
 		if (getSQL() == null) {
 			throw new InvalidExpressionException("Null sql");
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultWhereFilter [sql=" + sql + ", parameters=" + parameters + "]";
 	}
 
 }

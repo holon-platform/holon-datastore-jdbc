@@ -15,41 +15,17 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.sql.DataSource;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
-import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.core.datastore.Datastore;
-import com.holonplatform.core.datastore.Datastore.OperationResult;
-import com.holonplatform.core.datastore.Datastore.OperationType;
-import com.holonplatform.core.datastore.DefaultWriteOption;
-import com.holonplatform.core.datastore.relational.RelationalTarget;
-import com.holonplatform.core.property.PathProperty;
-import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
+import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
 import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
-import com.holonplatform.datastore.jdbc.test.function.IfNullFunction;
-import com.holonplatform.datastore.jdbc.test.function.IfNullFunctionResolver;
+import com.holonplatform.datastore.jdbc.test.suite.AbstractJdbcDatastoreTestSuite;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
-public class JdbcDatastoreH2UT extends AbstractJdbcDatastoreTest {
-
-	private static Datastore datastore;
-
-	private static long ms;
+public class JdbcDatastoreH2UT extends AbstractJdbcDatastoreTestSuite {
 
 	@BeforeClass
 	public static void initDatastore() {
@@ -58,113 +34,8 @@ public class JdbcDatastoreH2UT extends AbstractJdbcDatastoreTest {
 				.url("jdbc:h2:mem:datastore;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE").username("sa")
 				.withInitScriptResource("h2/schema.sql").withInitScriptResource("h2/data.sql").build();
 
-		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
-				.withExpressionResolver(new IfNullFunctionResolver())
-				// .traceEnabled(true)
-				.build();
-
-		ms = System.currentTimeMillis();
-	}
-
-	@AfterClass
-	public static void after() {
-		System.err.println(System.currentTimeMillis() - ms);
-	}
-
-	@Override
-	protected Datastore getDatastore() {
-		return datastore;
-	}
-
-	private final static PathProperty<Long> CODE = PathProperty.create("code", long.class);
-	private final static PathProperty<String> TEXT = PathProperty.create("text", String.class);
-
-	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
-
-	@Test
-	public void testAutoIncrement() {
-
-		inTransaction(() -> {
-
-			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
-			OperationResult result = getDatastore().save(TEST2, box);
-
-			assertNotNull(result);
-			assertEquals(1, result.getAffectedCount());
-			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
-
-			assertEquals(1, result.getInsertedKeys().size());
-
-			assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
-			assertEquals("CODE", result.getInsertedKeys().keySet().iterator().next().getName());
-
-			// bring back ids
-
-			box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 2").build();
-			result = getDatastore().insert(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
-
-			assertNotNull(result);
-			assertEquals(1, result.getAffectedCount());
-			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
-
-			assertEquals(1, result.getInsertedKeys().size());
-			assertEquals(Long.valueOf(2), box.getValue(CODE));
-
-			box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 3").build();
-			result = getDatastore().save(TEST2, box, DefaultWriteOption.BRING_BACK_GENERATED_IDS);
-
-			assertNotNull(result);
-			assertEquals(1, result.getAffectedCount());
-			assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
-
-			assertEquals(1, result.getInsertedKeys().size());
-			assertEquals(Long.valueOf(3), box.getValue(CODE));
-
-		});
-	}
-
-	@Test
-	public void testCustomFunction() {
-		String result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
-				.findOne(new IfNullFunction<>(STR, "(fallback)")).orElse(null);
-		assertNotNull(result);
-		assertEquals("One", result);
-	}
-
-	private static final DataTarget<?> R_TARGET = DataTarget.named("test_recur");
-	private static final PathProperty<String> R_NAME = PathProperty.create("name", String.class);
-	private static final PathProperty<String> R_PARENT = PathProperty.create("parent", String.class);
-
-	@Test
-	public void testRecur() {
-
-		List<String> parents = new ArrayList<>();
-		findParents(parents, "test3");
-
-		assertEquals(2, parents.size());
-
-	}
-
-	private void findParents(List<String> parents, String name) {
-		if (name != null) {
-			RelationalTarget<?> group_alias_1 = RelationalTarget.of(R_TARGET).alias("g1");
-			RelationalTarget<?> group_alias_2 = RelationalTarget.of(R_TARGET).alias("g2");
-
-			QueryFilter f1 = group_alias_1.property(R_PARENT).isNotNull();
-			QueryFilter f2 = group_alias_2.property(R_NAME).eq(group_alias_1.property(R_PARENT));
-
-			RelationalTarget<?> target = group_alias_1.innerJoin(group_alias_2).on(f1.and(f2)).add();
-
-			List<String> group_parents = datastore.query().target(target)
-					.filter(group_alias_1.property(R_NAME).eq(name)).list(group_alias_2.property(R_NAME));
-
-			if (!group_parents.isEmpty()) {
-				parents.addAll(group_parents);
-				for (String p : group_parents) {
-					findParents(parents, p);
-				}
-			}
-		}
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withCommodity(DatabasePlatformCommodity.FACTORY)
+				.withExpressionResolver(KeyIs.RESOLVER).traceEnabled(true).build();
 	}
 
 }

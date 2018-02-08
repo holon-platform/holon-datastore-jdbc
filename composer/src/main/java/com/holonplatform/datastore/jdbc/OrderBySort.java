@@ -16,14 +16,14 @@
 package com.holonplatform.datastore.jdbc;
 
 import com.holonplatform.core.query.QuerySort;
-import com.holonplatform.datastore.jdbc.internal.DefaultSQLOrderBySort;
+import com.holonplatform.datastore.jdbc.internal.DefaultOrderBySort;
 
 /**
  * A {@link QuerySort} which uses SQL order by directives to express sorts.
  * 
  * @since 5.0.0
  */
-public interface SQLOrderBySort extends QuerySort {
+public interface OrderBySort extends QuerySort {
 
 	/**
 	 * Get the order by directives as sql.
@@ -35,13 +35,13 @@ public interface SQLOrderBySort extends QuerySort {
 	String getSQL();
 
 	/**
-	 * Create a {@link SQLOrderBySort} using given <code>sql</code> sort directives. For example
+	 * Create a {@link OrderBySort} using given <code>sql</code> sort directives. For example
 	 * <code>col1 asc, col2 desc</code>.
 	 * @param sql Sql sort directives (not null)
-	 * @return A new {@link SQLOrderBySort}
+	 * @return A new {@link OrderBySort}
 	 */
-	static SQLOrderBySort create(String sql) {
-		return new DefaultSQLOrderBySort(sql);
+	static OrderBySort create(String sql) {
+		return new DefaultOrderBySort(sql);
 	}
 
 }

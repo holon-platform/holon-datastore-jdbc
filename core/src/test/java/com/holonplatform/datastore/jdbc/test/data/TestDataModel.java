@@ -85,6 +85,12 @@ public interface TestDataModel {
 	public final static PathProperty<Long> KEY_P = NAMED_TARGET.property(KEY);
 	public final static PathProperty<String> STR_P = NAMED_TARGET.property(STR);
 
+	// recur
+
+	public static final DataTarget<?> R_TARGET = DataTarget.named("test_recur");
+	public static final PathProperty<String> R_NAME = PathProperty.create("name", String.class);
+	public static final PathProperty<String> R_PARENT = PathProperty.create("parent", String.class);
+
 	// ------- no pk
 
 	public final static DataTarget<String> NOPK_TARGET = DataTarget.named("test_nopk");

@@ -15,14 +15,14 @@
  */
 package com.holonplatform.datastore.jdbc.internal;
 
-import com.holonplatform.datastore.jdbc.SQLOrderBySort;
+import com.holonplatform.datastore.jdbc.OrderBySort;
 
 /**
- * Default {@link SQLOrderBySort} implementation.
+ * Default {@link OrderBySort} implementation.
  *
  * @since 5.0.0
  */
-public class DefaultSQLOrderBySort implements SQLOrderBySort {
+public class DefaultOrderBySort implements OrderBySort {
 
 	private static final long serialVersionUID = 3759888037099702997L;
 
@@ -35,7 +35,7 @@ public class DefaultSQLOrderBySort implements SQLOrderBySort {
 	 * Constructor.
 	 * @param sql The SQL order by declaration
 	 */
-	public DefaultSQLOrderBySort(String sql) {
+	public DefaultOrderBySort(String sql) {
 		super();
 		this.sql = sql;
 	}
@@ -58,6 +58,15 @@ public class DefaultSQLOrderBySort implements SQLOrderBySort {
 		if (getSQL() == null) {
 			throw new InvalidExpressionException("Null sql");
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultOrderBySort [sql=" + sql + "]";
 	}
 
 }

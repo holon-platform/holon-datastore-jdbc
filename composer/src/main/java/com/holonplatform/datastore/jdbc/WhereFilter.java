@@ -18,7 +18,7 @@ package com.holonplatform.datastore.jdbc;
 import java.util.List;
 
 import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.datastore.jdbc.internal.DefaultSQLWhereFilter;
+import com.holonplatform.datastore.jdbc.internal.DefaultWhereFilter;
 
 /**
  * A {@link QueryFilter} which uses a SQL where predicate to express query filter conditions.
@@ -31,7 +31,7 @@ import com.holonplatform.datastore.jdbc.internal.DefaultSQLWhereFilter;
  * 
  * @since 5.0.0
  */
-public interface SQLWhereFilter extends QueryFilter {
+public interface WhereFilter extends QueryFilter {
 
 	/**
 	 * Get the where predicate as sql.
@@ -49,14 +49,14 @@ public interface SQLWhereFilter extends QueryFilter {
 	List<Object> getParameters();
 
 	/**
-	 * Create a {@link SQLWhereFilter} using given <code>sql</code> predicate.
+	 * Create a {@link WhereFilter} using given <code>sql</code> predicate.
 	 * @param sql Filter sql predicate (not null)
 	 * @param parameters Optional parameters. The parameter values will be used to replace the SQL statement
 	 *        <code>?</code> placeholders, in the order they are given.
-	 * @return A new {@link SQLWhereFilter}
+	 * @return A new {@link WhereFilter}
 	 */
-	static SQLWhereFilter create(String sql, Object... parameters) {
-		DefaultSQLWhereFilter filter = new DefaultSQLWhereFilter(sql);
+	static WhereFilter create(String sql, Object... parameters) {
+		DefaultWhereFilter filter = new DefaultWhereFilter(sql);
 		if (parameters != null) {
 			for (Object parameter : parameters) {
 				filter.addParameter(parameter);

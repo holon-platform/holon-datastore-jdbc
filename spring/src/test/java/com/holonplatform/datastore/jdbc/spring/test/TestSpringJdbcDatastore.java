@@ -79,7 +79,7 @@ import com.holonplatform.core.query.ConstantExpressionProjection;
 import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFunction;
-import com.holonplatform.datastore.jdbc.SQLWhereFilter;
+import com.holonplatform.datastore.jdbc.WhereFilter;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
 import com.holonplatform.datastore.jdbc.spring.test.init.KeyIs;
 import com.holonplatform.datastore.jdbc.spring.test.init.KeyIsResolver;
@@ -817,7 +817,7 @@ public class TestSpringJdbcDatastore {
 	@Test
 	public void testWhereFilter() {
 		long count = getDatastore().query().target(NAMED_TARGET)
-				.filter(SQLWhereFilter.create("keycode = ?", Long.valueOf(1))).count();
+				.filter(WhereFilter.create("keycode = ?", Long.valueOf(1))).count();
 		assertEquals(1, count);
 	}
 
