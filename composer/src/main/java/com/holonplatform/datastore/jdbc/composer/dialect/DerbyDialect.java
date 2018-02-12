@@ -16,9 +16,13 @@
 package com.holonplatform.datastore.jdbc.composer.dialect;
 
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.query.QueryFunction;
@@ -29,6 +33,7 @@ import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
+import com.holonplatform.datastore.jdbc.composer.SQLType;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
@@ -48,6 +53,8 @@ public class DerbyDialect implements SQLDialect {
 	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
 
 	private static final DerbyLimitHandler LIMIT_HANDLER = new DerbyLimitHandler();
+
+	private static final Set<Integer> supportedTypes = new HashSet<>();
 
 	private boolean supportsGeneratedKeys = true;
 	private boolean generatedKeyAlwaysReturned = false;
@@ -77,6 +84,12 @@ public class DerbyDialect implements SQLDialect {
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 			databaseMajorVersion = databaseMetaData.getDatabaseMajorVersion();
 			databaseMinorVersion = databaseMetaData.getDatabaseMinorVersion();
+
+			try (ResultSet rs = databaseMetaData.getTypeInfo()) {
+				while (rs.next()) {
+					supportedTypes.add(Integer.valueOf(rs.getInt("DATA_TYPE")));
+				}
+			}
 		}
 		if (databaseMajorVersion != null && databaseMinorVersion != null) {
 			LOGGER.info("Detected Derby database version: " + databaseMajorVersion + "." + databaseMinorVersion + ".x");
@@ -100,6 +113,30 @@ public class DerbyDialect implements SQLDialect {
 	@Override
 	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {
 		return functions.getFunction(function);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#supportsSqlType(int)
+	 */
+	@Override
+	public boolean supportsSqlType(int sqlType) {
+		if (!supportedTypes.isEmpty()) {
+			return supportedTypes.contains(Integer.valueOf(sqlType));
+		}
+		return SQLDialect.super.supportsSqlType(sqlType);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#getSqlType(java.lang.Class)
+	 */
+	@Override
+	public Optional<SQLType> getSqlType(Class<?> javaType) {
+		if (javaType.isEnum()) {
+			return Optional.of(SQLType.create(Types.INTEGER));
+		}
+		return SQLDialect.super.getSqlType(javaType);
 	}
 
 	/*
