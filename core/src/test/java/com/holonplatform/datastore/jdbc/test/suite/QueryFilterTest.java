@@ -47,7 +47,7 @@ import com.holonplatform.core.internal.query.filter.NotFilter;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.WhereFilter;
 import com.holonplatform.datastore.jdbc.test.data.TestEnum;
-import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 
 public class QueryFilterTest extends AbstractJdbcDatastoreSuiteTest {
 
@@ -216,27 +216,27 @@ public class QueryFilterTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testCustomFilter() {
 		inTransaction(() -> {
 
-			long count = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).count();
+			long count = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).count();
 			assertEquals(1, count);
 
-			Optional<String> str = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).findOne(STR);
+			Optional<String> str = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).findOne(STR);
 			assertEquals("One", str.get());
 
 			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.THIRD)
-					.filter(new KeyIs(1)).execute();
+					.filter(new KeyIsFilter(1)).execute();
 			assertEquals(1, result.getAffectedCount());
 
-			result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.FIRST).filter(new KeyIs(1)).execute();
+			result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.FIRST).filter(new KeyIsFilter(1)).execute();
 			assertEquals(1, result.getAffectedCount());
 
-			Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(2))
+			Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(2))
 					.findOne(PROPERTIES);
 			assertEquals(TestEnum.SECOND, pb.get().getValue(ENM));
 
-			result = getDatastore().bulkUpdate(NAMED_TARGET).filter(new KeyIs(2)).setNull(DAT).execute();
+			result = getDatastore().bulkUpdate(NAMED_TARGET).filter(new KeyIsFilter(2)).setNull(DAT).execute();
 			assertEquals(1, result.getAffectedCount());
 
-			pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIs(1)).findOne(PROPERTIES);
+			pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).findOne(PROPERTIES);
 			assertEquals("One", pb.get().getValue(STR));
 
 		});

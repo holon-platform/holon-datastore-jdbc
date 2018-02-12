@@ -15,17 +15,45 @@
  */
 package com.holonplatform.datastore.jdbc.test.suite.database;
 
+import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
 import com.holonplatform.datastore.jdbc.test.suite.AbstractJdbcDatastoreSuiteTest;
 import com.holonplatform.jdbc.DatabasePlatform;
 
-public class AbstractDatabaseSuiteTest extends AbstractJdbcDatastoreSuiteTest {
+public abstract class AbstractDatabaseSuiteTest extends AbstractJdbcDatastoreSuiteTest {
 
+	private final static Logger LOGGER = JdbcDatastoreLogger.create();
+	
+	protected abstract DatabasePlatform getDatabasePlatform();
+	
 	protected boolean isDatabase(DatabasePlatform platform) {
 		ObjectUtils.argumentNotNull(platform, "DatabasePlatform must be not null");
 		return getDatastore().create(DatabasePlatformCommodity.class).getDatabase()
 				.orElseThrow(() -> new IllegalStateException("Database platform not available")) == platform;
+	}
+	
+	protected void test(TestOperation operation) {
+		final DatabasePlatform platform = getDatabasePlatform();
+		if (isDatabase(platform)) {
+			try {
+				LOGGER.info("> Execute test operation for database: " + platform);
+				operation.execute(getDatastore());
+			} catch (Exception e) {
+				throw new RuntimeException("Test method exception", e);
+			}
+		} else {
+			LOGGER.info("< Skip test operation for database: " + platform);
+		}
+	}
+	
+	@FunctionalInterface
+	protected interface TestOperation {
+
+		void execute(Datastore datastore) throws Exception;
+
 	}
 
 }

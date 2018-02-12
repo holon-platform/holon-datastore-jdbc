@@ -31,7 +31,7 @@ import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreMySQLIT extends AbstractJdbcDatastoreIT {
@@ -44,7 +44,7 @@ public class JdbcDatastoreMySQLIT extends AbstractJdbcDatastoreIT {
 		final DataSource dataSource = DataSourceBuilder.build("mysql/datasource.properties");
 		initSQL(dataSource, "mysql/schema.sql", "mysql/data.sql");
 
-		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIsFilter.RESOLVER)
 				.traceEnabled(true).build();
 
 	}

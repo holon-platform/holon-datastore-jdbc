@@ -21,7 +21,7 @@ import org.junit.BeforeClass;
 
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
-import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.datastore.jdbc.test.suite.AbstractJdbcDatastoreTestSuite;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
@@ -35,7 +35,7 @@ public class JdbcDatastoreH2UT extends AbstractJdbcDatastoreTestSuite {
 				.withInitScriptResource("h2/schema.sql").withInitScriptResource("h2/data.sql").build();
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).withCommodity(DatabasePlatformCommodity.FACTORY)
-				.withExpressionResolver(KeyIs.RESOLVER).traceEnabled(true).build();
+				.withExpressionResolver(KeyIsFilter.RESOLVER).traceEnabled(true).build();
 	}
 
 }

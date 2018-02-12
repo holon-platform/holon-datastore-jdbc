@@ -20,6 +20,7 @@ import org.junit.runners.Suite;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.test.suite.database.H2Test;
+import com.holonplatform.datastore.jdbc.test.suite.database.HSQLTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ QueryProjectionTest.class, QueryFilterTest.class, QuerySortTest.class, QueryAggregationTest.class,
@@ -27,7 +28,7 @@ import com.holonplatform.datastore.jdbc.test.suite.database.H2Test;
 		UpdateTest.class, SaveTest.class, DeleteTest.class, ClobTest.class, BlobTest.class, BulkInsertTest.class,
 		BulkUpdateTest.class, BulkDeleteTest.class, BulkUpdateAliasTest.class, BulkDeleteAliasTest.class,
 		AggregationFunctionsTest.class, StringFunctionsTest.class, TemporalFunctionsTest.class,
-		DataTargetResolverTest.class, H2Test.class })
+		DataTargetResolverTest.class, H2Test.class, HSQLTest.class })
 public abstract class AbstractJdbcDatastoreTestSuite {
 
 	public static Datastore datastore;

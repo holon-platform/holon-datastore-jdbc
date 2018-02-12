@@ -15,9 +15,16 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -32,6 +39,7 @@ import com.holonplatform.core.internal.utils.CalendarUtils;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.internal.utils.TypeUtils;
+import com.holonplatform.core.streams.LimitedInputStream;
 import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementConfigurator;
@@ -246,6 +254,47 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		if (Reader.class.isAssignableFrom(type)) {
 			jdbcStatement.setCharacterStream(parameterIndex, (Reader) value);
 			return value;
+		}
+
+		// Blob
+		if (Blob.class.isAssignableFrom(type)) {
+			jdbcStatement.setBlob(parameterIndex, (Blob) value);
+			return value;
+		}
+
+		// Clob
+		if (Clob.class.isAssignableFrom(type)) {
+			jdbcStatement.setClob(parameterIndex, (Clob) value);
+			return value;
+		}
+
+		// File
+		if (File.class.isAssignableFrom(type)) {
+			final File file = (File) value;
+			try (FileInputStream fis = new FileInputStream(file)) {
+				jdbcStatement.setBinaryStream(parameterIndex, fis, file.length());
+				return file;
+			} catch (IOException e) {
+				throw new SQLException("Failed to read File [" + file + "]", e);
+			}
+		}
+
+		// streams
+		if (InputStream.class.isAssignableFrom(type)) {
+			if (value instanceof LimitedInputStream) {
+				final LimitedInputStream lis = (LimitedInputStream) value;
+				jdbcStatement.setBinaryStream(parameterIndex, lis.getActualStream(), lis.getLength());
+				return lis;
+			}
+			if (value instanceof ByteArrayInputStream) {
+				try {
+					jdbcStatement.setBytes(parameterIndex,
+							ConversionUtils.convertInputStreamToBytes((ByteArrayInputStream) value));
+				} catch (IOException e) {
+					throw new SQLException("Failed to convert ByteArrayInputStream to bytes", e);
+				}
+				return value;
+			}
 		}
 
 		// default

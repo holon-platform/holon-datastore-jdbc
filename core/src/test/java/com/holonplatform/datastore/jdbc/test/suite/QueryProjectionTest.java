@@ -35,6 +35,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -121,7 +122,7 @@ public class QueryProjectionTest extends AbstractJdbcDatastoreSuiteTest {
 
 		BigDecimal bd = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(NST_DEC).orElse(null);
 		assertNotNull(bd);
-		assertEquals(BigDecimal.valueOf(12.65), bd);
+		assertEquals(BigDecimal.valueOf(12.65), bd.setScale(2, RoundingMode.CEILING));
 
 		Date dat = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(DAT).orElse(null);
 		assertNotNull(dat);
@@ -237,7 +238,7 @@ public class QueryProjectionTest extends AbstractJdbcDatastoreSuiteTest {
 		assertEquals(TestEnum.FIRST, value.getValue(ENM));
 		assertEquals(Boolean.TRUE, value.getValue(NBOOL));
 		assertEquals("n1", value.getValue(NST_STR));
-		assertEquals(BigDecimal.valueOf(12.65), value.getValue(NST_DEC));
+		assertEquals(BigDecimal.valueOf(12.65), value.getValue(NST_DEC).setScale(2, RoundingMode.CEILING));
 
 		Calendar c = Calendar.getInstance();
 		c.setTime(value.getValue(DAT));
@@ -266,7 +267,7 @@ public class QueryProjectionTest extends AbstractJdbcDatastoreSuiteTest {
 		assertEquals(TestEnum.SECOND, value.getValue(ENM));
 		assertEquals(Boolean.FALSE, value.getValue(NBOOL));
 		assertEquals("n2", value.getValue(NST_STR));
-		assertEquals(BigDecimal.valueOf(3), value.getValue(NST_DEC));
+		assertEquals(BigDecimal.valueOf(3), value.getValue(NST_DEC).setScale(0, RoundingMode.UNNECESSARY));
 
 		Calendar c = Calendar.getInstance();
 		c.setTime(value.getValue(DAT));

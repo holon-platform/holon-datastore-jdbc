@@ -33,7 +33,7 @@ import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreDerbyUT extends AbstractJdbcDatastoreTest {
@@ -47,7 +47,7 @@ public class JdbcDatastoreDerbyUT extends AbstractJdbcDatastoreTest {
 				.username("sa").withInitScriptResource("derby/schema.sql").withInitScriptResource("derby/data.sql")
 				.build();
 
-		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIsFilter.RESOLVER)
 				.traceEnabled(true).build();
 
 	}

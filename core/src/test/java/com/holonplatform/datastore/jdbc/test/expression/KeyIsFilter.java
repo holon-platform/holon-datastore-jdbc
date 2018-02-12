@@ -21,13 +21,13 @@ import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.query.QueryFilter;
 
 @SuppressWarnings("serial")
-public class KeyIs implements QueryFilter {
+public class KeyIsFilter implements QueryFilter {
 
-	public static final QueryFilterResolver<KeyIs> RESOLVER = new Resolver();
+	public static final QueryFilterResolver<KeyIsFilter> RESOLVER = new Resolver();
 
 	private final long value;
 
-	public KeyIs(long value) {
+	public KeyIsFilter(long value) {
 		super();
 		this.value = value;
 	}
@@ -40,17 +40,17 @@ public class KeyIs implements QueryFilter {
 	public void validate() throws InvalidExpressionException {
 	}
 
-	public static final class Resolver implements QueryFilterResolver<KeyIs> {
+	public static final class Resolver implements QueryFilterResolver<KeyIsFilter> {
 
 		private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
 
 		@Override
-		public Class<? extends KeyIs> getExpressionType() {
-			return KeyIs.class;
+		public Class<? extends KeyIsFilter> getExpressionType() {
+			return KeyIsFilter.class;
 		}
 
 		@Override
-		public Optional<QueryFilter> resolve(KeyIs expression, ResolutionContext context)
+		public Optional<QueryFilter> resolve(KeyIsFilter expression, ResolutionContext context)
 				throws InvalidExpressionException {
 			return Optional.of(KEY.eq(expression.getValue()));
 		}

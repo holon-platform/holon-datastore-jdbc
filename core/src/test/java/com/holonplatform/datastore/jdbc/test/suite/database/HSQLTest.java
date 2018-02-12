@@ -15,9 +15,6 @@
  */
 package com.holonplatform.datastore.jdbc.test.suite.database;
 
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -29,35 +26,42 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.jdbc.test.expression.IfNullFunction;
-import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionResolver;
 import com.holonplatform.jdbc.DatabasePlatform;
 
-public class H2Test extends AbstractDatabaseSuiteTest {
-
-	private final static PathProperty<Long> CODE = PathProperty.create("code", long.class);
-	private final static PathProperty<String> TEXT = PathProperty.create("text", String.class);
-	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
+public class HSQLTest extends AbstractDatabaseSuiteTest {
 
 	@Override
 	protected DatabasePlatform getDatabasePlatform() {
-		return DatabasePlatform.H2;
+		return DatabasePlatform.HSQL;
 	}
+
+	private final static PathProperty<Long> CODE = PathProperty.create("code", long.class);
+	private final static PathProperty<String> TEXT = PathProperty.create("text", String.class);
+
+	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
 
 	@Test
 	public void testAutoIncrement() {
 		test(datastore -> {
 			inTransaction(() -> {
 
-				PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
-				OperationResult result = datastore.insert(TEST2, box);
+				PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 0").build();
+				OperationResult result = datastore.save(TEST2, box);
 
 				assertNotNull(result);
 				assertEquals(1, result.getAffectedCount());
 				assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
-
 				assertEquals(1, result.getInsertedKeys().size());
+				assertEquals(Long.valueOf(0), result.getInsertedKeys().values().iterator().next());
+				assertEquals("CODE", result.getInsertedKeys().keySet().iterator().next().getName());
 
+				box = PropertyBox.builder(CODE, TEXT).set(TEXT, "Auto increment 1").build();
+				result = datastore.save(TEST2, box);
+
+				assertNotNull(result);
+				assertEquals(1, result.getAffectedCount());
+				assertEquals(OperationType.INSERT, result.getOperationType().orElse(null));
+				assertEquals(1, result.getInsertedKeys().size());
 				assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
 				assertEquals("CODE", result.getInsertedKeys().keySet().iterator().next().getName());
 
@@ -85,17 +89,6 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 
 			});
 		});
-	}
-
-	@Test
-	public void testCustomFunction() {
-		test(datastore -> {
-			String result = datastore.query().withExpressionResolver(new IfNullFunctionResolver()).target(NAMED_TARGET)
-					.filter(KEY.eq(1L)).findOne(new IfNullFunction<>(STR, "(fallback)")).orElse(null);
-			assertNotNull(result);
-			assertEquals("One", result);
-		});
-
 	}
 
 }

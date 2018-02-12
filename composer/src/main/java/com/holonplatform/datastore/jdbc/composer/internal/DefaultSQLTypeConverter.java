@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal;
 
+import java.io.InputStream;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -185,6 +186,10 @@ public enum DefaultSQLTypeConverter implements SQLTypeConverter {
 		}
 
 		if (javaType == byte[].class) {
+			return Optional.of(SQLType.create(Types.BINARY));
+		}
+		
+		if (InputStream.class.isAssignableFrom(javaType)) {
 			return Optional.of(SQLType.create(Types.BINARY));
 		}
 

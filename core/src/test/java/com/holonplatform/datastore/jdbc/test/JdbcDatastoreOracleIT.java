@@ -30,8 +30,8 @@ import org.junit.BeforeClass;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
-import com.holonplatform.datastore.jdbc.test.function.CastFunction;
+import com.holonplatform.datastore.jdbc.test.expression.CastFunction;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
@@ -44,7 +44,7 @@ public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
 		final DataSource dataSource = DataSourceBuilder.build("oracle/datasource.properties");
 		initSQL(dataSource, "oracle/schema.sql", "oracle/data.sql");
 
-		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIsFilter.RESOLVER)
 				.withExpressionResolver(new CastFunction.Resolver()).traceEnabled(true).build();
 
 	}

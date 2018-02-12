@@ -21,7 +21,7 @@ import org.junit.BeforeClass;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.expression.KeyIs;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
 public class JdbcDatastoreDB2IT extends AbstractJdbcDatastoreIT {
@@ -34,7 +34,7 @@ public class JdbcDatastoreDB2IT extends AbstractJdbcDatastoreIT {
 		final DataSource dataSource = DataSourceBuilder.build("db2/datasource.properties");
 		// initSQL(dataSource, "db2/schema.sql", "db2/data.sql");
 
-		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIs.RESOLVER)
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIsFilter.RESOLVER)
 				.traceEnabled(true).build();
 
 	}

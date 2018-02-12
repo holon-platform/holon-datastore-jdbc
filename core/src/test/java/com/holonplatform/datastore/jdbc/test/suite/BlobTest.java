@@ -22,10 +22,13 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TAR
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NBOOL;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -36,6 +39,7 @@ import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.core.streams.LimitedInputStream;
 import com.holonplatform.datastore.jdbc.test.data.TestDataModel;
 
 public class BlobTest extends AbstractJdbcDatastoreSuiteTest {
@@ -116,6 +120,7 @@ public class BlobTest extends AbstractJdbcDatastoreSuiteTest {
 
 				is = value.getValue(BLOB_IST);
 				bval = ConversionUtils.convertInputStreamToBytes(is);
+
 				assertTrue(Arrays.equals(bytes, bval));
 
 				// insert
@@ -129,6 +134,35 @@ public class BlobTest extends AbstractJdbcDatastoreSuiteTest {
 				bval = ConversionUtils.convertInputStreamToBytes(is);
 				assertTrue(Arrays.equals(bytes, bval));
 
+			} catch (IOException e) {
+				throw new DataAccessException(e);
+			}
+
+		});
+	}
+
+	@Test
+	public void testBlobFile() {
+		inTransaction(() -> {
+
+			final File file = new File(getClass().getClassLoader().getResource("testfile.txt").getFile());
+			
+			try (FileInputStream fis = new FileInputStream(file)) {
+
+				PropertyBox value = PropertyBox.builder(BLOB_SET_IST).set(KEY, 77L).set(STR, "Test clob")
+						.set(NBOOL, false).set(BLOB_IST, LimitedInputStream.create(fis, file.length())).build();
+				getDatastore().insert(NAMED_TARGET, value);
+
+			} catch (IOException e) {
+				throw new DataAccessException(e);
+			}
+
+			try (InputStream is = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(77L)).findOne(BLOB_IST)
+					.orElse(null)) {
+				assertNotNull(is);
+				byte[] bval = ConversionUtils.convertInputStreamToBytes(is);
+				String cnt = new String(bval);
+				assertEquals("testfilecontent", cnt);
 			} catch (IOException e) {
 				throw new DataAccessException(e);
 			}
