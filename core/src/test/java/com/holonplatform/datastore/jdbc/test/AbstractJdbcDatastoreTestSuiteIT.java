@@ -17,9 +17,10 @@ package com.holonplatform.datastore.jdbc.test;
 
 import javax.sql.DataSource;
 
+import com.holonplatform.datastore.jdbc.test.suite.AbstractJdbcDatastoreTestSuite;
 import com.holonplatform.jdbc.internal.DataSourceInitializer;
 
-public abstract class AbstractJdbcDatastoreIT extends AbstractJdbcDatastoreTest {
+public abstract class AbstractJdbcDatastoreTestSuiteIT extends AbstractJdbcDatastoreTestSuite {
 
 	protected static void initSQL(DataSource dataSource, String... scriptResourceNames) {
 		DataSourceInitializer.initDataSourceFromSQLResources(dataSource, scriptResourceNames);

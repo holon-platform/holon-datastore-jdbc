@@ -22,6 +22,8 @@ import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.test.suite.database.DerbyTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.H2Test;
 import com.holonplatform.datastore.jdbc.test.suite.database.HSQLTest;
+import com.holonplatform.datastore.jdbc.test.suite.database.MariaDBTest;
+import com.holonplatform.datastore.jdbc.test.suite.database.MySQLTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ QueryProjectionTest.class, QueryFilterTest.class, QuerySortTest.class, QueryAggregationTest.class,
@@ -29,7 +31,8 @@ import com.holonplatform.datastore.jdbc.test.suite.database.HSQLTest;
 		UpdateTest.class, SaveTest.class, DeleteTest.class, ClobTest.class, BlobTest.class, BulkInsertTest.class,
 		BulkUpdateTest.class, BulkDeleteTest.class, BulkUpdateAliasTest.class, BulkDeleteAliasTest.class,
 		AggregationFunctionsTest.class, StringFunctionsTest.class, TemporalFunctionsTest.class,
-		DataTargetResolverTest.class, H2Test.class, HSQLTest.class, DerbyTest.class })
+		DataTargetResolverTest.class, H2Test.class, HSQLTest.class, DerbyTest.class, MySQLTest.class,
+		MariaDBTest.class })
 public abstract class AbstractJdbcDatastoreTestSuite {
 
 	public static Datastore datastore;

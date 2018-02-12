@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.holon-platform</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.0.9</version>
+		<version>1.0.10</version>
 	</parent>
 
 	<groupId>com.holon-platform.jdbc</groupId>
@@ -64,10 +64,10 @@
 		<holon.jdbc.version>5.1.0-SNAPSHOT</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.7.9</bytebuddy.version>
+		<bytebuddy.version>1.7.10</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>2.7.4</hikaricp.version>
+		<hikaricp.version>2.7.7</hikaricp.version>
 
 		<!-- Test/dialects databases -->
 

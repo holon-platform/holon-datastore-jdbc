@@ -28,15 +28,13 @@ import javax.sql.DataSource;
 
 import org.junit.BeforeClass;
 
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
+import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
 import com.holonplatform.datastore.jdbc.test.expression.CastFunction;
 import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
-public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
-
-	private static Datastore datastore;
+public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreTestSuiteIT {
 
 	@BeforeClass
 	public static void initDatastore() {
@@ -44,20 +42,16 @@ public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
 		final DataSource dataSource = DataSourceBuilder.build("oracle/datasource.properties");
 		initSQL(dataSource, "oracle/schema.sql", "oracle/data.sql");
 
-		datastore = JdbcDatastore.builder().dataSource(dataSource).withExpressionResolver(KeyIsFilter.RESOLVER)
-				.withExpressionResolver(new CastFunction.Resolver()).traceEnabled(true).build();
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withCommodity(DatabasePlatformCommodity.FACTORY)
+				.withExpressionResolver(KeyIsFilter.RESOLVER).withExpressionResolver(new CastFunction.Resolver())
+				.traceEnabled(true).build();
 
-	}
-
-	@Override
-	protected Datastore getDatastore() {
-		return datastore;
 	}
 
 	// in Oracle, use the trunc() function timestamp
-	@Override
+	// TODO
 	public void testLocalDateTimeWithTimestampFilter() {
-		List<LocalDateTime> ltvalues = getDatastore().query().target(NAMED_TARGET)
+		List<LocalDateTime> ltvalues = datastore.query().target(NAMED_TARGET)
 				.filter(new CastFunction<>(LTMS, "date").eq(LocalDateTime.of(2017, Month.MARCH, 23, 15, 30, 25)))
 				.list(LTMS);
 		assertNotNull(ltvalues);
@@ -68,7 +62,7 @@ public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreIT {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.test.AbstractJdbcDatastoreTest#testTimeFilter()
 	 */
-	@Override
+	// TODO
 	public void testTimeFilter() {
 		// Oracle does not support TIME data type
 	}
