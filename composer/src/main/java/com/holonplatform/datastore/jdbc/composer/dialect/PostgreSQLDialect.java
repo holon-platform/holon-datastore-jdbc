@@ -71,6 +71,15 @@ public class PostgreSQLDialect implements SQLDialect {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#updateStatementSetAliasSupported()
+	 */
+	@Override
+	public boolean updateStatementSetAliasSupported() {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#supportsLikeEscapeClause()
 	 */
 	@Override

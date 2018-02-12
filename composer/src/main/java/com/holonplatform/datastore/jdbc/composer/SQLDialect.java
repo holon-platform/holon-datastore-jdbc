@@ -88,6 +88,14 @@ public interface SQLDialect extends Serializable {
 	}
 
 	/**
+	 * Get whether alias is supported in the SET clause of an UPDATE clause.
+	 * @return <code>true</code> if alias is supported in the SET clause of an UPDATE clause
+	 */
+	default boolean updateStatementSetAliasSupported() {
+		return true;
+	}
+
+	/**
 	 * Get whether alias is supported in the DELETE clause.
 	 * @return <code>true</code> if alias is supported in the DELETE clause
 	 */

@@ -110,11 +110,19 @@ public enum UpdateOperationConfigurationResolver
 		final List<String> paths = new ArrayList<>(pathValues.size());
 		final List<String> values = new ArrayList<>(pathValues.size());
 
+		final SQLStatementCompositionContext setContext;
+		if (context.getDialect().updateStatementAliasSupported()
+				&& !operationContext.getDialect().updateStatementSetAliasSupported()) {
+			setContext = SQLStatementCompositionContext.asChild(operationContext, target, AliasMode.UNSUPPORTED);
+		} else {
+			setContext = operationContext;
+		}
+
 		pathValues.forEach((path, pathExpression) -> {
-			paths.add(operationContext.resolveOrFail(path, SQLExpression.class).getValue());
-			values.add(operationContext
-					.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
-					.getValue());
+			paths.add(setContext.resolveOrFail(path, SQLExpression.class).getValue());
+			values.add(
+					setContext.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
+							.getValue());
 		});
 
 		operation.append(" SET ");
