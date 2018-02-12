@@ -63,7 +63,7 @@ public class MySQLDialect implements SQLDialect {
 	 */
 	@Override
 	public boolean updateStatementFromSupported() {
-		return true;
+		return false;
 	}
 
 	/*

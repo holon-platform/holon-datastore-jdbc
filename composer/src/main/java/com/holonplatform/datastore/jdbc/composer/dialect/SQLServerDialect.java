@@ -99,6 +99,15 @@ public class SQLServerDialect implements SQLDialect {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#updateStatementFromSupported()
+	 */
+	@Override
+	public boolean updateStatementFromSupported() {
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#supportsLikeEscapeClause()
 	 */
 	@Override
