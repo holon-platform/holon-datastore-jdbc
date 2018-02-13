@@ -283,8 +283,19 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		if (InputStream.class.isAssignableFrom(type)) {
 			if (value instanceof LimitedInputStream) {
 				final LimitedInputStream lis = (LimitedInputStream) value;
-				jdbcStatement.setBinaryStream(parameterIndex, lis.getActualStream(), lis.getLength());
-				return lis;
+
+				if (context.getDialect().supportsBinaryStreamParameter()) {
+					jdbcStatement.setBinaryStream(parameterIndex, lis.getActualStream(), lis.getLength());
+					return lis;
+				} else {
+					try {
+						jdbcStatement.setBytes(parameterIndex, ConversionUtils
+								.convertInputStreamToBytes(((LimitedInputStream) value).getActualStream()));
+					} catch (IOException e) {
+						throw new SQLException("Failed to convert InputStream to bytes", e);
+					}
+					return value;
+				}
 			}
 			if (value instanceof ByteArrayInputStream) {
 				try {

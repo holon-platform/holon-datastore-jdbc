@@ -109,6 +109,24 @@ public class SQLiteDialect implements SQLDialect {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#updateStatementAliasSupported()
+	 */
+	@Override
+	public boolean updateStatementAliasSupported() {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#supportsBinaryStreamParameter()
+	 */
+	@Override
+	public boolean supportsBinaryStreamParameter() {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#supportsLikeEscapeClause()
 	 */
 	@Override
@@ -296,11 +314,10 @@ public class SQLiteDialect implements SQLDialect {
 			if (expression.getValue() != null) {
 				if (TypeUtils.isDate(expression.getValue().getClass())
 						|| Temporal.class.isAssignableFrom(expression.getValue().getClass())) {
-					return Optional
-							.of(SQLParameter.create(
-									context.getValueSerializer().serializeTemporal(expression.getValue(),
-											((SQLParameter<?>) expression).getTemporalType().orElse(null)),
-									String.class));
+					return context.getValueSerializer()
+							.serializeTemporal(expression.getValue(),
+									((SQLParameter<?>) expression).getTemporalType().orElse(null))
+							.map(value -> SQLParameter.create(value, String.class));
 				}
 			}
 

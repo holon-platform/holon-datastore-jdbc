@@ -112,6 +112,14 @@ public interface SQLDialect extends Serializable {
 	}
 
 	/**
+	 * Get whether binary stream type parameters are supported.
+	 * @return <code>true</code> if binary stream type parameters are supported
+	 */
+	default boolean supportsBinaryStreamParameter() {
+		return true;
+	}
+
+	/**
 	 * Get the actual table name for given table name (for example, applying case transformations)
 	 * @param tableName Table name
 	 * @return The actual table name
