@@ -139,7 +139,16 @@ public class SQLServerDialect implements SQLDialect {
 	 */
 	@Override
 	public boolean deleteStatementAliasSupported() {
-		return false;
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#deleteStatementTargetRequired()
+	 */
+	@Override
+	public boolean deleteStatementTargetRequired() {
+		return true;
 	}
 
 	/*

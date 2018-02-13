@@ -93,15 +93,13 @@ public enum UpdateOperationConfigurationResolver
 		operation.append(" ");
 
 		// target
-		operation.append(operationContext.resolveOrFail(target, SQLExpression.class).getValue());
+		final String targetSQL = operationContext.resolveOrFail(target, SQLExpression.class).getValue();
 
-		// optional from
 		if (operationContext.getDialect().updateStatementAliasSupported()
 				&& operationContext.getDialect().updateStatementFromSupported()) {
-			operationContext.getAlias(target, false).ifPresent(a -> {
-				operation.append(" FROM ");
-				operation.append(a);
-			});
+			operation.append(operationContext.getAlias(target, false).orElse(targetSQL));
+		} else {
+			operation.append(targetSQL);
 		}
 
 		// values
@@ -133,6 +131,13 @@ public enum UpdateOperationConfigurationResolver
 			operation.append(paths.get(i));
 			operation.append("=");
 			operation.append(values.get(i));
+		}
+
+		// optional from
+		if (operationContext.getDialect().updateStatementAliasSupported()
+				&& operationContext.getDialect().updateStatementFromSupported()) {
+			operation.append(" FROM ");
+			operation.append(targetSQL);
 		}
 
 		// filter
