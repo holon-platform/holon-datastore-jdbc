@@ -16,7 +16,6 @@
 package com.holonplatform.datastore.jdbc.test.data;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -34,7 +33,7 @@ public class TestSampleData {
 	
 	public static final LocalTime LTIME1 = LocalTime.of(18, 45, 30);
 	
-	public static final BigDecimal BD1 = BigDecimal.valueOf(145678,7632).setScale(4, RoundingMode.HALF_EVEN);
+	public static final BigDecimal BD1 = BigDecimal.valueOf(145678.7632d);
 	
 	static {
 		Calendar c = Calendar.getInstance();

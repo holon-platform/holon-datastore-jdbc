@@ -15,15 +15,6 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.LTMS;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.util.List;
-
 import javax.sql.DataSource;
 
 import org.junit.BeforeClass;
@@ -46,25 +37,6 @@ public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreTestSuiteIT {
 				.withExpressionResolver(KeyIsFilter.RESOLVER).withExpressionResolver(new CastFunction.Resolver())
 				.traceEnabled(true).build();
 
-	}
-
-	// in Oracle, use the trunc() function timestamp
-	// TODO
-	public void testLocalDateTimeWithTimestampFilter() {
-		List<LocalDateTime> ltvalues = datastore.query().target(NAMED_TARGET)
-				.filter(new CastFunction<>(LTMS, "date").eq(LocalDateTime.of(2017, Month.MARCH, 23, 15, 30, 25)))
-				.list(LTMS);
-		assertNotNull(ltvalues);
-		assertEquals(1, ltvalues.size());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.test.AbstractJdbcDatastoreTest#testTimeFilter()
-	 */
-	// TODO
-	public void testTimeFilter() {
-		// Oracle does not support TIME data type
 	}
 
 }

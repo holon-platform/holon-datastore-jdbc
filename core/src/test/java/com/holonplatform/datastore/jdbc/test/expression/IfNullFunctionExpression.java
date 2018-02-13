@@ -51,7 +51,8 @@ public class IfNullFunctionExpression<T> implements QueryExpression<T>, QueryPro
 		return fallbackValue;
 	}
 
-	public static final ExpressionResolver<IfNullFunctionExpression<?>, SQLExpression> RESOLVER = ExpressionResolver
+	@SuppressWarnings("rawtypes")
+	public static final ExpressionResolver<IfNullFunctionExpression, SQLExpression> RESOLVER = ExpressionResolver
 			.create(IfNullFunctionExpression.class, SQLExpression.class, (fnc, ctx) -> Optional.of(
 					SQLExpression.create("ifnull(" + fnc.getPath().getName() + ", " + fnc.getFallbackValue() + ")")));
 
