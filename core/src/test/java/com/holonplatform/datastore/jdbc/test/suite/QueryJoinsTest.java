@@ -79,17 +79,23 @@ public class QueryJoinsTest extends AbstractJdbcDatastoreSuiteTest {
 	@Test
 	public void testRightJoins() {
 
-		List<PropertyBox> results = getDatastore().query()
-				.target(RelationalTarget.of(NAMED_TARGET).rightJoin(TEST3).on(KEY_P.eq(TEST3_CODE_P)).add())
-				.list(TEST3_TEXT_P, STR_P);
-		assertNotNull(results);
-		assertEquals(2, results.size());
+		if (AbstractJdbcDatastoreTestSuite.rightJoinTest) {
 
-		results = getDatastore().query()
-				.target(RelationalTarget.of(TEST3).rightJoin(NAMED_TARGET).on(KEY_P.eq(TEST3_CODE_P)).add())
-				.list(TEST3_TEXT_P, STR_P);
-		assertNotNull(results);
-		assertEquals(2, results.size());
+			List<PropertyBox> results = getDatastore().query()
+					.target(RelationalTarget.of(NAMED_TARGET).rightJoin(TEST3).on(KEY_P.eq(TEST3_CODE_P)).add())
+					.list(TEST3_TEXT_P, STR_P);
+			assertNotNull(results);
+			assertEquals(2, results.size());
+
+			results = getDatastore().query()
+					.target(RelationalTarget.of(TEST3).rightJoin(NAMED_TARGET).on(KEY_P.eq(TEST3_CODE_P)).add())
+					.list(TEST3_TEXT_P, STR_P);
+			assertNotNull(results);
+			assertEquals(2, results.size());
+
+		} else {
+			LOGGER.info("SKIP right join test");
+		}
 
 	}
 

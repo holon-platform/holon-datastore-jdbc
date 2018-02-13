@@ -39,5 +39,9 @@ import com.holonplatform.datastore.jdbc.test.suite.database.SQLiteTest;
 public abstract class AbstractJdbcDatastoreTestSuite {
 
 	public static Datastore datastore;
+	
+	public static boolean rightJoinTest = true;
+	
+	public static boolean updateAliasTest = true;
 
 }

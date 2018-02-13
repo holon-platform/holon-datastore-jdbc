@@ -38,22 +38,30 @@ public class BulkUpdateAliasTest extends AbstractJdbcDatastoreSuiteTest {
 
 	@Test
 	public void testBulkUpdateSubquery() {
-		inTransaction(() -> {
+		if (AbstractJdbcDatastoreTestSuite.updateAliasTest) {
 
-			PropertyBox t3 = PropertyBox.builder(TEST3_SET).set(TEST3_CODE, 501L).set(TEST3_TEXT, "Two").build();
-			OperationResult result = getDatastore().insert(TEST3, t3);
-			assertEquals(1, result.getAffectedCount());
+			inTransaction(() -> {
 
-			final SubQuery<?> sq = SubQuery.create().target(TEST3).filter(TEST3_TEXT.eq(NAMED_TARGET.property(STR)));
+				PropertyBox t3 = PropertyBox.builder(TEST3_SET).set(TEST3_CODE, 501L).set(TEST3_TEXT, "Two").build();
+				OperationResult result = getDatastore().insert(TEST3, t3);
+				assertEquals(1, result.getAffectedCount());
 
-			List<PropertyBox> values = getDatastore().query().target(NAMED_TARGET).filter(sq.exists()).list(PROPERTIES);
-			assertEquals(1, values.size());
-			assertEquals(Long.valueOf(2), values.get(0).getValue(KEY));
+				final SubQuery<?> sq = SubQuery.create().target(TEST3)
+						.filter(TEST3_TEXT.eq(NAMED_TARGET.property(STR)));
 
-			result = getDatastore().bulkUpdate(NAMED_TARGET).set(DBL, 77.88).filter(sq.exists()).execute();
-			assertEquals(1, result.getAffectedCount());
+				List<PropertyBox> values = getDatastore().query().target(NAMED_TARGET).filter(sq.exists())
+						.list(PROPERTIES);
+				assertEquals(1, values.size());
+				assertEquals(Long.valueOf(2), values.get(0).getValue(KEY));
 
-		});
+				result = getDatastore().bulkUpdate(NAMED_TARGET).set(DBL, 77.88).filter(sq.exists()).execute();
+				assertEquals(1, result.getAffectedCount());
+
+			});
+
+		} else {
+			LOGGER.info("SKIP update with alias test");
+		}
 	}
 
 }

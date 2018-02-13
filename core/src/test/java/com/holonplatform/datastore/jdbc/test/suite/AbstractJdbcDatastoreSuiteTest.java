@@ -16,9 +16,13 @@
 package com.holonplatform.datastore.jdbc.test.suite;
 
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.internal.Logger;
+import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 
 public abstract class AbstractJdbcDatastoreSuiteTest {
 
+	protected final static Logger LOGGER = JdbcDatastoreLogger.create();
+	
 	protected Datastore getDatastore() {
 		return AbstractJdbcDatastoreTestSuite.datastore;
 	}

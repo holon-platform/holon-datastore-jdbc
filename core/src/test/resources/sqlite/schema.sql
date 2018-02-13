@@ -1,6 +1,8 @@
 drop table if exists test1;
 drop table if exists test2;
 drop table if exists test3;
+drop table if exists test_recur;
+drop table if exists test_nopk;
 
 create table test1 (
 	 keycode bigint primary key 
@@ -10,8 +12,8 @@ create table test1 (
 	,datv2 date 
 	,enmv int 
 	,nbv int not null
-	,nst1 varchar(10) 
-	,nst2 numeric(19,2) 
+	,nst1 varchar(10) default 'nst1' 
+	,nst2 numeric(14,4) 
 	,nss1 varchar(10) 
 	,tms timestamp
 	,tms2 timestamp
@@ -29,4 +31,15 @@ create table test3 (
 	 code bigint not null primary key
 	,text varchar(100) not null
 );
+
+create table test_recur (
+	 code INTEGER primary key 
+	,name varchar(100) not null
+	,parent varchar(100)
+);
+
+create table test_nopk (
+	nmb numeric(10),
+	txt varchar(10)
+)
 

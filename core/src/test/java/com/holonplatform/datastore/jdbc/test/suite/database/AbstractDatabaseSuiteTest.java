@@ -16,17 +16,13 @@
 package com.holonplatform.datastore.jdbc.test.suite.database;
 
 import com.holonplatform.core.datastore.Datastore;
-import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
 import com.holonplatform.datastore.jdbc.test.suite.AbstractJdbcDatastoreSuiteTest;
 import com.holonplatform.jdbc.DatabasePlatform;
 
 public abstract class AbstractDatabaseSuiteTest extends AbstractJdbcDatastoreSuiteTest {
 
-	private final static Logger LOGGER = JdbcDatastoreLogger.create();
-	
 	protected abstract DatabasePlatform getDatabasePlatform();
 	
 	protected boolean isDatabase(DatabasePlatform platform) {
