@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.test.suite.database;
 
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.DBL;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
@@ -30,6 +31,7 @@ import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunction;
+import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionExpression;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionResolver;
 import com.holonplatform.jdbc.DatabasePlatform;
 
@@ -95,7 +97,24 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 			assertNotNull(result);
 			assertEquals("One", result);
 		});
+	}
 
+	@Test
+	public void testCustomFunctionExpression() {
+		test(datastore -> {
+			Long result = datastore.query().withExpressionResolver(IfNullFunctionExpression.RESOLVER)
+					.target(NAMED_TARGET).filter(new IfNullFunctionExpression<>(DBL, 12.3d).gt(12d)).findOne(KEY)
+					.orElse(null);
+			assertNotNull(result);
+			assertEquals(Long.valueOf(2), result);
+
+			final IfNullFunctionExpression<Double> TEST_EXPR = new IfNullFunctionExpression<>(DBL, 12.3d);
+
+			Double dbl = datastore.query().withExpressionResolver(IfNullFunctionExpression.RESOLVER)
+					.target(NAMED_TARGET).filter(TEST_EXPR.gt(12d)).findOne(TEST_EXPR).orElse(null);
+			assertNotNull(dbl);
+			assertEquals(Double.valueOf(12.3d), dbl);
+		});
 	}
 
 }

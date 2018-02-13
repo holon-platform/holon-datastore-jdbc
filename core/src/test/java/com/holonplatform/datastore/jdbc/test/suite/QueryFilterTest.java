@@ -17,13 +17,11 @@ package com.holonplatform.datastore.jdbc.test.suite;
 
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.DAT;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.DBL;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.ENM;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.LDAT;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.LTMS;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NST_DEC;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TIME;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TMS;
@@ -38,16 +36,11 @@ import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.Test;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.internal.query.filter.NotFilter;
-import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.WhereFilter;
-import com.holonplatform.datastore.jdbc.test.data.TestEnum;
-import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 
 public class QueryFilterTest extends AbstractJdbcDatastoreSuiteTest {
 
@@ -210,36 +203,6 @@ public class QueryFilterTest extends AbstractJdbcDatastoreSuiteTest {
 		count = getDatastore().query().target(NAMED_TARGET).filter(WhereFilter.create("keycode = 1")).count();
 		assertEquals(1, count);
 
-	}
-
-	@Test
-	public void testCustomFilter() {
-		inTransaction(() -> {
-
-			long count = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).count();
-			assertEquals(1, count);
-
-			Optional<String> str = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).findOne(STR);
-			assertEquals("One", str.get());
-
-			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.THIRD)
-					.filter(new KeyIsFilter(1)).execute();
-			assertEquals(1, result.getAffectedCount());
-
-			result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.FIRST).filter(new KeyIsFilter(1)).execute();
-			assertEquals(1, result.getAffectedCount());
-
-			Optional<PropertyBox> pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(2))
-					.findOne(PROPERTIES);
-			assertEquals(TestEnum.SECOND, pb.get().getValue(ENM));
-
-			result = getDatastore().bulkUpdate(NAMED_TARGET).filter(new KeyIsFilter(2)).setNull(DAT).execute();
-			assertEquals(1, result.getAffectedCount());
-
-			pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).findOne(PROPERTIES);
-			assertEquals("One", pb.get().getValue(STR));
-
-		});
 	}
 
 }
