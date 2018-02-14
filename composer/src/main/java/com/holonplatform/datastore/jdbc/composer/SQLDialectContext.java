@@ -49,11 +49,11 @@ public interface SQLDialectContext extends ExpressionResolverSupport {
 	 * Get the JDBC connection provider, if available.
 	 * @return Optional the JDBC connection provider
 	 */
-	Optional<ConnectionProvider> getConnectionProvider();
+	Optional<ConnectionHandler> getConnectionProvider();
 
 	/**
 	 * Get the database metadata information, using {@link #getDatabaseMetaData()} if available or try to obtain it from
-	 * a JDBC connection if a {@link ConnectionProvider} is available.
+	 * a JDBC connection if a {@link ConnectionHandler} is available.
 	 * @return Optional database metadata information
 	 */
 	default Optional<DatabaseMetaData> getOrRetrieveDatabaseMetaData() {

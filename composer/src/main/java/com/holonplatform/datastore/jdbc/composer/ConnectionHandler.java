@@ -16,14 +16,14 @@
 package com.holonplatform.datastore.jdbc.composer;
 
 /**
- * JDBC connection provider.
+ * JDBC connection handler.
  * <p>
- * The concrete provider should manage connection lifecycle, including connection retrieving and releasing. 
+ * The concrete handler should manage connection lifecycle, including connection retrieving and releasing. 
  * </p>
  *
  * @since 5.1.0
  */
-public interface ConnectionProvider {
+public interface ConnectionHandler {
 
 	/**
 	 * Execute given {@link ConnectionOperation} using a managed connection.

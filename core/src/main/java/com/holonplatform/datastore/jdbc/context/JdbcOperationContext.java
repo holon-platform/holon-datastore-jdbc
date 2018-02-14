@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 import com.holonplatform.core.datastore.DatastoreCommodityHandler;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.datastore.jdbc.composer.ConnectionHandler;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementConfigurator;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
@@ -33,7 +33,7 @@ import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
  *
  * @since 5.1.0
  */
-public interface JdbcOperationContext extends SQLContext, ConnectionProvider, DatastoreCommodityHandler {
+public interface JdbcOperationContext extends SQLContext, ConnectionHandler, DatastoreCommodityHandler {
 
 	/**
 	 * Get the {@link IdentifierResolutionStrategy}.

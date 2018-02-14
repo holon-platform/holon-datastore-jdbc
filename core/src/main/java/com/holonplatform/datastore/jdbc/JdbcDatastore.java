@@ -22,7 +22,7 @@ import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
 import com.holonplatform.core.datastore.transaction.Transactional;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.datastore.jdbc.composer.ConnectionHandler;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
@@ -37,7 +37,7 @@ import com.holonplatform.jdbc.JdbcConnectionHandler;
  * 
  * @since 5.0.0
  */
-public interface JdbcDatastore extends Datastore, Transactional, ConnectionProvider,
+public interface JdbcDatastore extends Datastore, Transactional, ConnectionHandler,
 		DatastoreCommodityRegistrar<JdbcDatastoreCommodityContext> {
 
 	/**

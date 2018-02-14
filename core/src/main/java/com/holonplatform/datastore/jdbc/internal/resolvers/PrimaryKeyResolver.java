@@ -31,7 +31,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.datastore.jdbc.composer.ConnectionHandler;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
 import com.holonplatform.datastore.jdbc.composer.SQLType;
@@ -68,9 +68,9 @@ public class PrimaryKeyResolver implements SQLContextExpressionResolver<DataTarg
 
 	};
 
-	private final ConnectionProvider connectionProvider;
+	private final ConnectionHandler connectionProvider;
 
-	public PrimaryKeyResolver(ConnectionProvider connectionProvider) {
+	public PrimaryKeyResolver(ConnectionHandler connectionProvider) {
 		super();
 		this.connectionProvider = connectionProvider;
 	}

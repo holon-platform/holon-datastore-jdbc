@@ -40,7 +40,7 @@ import com.holonplatform.core.internal.utils.ClassUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.composer.ConnectionOperation;
-import com.holonplatform.datastore.jdbc.composer.ConnectionProvider;
+import com.holonplatform.datastore.jdbc.composer.ConnectionHandler;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
@@ -773,8 +773,8 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		 * @see com.holonplatform.datastore.jdbc.composer.SQLDialectContext#getConnectionProvider()
 		 */
 		@Override
-		public Optional<ConnectionProvider> getConnectionProvider() {
-			return Optional.of(new ConnectionProvider() {
+		public Optional<ConnectionHandler> getConnectionProvider() {
+			return Optional.of(new ConnectionHandler() {
 
 				@Override
 				public <R> R withConnection(ConnectionOperation<R> operation) {
