@@ -8,4 +8,7 @@ INSERT INTO test_recur (name, parent) VALUES ('test1', null);
 INSERT INTO test_recur (name, parent) VALUES ('test2', 'test1');
 INSERT INTO test_recur (name, parent) VALUES ('test3', 'test2');
 
+INSERT INTO test_nopk (nmb, txt) VALUES (1, 'First');
+INSERT INTO test_nopk (nmb, txt) VALUES (2, 'Second');
+
 commit;

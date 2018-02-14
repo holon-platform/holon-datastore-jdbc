@@ -21,22 +21,23 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.QueryFilter.QueryFilterResolver;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.spring.DatastoreResolver;
 
 @DatastoreResolver
-public class KeyIsResolver implements QueryFilterResolver<KeyIs> {
+public class KeyIsResolver implements QueryFilterResolver<KeyIsFilter> {
 
 	private static final long serialVersionUID = 1L;
 	
 	private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
 
 	@Override
-	public Class<? extends KeyIs> getExpressionType() {
-		return KeyIs.class;
+	public Class<? extends KeyIsFilter> getExpressionType() {
+		return KeyIsFilter.class;
 	}
 
 	@Override
-	public Optional<QueryFilter> resolve(KeyIs expression, ResolutionContext context)
+	public Optional<QueryFilter> resolve(KeyIsFilter expression, ResolutionContext context)
 			throws InvalidExpressionException {
 		return Optional.of(KEY.eq(expression.getValue()));
 	}
