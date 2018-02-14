@@ -100,7 +100,9 @@ public class JdbcInsert extends AbstractInsertOperation {
 		operationContext.trace(statement.getSql());
 
 		// resolve primary key
-		final Optional<SQLPrimaryKey> primaryKey = context.resolve(getConfiguration(), SQLPrimaryKey.class, context);
+		final Optional<SQLPrimaryKey> primaryKey = operationContext.getDialect().supportsGetGeneratedKeys()
+				? context.resolve(getConfiguration(), SQLPrimaryKey.class, context)
+				: Optional.empty();
 
 		return operationContext.withConnection(c -> {
 
@@ -159,7 +161,8 @@ public class JdbcInsert extends AbstractInsertOperation {
 			Optional<Property> property = adapter.getProperty(keyPath);
 			if (property.isPresent()) {
 				final TypedExpression valueExpression = (property.get() instanceof TypedExpression)
-						? (TypedExpression) property.get() : ConstantExpression.create(keyValue);
+						? (TypedExpression) property.get()
+						: ConstantExpression.create(keyValue);
 				adapter.setValue(keyPath,
 						operationContext.getValueDeserializer().deserialize(context, valueExpression, keyValue));
 			}

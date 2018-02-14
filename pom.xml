@@ -93,6 +93,8 @@
 		<informix-driver.version>4.10.8.1</informix-driver.version>
 		<!-- SQLite -->
 		<sqlite-driver.version>3.20.0</sqlite-driver.version>
+		<!-- HANA -->
+		<hana-driver.version>1.120.6</hana-driver.version>
 
 	</properties>
 

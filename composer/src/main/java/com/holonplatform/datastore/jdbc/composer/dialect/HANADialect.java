@@ -35,7 +35,7 @@ public class HANADialect implements SQLDialect {
 	private static final HANALimitHandler LIMIT_HANDLER = new HANALimitHandler();
 
 	private boolean supportsGeneratedKeys;
-	private boolean generatedKeyAlwaysReturned;
+	private boolean generatedKeyAlwaysReturned = false;
 	private boolean supportsLikeEscapeClause;
 
 	public HANADialect() {
@@ -52,7 +52,6 @@ public class HANADialect implements SQLDialect {
 		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
 		if (databaseMetaData != null) {
 			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 		}
 	}

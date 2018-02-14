@@ -310,34 +310,11 @@
 							</includes>
 						</configuration>
 					</plugin>
-					<!--
-					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>docker-maven-plugin</artifactId>
-						<configuration>
-							<images>
-								<image>
-									<name>holon/sqlserver</name>
-									<build>
-										<dockerFileDir>sqlserver</dockerFileDir>
-									</build>
-									<run>
-										<env>
-											<SA_PASSWORD>T0pSecret</SA_PASSWORD>
-											<ACCEPT_EULA>Y</ACCEPT_EULA>
-										</env>
-										<ports>
-											<port>1433:1433</port>
-										</ports>
-										<wait>
-											<time>15000</time>
-										</wait>
-									</run>
-								</image>
-							</images>
-						</configuration>
-					</plugin>
-					-->
+					<!-- <plugin> <groupId>io.fabric8</groupId> <artifactId>docker-maven-plugin</artifactId> 
+						<configuration> <images> <image> <name>holon/sqlserver</name> <build> <dockerFileDir>sqlserver</dockerFileDir> 
+						</build> <run> <env> <SA_PASSWORD>T0pSecret</SA_PASSWORD> <ACCEPT_EULA>Y</ACCEPT_EULA> 
+						</env> <ports> <port>1433:1433</port> </ports> <wait> <time>15000</time> 
+						</wait> </run> </image> </images> </configuration> </plugin> -->
 				</plugins>
 			</build>
 		</profile>
@@ -390,6 +367,32 @@
 				</plugins>
 			</build>
 		</profile>
+
+		<!-- HANA integration test -->
+		<profile>
+			<id>it-hana</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<includes>
+								<include>**/*HANAIT.java</include>
+							</includes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
 	</profiles>
 
 	<dependencyManagement>
@@ -507,6 +510,13 @@
 			<groupId>com.microsoft.sqlserver</groupId>
 			<artifactId>jdbc</artifactId>
 			<version>${sqlserver-driver.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sap.hana</groupId>
+			<artifactId>jdbc</artifactId>
+			<version>${hana-driver.version}</version>
 			<scope>test</scope>
 		</dependency>
 
