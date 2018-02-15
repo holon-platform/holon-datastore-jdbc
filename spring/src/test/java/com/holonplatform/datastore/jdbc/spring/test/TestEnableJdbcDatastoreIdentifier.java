@@ -17,9 +17,6 @@ package com.holonplatform.datastore.jdbc.spring.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Optional;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,28 +30,30 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.utils.TestUtils;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.composer.dialect.H2Dialect;
-import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
+import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
 import com.holonplatform.datastore.jdbc.spring.test.config.TestCommodity;
 import com.holonplatform.datastore.jdbc.spring.test.config.TestCommodityFactory;
-import com.holonplatform.jdbc.DatabasePlatform;
 import com.holonplatform.jdbc.spring.EnableDataSource;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestEnableJdbcDatastore.Config.class)
-public class TestEnableJdbcDatastore {
+@ContextConfiguration(classes = TestEnableJdbcDatastoreIdentifier.Config.class)
+public class TestEnableJdbcDatastoreIdentifier {
 
 	@Configuration
-	@ComponentScan(basePackageClasses = TestCommodityFactory.class)
 	@PropertySource("test.properties")
+	@ComponentScan(basePackageClasses = TestCommodityFactory.class)
 	@EnableTransactionManagement
 	@EnableDataSource(enableTransactionManager = true)
-	@EnableJdbcDatastore
+	@EnableJdbcDatastore(identifierResolutionStrategy = IdentifierResolutionStrategy.IDENTIFIER_PROPERTIES)
 	protected static class Config {
 
 	}
@@ -64,31 +63,55 @@ public class TestEnableJdbcDatastore {
 	private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
 	private final static PathProperty<String> STR = PathProperty.create("strv", String.class);
 
+	private final static PropertySet<?> PROPS = PropertySet.builderOf(KEY, STR).identifier(KEY).build();
+
 	@Autowired
-	private JdbcDatastore datastore;
+	private Datastore datastore;
 
+	@Transactional
 	@Test
-	public void testCommodity() {
-		TestCommodity tc = datastore.create(TestCommodity.class);
-		assertNotNull(tc);
+	public void testIdentifierResolutionStrategy() {
 
-		tc.test();
+		assertEquals(IdentifierResolutionStrategy.IDENTIFIER_PROPERTIES,
+				datastore.create(TestCommodity.class).getIdentifierResolutionStrategy());
+
+		OperationResult res = datastore.insert(NAMED_TARGET,
+				PropertyBox.builder(KEY, STR).set(KEY, 787L).set(STR, "Test ids").build());
+		assertEquals(1, res.getAffectedCount());
+
+		PropertyBox data = datastore.query().target(NAMED_TARGET).filter(KEY.eq(787L)).findOne(PROPS).orElse(null);
+		assertNotNull(data);
+
+		data.setValue(STR, "*Test ids");
+
+		res = datastore.update(NAMED_TARGET, data);
+		assertEquals(1, res.getAffectedCount());
+
+		String str = datastore.query().target(NAMED_TARGET).filter(KEY.eq(787L)).findOne(STR).orElse(null);
+		assertEquals("*Test ids", str);
+
 	}
 
 	@Transactional
 	@Test
-	public void testDatastore() {
+	public void testIdentifierResolutionStrategyError() {
+		final PropertySet<?> PROPS_NOID = PropertySet.of(KEY, STR);
 
-		assertNotNull(datastore);
+		TestUtils.expectedException(DataAccessException.class, () -> {
 
-		assertEquals(DatabasePlatform.H2, ((JdbcDatastoreCommodityContext) datastore).getDatabase().orElse(null));
-		assertTrue(((JdbcDatastoreCommodityContext) datastore).getDialect() instanceof H2Dialect);
+			OperationResult res = datastore.insert(NAMED_TARGET,
+					PropertyBox.builder(KEY, STR).set(KEY, 787L).set(STR, "Test ids").build());
+			assertEquals(1, res.getAffectedCount());
 
-		datastore.save(NAMED_TARGET, PropertyBox.builder(KEY, STR).set(KEY, 7L).set(STR, "Test ds (7)").build());
+			PropertyBox data = datastore.query().target(NAMED_TARGET).filter(KEY.eq(787L)).findOne(PROPS_NOID)
+					.orElse(null);
+			assertNotNull(data);
 
-		Optional<Long> found = datastore.query().target(NAMED_TARGET).filter(KEY.eq(7L)).findOne(KEY);
-		assertTrue(found.isPresent());
+			data.setValue(STR, "*Test ids");
 
+			datastore.update(NAMED_TARGET, data);
+
+		});
 	}
 
 }

@@ -34,7 +34,6 @@ import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
 import com.holonplatform.datastore.jdbc.test.suite.AbstractJdbcDatastoreTestSuite;
 import com.holonplatform.jdbc.spring.EnableDataSource;
 
-//@Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestSpringJdbcDatastore.Config.class)
 public class TestSpringJdbcDatastore {

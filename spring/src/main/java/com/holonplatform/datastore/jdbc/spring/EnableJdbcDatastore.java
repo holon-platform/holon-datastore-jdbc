@@ -29,7 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.datastore.DataContextBound;
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.spring.internal.JdbcDatastoreRegistrar;
 import com.holonplatform.jdbc.DatabasePlatform;
 import com.holonplatform.spring.internal.PrimaryMode;
@@ -93,7 +95,7 @@ public @interface EnableJdbcDatastore {
 	 * single-valued dependency when multiple candidates are present.
 	 * <p>
 	 * When mode is {@link PrimaryMode#AUTO}, the registred Datastore bean is marked as primary only when the
-	 * {@link Datastore} bean to which is bound is registered as primary bean.
+	 * {@link DataSource} bean to which is bound is registered as primary bean.
 	 * </p>
 	 * @return Primary mode, defaults to {@link PrimaryMode#AUTO}
 	 */
@@ -113,5 +115,11 @@ public @interface EnableJdbcDatastore {
 	 *         <code>true</code>.
 	 */
 	boolean transactional() default true;
+
+	/**
+	 * Set the {@link IdentifierResolutionStrategy} to use to resolve {@link PropertyBox} identifiers.
+	 * @return The {@link IdentifierResolutionStrategy}
+	 */
+	IdentifierResolutionStrategy identifierResolutionStrategy() default IdentifierResolutionStrategy.AUTO;
 
 }

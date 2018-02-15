@@ -41,7 +41,7 @@ public class TestCommodityFactory implements JdbcDatastoreCommodityFactory<TestC
 	 */
 	@Override
 	public TestCommodity createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
-		return new TestCommodityImpl(context.getDataSource(), context.getDialect());
+		return new TestCommodityImpl(context.getDataSource(), context.getDialect(), context.getIdentifierResolutionStrategy());
 	}
 
 }

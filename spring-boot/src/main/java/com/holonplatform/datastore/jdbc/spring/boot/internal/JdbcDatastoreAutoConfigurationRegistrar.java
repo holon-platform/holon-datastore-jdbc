@@ -28,10 +28,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.datastore.jdbc.spring.JdbcDatastoreConfigProperties;
 import com.holonplatform.datastore.jdbc.spring.internal.JdbcDatastoreRegistrar;
 import com.holonplatform.jdbc.spring.internal.DataSourceFactoryBean;
 import com.holonplatform.spring.internal.BeanRegistryUtils;
-import com.holonplatform.spring.internal.PrimaryMode;
 
 /**
  * Registrar for JDBC {@link Datastore} beans registration.
@@ -95,8 +95,9 @@ public class JdbcDatastoreAutoConfigurationRegistrar
 		for (String[] dataSourceDefinition : BeanRegistryUtils.getBeanNamesWithDataContextId(registry, beanFactory,
 				DataSource.class, DataSourceFactoryBean.class)) {
 			// register JDBC datastore
-			JdbcDatastoreRegistrar.registerDatastore(registry, environment, dataSourceDefinition[1], PrimaryMode.AUTO,
-					dataSourceDefinition[0], null, true, beanClassLoader);
+			final String dataContextId = dataSourceDefinition[1];
+			JdbcDatastoreRegistrar.registerDatastore(registry, environment, dataContextId, dataSourceDefinition[0],
+					JdbcDatastoreConfigProperties.builder(dataContextId).build(), beanClassLoader);
 		}
 
 	}

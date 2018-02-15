@@ -34,8 +34,10 @@ import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
+import com.holonplatform.datastore.jdbc.spring.JdbcDatastoreConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
 import com.holonplatform.jdbc.spring.EnableDataSource;
 import com.holonplatform.jdbc.spring.SpringJdbcConnectionHandler;
@@ -104,7 +106,6 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 
 		// attributes
 		String dataContextId = BeanRegistryUtils.getAnnotationValue(attributes, "dataContextId", null);
-		PrimaryMode primaryMode = BeanRegistryUtils.getAnnotationValue(attributes, "primary", PrimaryMode.AUTO);
 		String dataSourceReference = BeanRegistryUtils.getAnnotationValue(attributes, "dataSourceReference", null);
 
 		String dataSourceBeanName = dataSourceReference;
@@ -113,9 +114,22 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 					EnableDataSource.DEFAULT_DATASOURCE_BEAN_NAME);
 		}
 
-		registerDatastore(registry, getEnvironment(), dataContextId, primaryMode, dataSourceBeanName,
-				BeanRegistryUtils.getAnnotationValue(attributes, "platform", DatabasePlatform.NONE),
-				BeanRegistryUtils.getAnnotationValue(attributes, "transactional", true), beanClassLoader);
+		// defaults
+		JdbcDatastoreConfigProperties defaultConfig = JdbcDatastoreConfigProperties.builder(dataContextId)
+				.withProperty(JdbcDatastoreConfigProperties.PRIMARY_MODE,
+						BeanRegistryUtils.getAnnotationValue(attributes, "primary", PrimaryMode.AUTO))
+				.withProperty(JdbcDatastoreConfigProperties.PLATFORM,
+						BeanRegistryUtils.getAnnotationValue(attributes, "platform", DatabasePlatform.NONE))
+				.withProperty(JdbcDatastoreConfigProperties.TRANSACTIONAL,
+						BeanRegistryUtils.getAnnotationValue(attributes, "transactional", true))
+				.withProperty(JdbcDatastoreConfigProperties.IDENTIFIER_RESOLUTION_STRATEGY,
+						BeanRegistryUtils.getAnnotationValue(attributes, "identifierResolutionStrategy",
+								IdentifierResolutionStrategy.AUTO))
+				.build();
+
+		// register Datastore
+		registerDatastore(registry, getEnvironment(), dataContextId, dataSourceBeanName, defaultConfig,
+				beanClassLoader);
 	}
 
 	/**
@@ -123,17 +137,46 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 	 * @param registry BeanDefinitionRegistry
 	 * @param environment Spring environment
 	 * @param dataContextId Data context id
-	 * @param primaryMode Primary mode
 	 * @param datasourceBeanName DataSource bean name reference
-	 * @param platform Database platform (optional)
-	 * @param transactional Whether to add transactional behaviour to transactional datastore methods
+	 * @param defaultConfig Default configuration properties
 	 * @param beanClassLoader Bean class loader
 	 * @return Registered Datastore bean name
 	 */
 	public static String registerDatastore(BeanDefinitionRegistry registry, Environment environment,
-			String dataContextId, PrimaryMode primaryMode, String datasourceBeanName, DatabasePlatform platform,
-			boolean transactional, ClassLoader beanClassLoader) {
+			String dataContextId, String datasourceBeanName, JdbcDatastoreConfigProperties defaultConfig,
+			ClassLoader beanClassLoader) {
 
+		// Datastore configuration
+		DatastoreConfigProperties datastoreConfig = DatastoreConfigProperties.builder(dataContextId)
+				.withPropertySource(EnvironmentConfigPropertyProvider.create(environment)).build();
+
+		// JDBC Datastore configuration
+		JdbcDatastoreConfigProperties jdbcDatastoreConfig = JdbcDatastoreConfigProperties.builder(dataContextId)
+				.withPropertySource(EnvironmentConfigPropertyProvider.create(environment)).build();
+
+		// Configuration
+		PrimaryMode primaryMode = defaultConfig
+				.getConfigPropertyValueOrElse(JdbcDatastoreConfigProperties.PRIMARY_MODE,
+						() -> jdbcDatastoreConfig.getConfigPropertyValue(JdbcDatastoreConfigProperties.PRIMARY_MODE))
+				.orElse(PrimaryMode.AUTO);
+
+		DatabasePlatform platform = defaultConfig
+				.getConfigPropertyValueOrElse(JdbcDatastoreConfigProperties.PLATFORM,
+						() -> jdbcDatastoreConfig.getConfigPropertyValue(JdbcDatastoreConfigProperties.PLATFORM))
+				.orElse(DatabasePlatform.NONE);
+
+		boolean transactional = defaultConfig
+				.getConfigPropertyValueOrElse(JdbcDatastoreConfigProperties.TRANSACTIONAL,
+						() -> jdbcDatastoreConfig.getConfigPropertyValue(JdbcDatastoreConfigProperties.TRANSACTIONAL))
+				.orElse(true);
+
+		IdentifierResolutionStrategy identifierResolutionStrategy = defaultConfig
+				.getConfigPropertyValueOrElse(JdbcDatastoreConfigProperties.IDENTIFIER_RESOLUTION_STRATEGY,
+						() -> jdbcDatastoreConfig
+								.getConfigPropertyValue(JdbcDatastoreConfigProperties.IDENTIFIER_RESOLUTION_STRATEGY))
+				.orElse(IdentifierResolutionStrategy.AUTO);
+
+		// check primary
 		boolean primary = PrimaryMode.TRUE == primaryMode;
 		if (!primary && PrimaryMode.AUTO == primaryMode) {
 			if (registry.containsBeanDefinition(datasourceBeanName)) {
@@ -142,15 +185,7 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 			}
 		}
 
-		// Datastore configuration
-		DatastoreConfigProperties datastoreConfig = null;
-		try {
-			datastoreConfig = DatastoreConfigProperties.builder(dataContextId)
-					.withPropertySource(EnvironmentConfigPropertyProvider.create(environment)).build();
-		} catch (Exception e) {
-			LOGGER.warn("Failed to load DatastoreConfigProperties", e);
-		}
-
+		// create bean definition
 		GenericDataContextBoundBeanDefinition definition = new GenericDataContextBoundBeanDefinition();
 		definition.setDataContextId(dataContextId);
 
@@ -173,6 +208,7 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 
 		MutablePropertyValues pvs = new MutablePropertyValues();
 		pvs.add("dataSource", new RuntimeBeanReference(datasourceBeanName));
+		pvs.add("identifierResolutionStrategy", identifierResolutionStrategy);
 		pvs.add("connectionHandler", SpringJdbcConnectionHandler.create());
 
 		if (platform != null && platform != DatabasePlatform.NONE) {
@@ -201,6 +237,7 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 
 		registry.registerBeanDefinition(beanName, definition);
 
+		// log
 		StringBuilder log = new StringBuilder();
 		if (dataContextId != null) {
 			log.append("<Data context id: ");

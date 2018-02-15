@@ -18,6 +18,7 @@ package com.holonplatform.datastore.jdbc.spring.test.config;
 import javax.sql.DataSource;
 
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 
 @SuppressWarnings("serial")
 public class TestCommodityImpl implements TestCommodity {
@@ -25,10 +26,19 @@ public class TestCommodityImpl implements TestCommodity {
 	private final DataSource dataSource;
 	private final SQLDialect dialect;
 
-	public TestCommodityImpl(DataSource dataSource, SQLDialect dialect) {
+	private final IdentifierResolutionStrategy identifierResolutionStrategy;
+
+	public TestCommodityImpl(DataSource dataSource, SQLDialect dialect,
+			IdentifierResolutionStrategy identifierResolutionStrategy) {
 		super();
 		this.dataSource = dataSource;
 		this.dialect = dialect;
+		this.identifierResolutionStrategy = identifierResolutionStrategy;
+	}
+
+	@Override
+	public IdentifierResolutionStrategy getIdentifierResolutionStrategy() {
+		return identifierResolutionStrategy;
 	}
 
 	@Override
