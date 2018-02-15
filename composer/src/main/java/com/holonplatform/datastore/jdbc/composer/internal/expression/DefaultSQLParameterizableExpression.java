@@ -30,6 +30,10 @@ public class DefaultSQLParameterizableExpression<T> implements SQLParameterizabl
 
 	private final TypedExpression<T> expression;
 
+	/**
+	 * Constructor
+	 * @param expression Actual expression (not null)
+	 */
 	public DefaultSQLParameterizableExpression(TypedExpression<T> expression) {
 		super();
 		ObjectUtils.argumentNotNull(expression, "Expression must be not null");
@@ -63,6 +67,15 @@ public class DefaultSQLParameterizableExpression<T> implements SQLParameterizabl
 		if (getExpression() == null) {
 			throw new InvalidExpressionException("Null parameterizable expression");
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLParameterizableExpression [expression=" + expression + "]";
 	}
 
 }

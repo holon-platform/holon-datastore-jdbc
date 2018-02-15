@@ -20,6 +20,8 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.internal.Logger;
+import com.holonplatform.core.internal.Logger.Level;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.core.query.QueryFunction.Count;
@@ -38,6 +40,7 @@ import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
@@ -53,6 +56,8 @@ public enum DefaultQueryFunctionResolver implements SQLContextExpressionResolver
 	 * Singleton instance.
 	 */
 	INSTANCE;
+
+	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	/*
 	 * (non-Javadoc)
@@ -86,6 +91,8 @@ public enum DefaultQueryFunctionResolver implements SQLContextExpressionResolver
 
 		// default function resolution
 		final Class<? extends QueryFunction> functionType = expression.getClass();
+
+		LOGGER.debug(() -> "Resolving default QueryFunction for function type [" + functionType + "]");
 
 		SQLFunction function = null;
 
@@ -124,6 +131,12 @@ public enum DefaultQueryFunctionResolver implements SQLContextExpressionResolver
 			function = SQLFunction.extract("DAY");
 		if (Hour.class.isAssignableFrom(functionType))
 			function = SQLFunction.extract("HOUR");
+
+		if (LOGGER.isEnabled(Level.DEBUG) && function != null) {
+			final SQLFunction fnc = function;
+			LOGGER.debug(
+					() -> "Resolved default QueryFunction for function type [" + functionType + "] as [" + fnc + "]");
+		}
 
 		return Optional.ofNullable(function);
 	}

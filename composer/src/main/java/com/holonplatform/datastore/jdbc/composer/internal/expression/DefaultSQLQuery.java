@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
+import java.util.Arrays;
+
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQuery;
@@ -67,6 +69,16 @@ public class DefaultSQLQuery extends DefaultSQLStatement implements SQLQuery {
 		if (getResultConverter() == null) {
 			throw new InvalidExpressionException("Null SQL result converter");
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLQuery [resultConverter=" + resultConverter + ", getSql()=" + getSql() + ", getParameters()="
+				+ Arrays.toString(getParameters()) + "]";
 	}
 
 }

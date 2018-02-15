@@ -21,12 +21,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection.MutableSQLProjection;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
 
 /**
  * Default {@link SQLProjection} implementation.
@@ -36,6 +38,8 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection.Mutabl
  * @since 5.1.0
  */
 public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
+
+	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	/**
 	 * Allowed SQL-safe alias characters
@@ -173,6 +177,8 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 
 		selections.add(selection);
 		aliases.put(selection, alias);
+
+		LOGGER.debug(() -> "Added selection label [" + selection + "] with alias [" + alias + "]");
 	}
 
 	/*
@@ -194,8 +200,10 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 		if (generateAlias) {
 			String alias = generateAlias(selection);
 			aliases.put(selection, alias);
+			LOGGER.debug(() -> "Added selection label [" + selection + "] with alias [" + alias + "]");
 			return alias;
 		} else {
+			LOGGER.debug(() -> "Added selection label [" + selection + "]");
 			return selection;
 		}
 	}
@@ -255,6 +263,16 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 		}
 
 		return sb.toString();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLProjection [projectionType=" + projectionType + ", selections=" + selections + ", aliases="
+				+ aliases + ", converter=" + converter + "]";
 	}
 
 }

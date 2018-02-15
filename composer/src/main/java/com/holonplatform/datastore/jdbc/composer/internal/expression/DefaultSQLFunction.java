@@ -99,4 +99,13 @@ public class DefaultSQLFunction implements SQLFunction {
 		return sb.toString();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLFunction [name=" + name + ", parenthesesIfNoArguments=" + parenthesesIfNoArguments + "]";
+	}
+
 }

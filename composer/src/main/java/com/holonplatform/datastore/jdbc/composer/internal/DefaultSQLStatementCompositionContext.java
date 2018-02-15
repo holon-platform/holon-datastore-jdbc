@@ -23,6 +23,7 @@ import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.relational.Aliasable;
 import com.holonplatform.core.datastore.relational.Aliasable.AliasablePath;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
@@ -36,6 +37,11 @@ import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;
 public class DefaultSQLStatementCompositionContext extends DefaultSQLCompositionContext
 		implements SQLStatementCompositionContext {
 
+	private final static Logger LOGGER = SQLComposerLogger.create();
+
+	/**
+	 * Legal alias characters
+	 */
 	private static final String ALIAS_CHARS = "abcdefghijklmnopqrstuvwxyw0123456789_";
 
 	/**
@@ -149,7 +155,7 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 	@Override
 	public Optional<String> getAlias(Path<?> path, boolean useParentContext) {
 		// get alias
-		Optional<String> alias = getPathAlias(path);
+		final Optional<String> alias = getPathAlias(path);
 		if (!alias.isPresent() && useParentContext) {
 			// check parent
 			return getParent().filter(parent -> (parent instanceof SQLStatementCompositionContext))
@@ -229,6 +235,8 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 
 		// append context sequence
 		sb.append(getStatementContextSequence());
+
+		LOGGER.debug(() -> "Generated alias for path [" + path + "] is: " + sb.toString());
 
 		return sb.toString();
 	}

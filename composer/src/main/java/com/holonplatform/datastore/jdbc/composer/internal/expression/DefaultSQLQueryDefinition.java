@@ -177,4 +177,14 @@ public class DefaultSQLQueryDefinition implements SQLQueryDefinition {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLQueryDefinition [select=" + select + ", from=" + from + ", where=" + where + ", orderBy="
+				+ orderBy + ", groupBy=" + groupBy + ", resultConverter=" + resultConverter + "]";
+	}
+
 }

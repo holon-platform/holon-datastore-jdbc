@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
@@ -28,6 +29,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResult;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
 
 /**
  * {@link PropertyBox} SQL result converter.
@@ -35,6 +37,8 @@ import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
  * @since 5.0.0
  */
 public class PropertyBoxSQLResultConverter implements SQLResultConverter<PropertyBox> {
+
+	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	/**
 	 * Property set to use
@@ -91,16 +95,29 @@ public class PropertyBoxSQLResultConverter implements SQLResultConverter<Propert
 		// build the PropertyBox
 		PropertyBox.Builder builder = PropertyBox.builder(propertySet).invalidAllowed(true);
 
+		LOGGER.debug(() -> "Convert result to a PropertyBox using property set [" + propertySet + "]");
+
 		// set values form selections
 		for (Entry<String, Property<?>> entry : selectionProperties.entrySet()) {
+
+			LOGGER.debug(
+					() -> "Convert selection label [" + entry.getKey() + "] using property [" + entry.getValue() + "]");
+
 			TypedExpression<?> expression = selectionExpressions.get(entry.getKey());
 			if (expression == null) {
 				throw new SQLException("No selection expression available for selection [" + entry.getKey() + "]");
 			}
 			// result value
 			Object value = result.getValue(entry.getKey());
+
+			LOGGER.debug(() -> "Result value for selection label [" + entry.getKey() + "] is [" + value + "]");
+
 			// deserialize value
 			Object deserialized = deserializer.deserialize(context, expression, value);
+
+			LOGGER.debug(
+					() -> "Deserialized value for selection label [" + entry.getKey() + "] is [" + deserialized + "]");
+
 			// set property value
 			builder.setIgnoreReadOnly((Property<Object>) entry.getValue(), deserialized);
 		}

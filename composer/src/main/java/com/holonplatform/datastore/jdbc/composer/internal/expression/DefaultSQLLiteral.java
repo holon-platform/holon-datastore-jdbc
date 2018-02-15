@@ -29,8 +29,14 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLLiteral;
  */
 public class DefaultSQLLiteral<T> implements SQLLiteral<T> {
 
+	/**
+	 * Literal value
+	 */
 	private final T value;
 
+	/**
+	 * Optional temporal type
+	 */
 	private final TemporalType temporalType;
 
 	/**
@@ -86,6 +92,15 @@ public class DefaultSQLLiteral<T> implements SQLLiteral<T> {
 	 */
 	@Override
 	public void validate() throws InvalidExpressionException {
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLLiteral [value=" + value + ", temporalType=" + temporalType + "]";
 	}
 
 }

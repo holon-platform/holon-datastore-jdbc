@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLContextParametersHandler;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
@@ -31,6 +32,8 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 public class DefaultSQLContextParametersHandler implements SQLContextParametersHandler {
 
 	private static final long serialVersionUID = 3466242242359565279L;
+
+	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	/**
 	 * Named parameters
@@ -50,6 +53,9 @@ public class DefaultSQLContextParametersHandler implements SQLContextParametersH
 			final String name = generateParameterName(namedParameters.size() + 1);
 			// add parameter
 			namedParameters.put(name, parameter);
+
+			LOGGER.debug(() -> "Added parameter with name " + name);
+
 			// return the generated name
 			return name;
 		}

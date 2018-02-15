@@ -29,12 +29,24 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
  */
 public class DefaultSQLParameter<T> implements SQLParameter<T> {
 
+	/**
+	 * Parameter value
+	 */
 	private final T value;
 
+	/**
+	 * Parameter value type
+	 */
 	private final Class<? extends T> type;
 
+	/**
+	 * Optional temporal type
+	 */
 	private final TemporalType temporalType;
 
+	/**
+	 * Optional serialization function
+	 */
 	private final Function<String, String> serializationFunction;
 
 	/**

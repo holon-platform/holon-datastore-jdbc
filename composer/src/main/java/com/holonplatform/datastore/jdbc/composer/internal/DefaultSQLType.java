@@ -67,4 +67,13 @@ public class DefaultSQLType implements SQLType {
 		return Optional.ofNullable(name);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLType [type=" + type + ", name=" + name + "]";
+	}
+
 }

@@ -45,6 +45,9 @@ import com.holonplatform.datastore.jdbc.composer.SQLValueSerializer;
  */
 public enum DefaultSQLValueSerializer implements SQLValueSerializer {
 
+	/**
+	 * Singleton instance
+	 */
 	INSTANCE;
 
 	private static final long serialVersionUID = 7172624787331055754L;

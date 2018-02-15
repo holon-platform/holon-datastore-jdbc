@@ -28,8 +28,14 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
  */
 public class DefaultSQLStatement implements SQLStatement {
 
+	/**
+	 * Statement SQL
+	 */
 	private final String sql;
 
+	/**
+	 * Statement parameters
+	 */
 	private final SQLParameter<?>[] parameters;
 
 	/**

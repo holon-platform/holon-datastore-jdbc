@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
+import java.util.Arrays;
+
 import com.holonplatform.core.Path;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 
@@ -27,6 +29,10 @@ public class DefaultSQLPrimaryKey implements SQLPrimaryKey {
 
 	private final Path<?>[] paths;
 
+	/**
+	 * Constructor
+	 * @param paths Primary key paths
+	 */
 	public DefaultSQLPrimaryKey(Path<?>[] paths) {
 		super();
 		this.paths = paths;
@@ -50,6 +56,14 @@ public class DefaultSQLPrimaryKey implements SQLPrimaryKey {
 		if (getPaths() == null || getPaths().length == 0) {
 			throw new InvalidExpressionException("Null or empty primary key path array");
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLPrimaryKey [paths=" + Arrays.toString(paths) + "]";
 	}
 
 }

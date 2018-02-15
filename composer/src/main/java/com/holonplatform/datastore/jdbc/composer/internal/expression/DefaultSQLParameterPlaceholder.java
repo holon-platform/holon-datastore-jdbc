@@ -29,6 +29,10 @@ public class DefaultSQLParameterPlaceholder<T> implements SQLParameterPlaceholde
 
 	private final Class<? extends T> type;
 
+	/**
+	 * Constructor
+	 * @param type Parameter value type (not null)
+	 */
 	public DefaultSQLParameterPlaceholder(Class<? extends T> type) {
 		super();
 		ObjectUtils.argumentNotNull(type, "Type must be not null");
@@ -50,6 +54,15 @@ public class DefaultSQLParameterPlaceholder<T> implements SQLParameterPlaceholde
 	 */
 	@Override
 	public void validate() throws InvalidExpressionException {
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLParameterPlaceholder [type=" + type + "]";
 	}
 
 }

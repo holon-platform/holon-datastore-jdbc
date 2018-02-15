@@ -64,7 +64,7 @@ public class DefaultSQLExpression implements SQLExpression {
 	 */
 	@Override
 	public String toString() {
-		return "DefaultSQLToken [value=" + value + "]";
+		return "DefaultSQLExpression [value=" + value + "]";
 	}
 
 }

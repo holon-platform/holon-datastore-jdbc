@@ -26,6 +26,7 @@ import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.ExpressionResolver.ResolutionContext;
 import com.holonplatform.core.ExpressionResolverRegistry;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLContext;
@@ -43,6 +44,8 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
  * @since 5.1.0
  */
 public class DefaultSQLCompositionContext implements SQLCompositionContext {
+
+	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	/**
 	 * Expression resolvers
@@ -179,6 +182,8 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 	public SQLStatement prepareStatement(String sql) {
 		ObjectUtils.argumentNotNull(sql, "SQL statement must be not null");
 
+		LOGGER.debug(() -> "Prepare statement: " + sql);
+
 		final StringBuilder sb = new StringBuilder();
 
 		// check named parameters
@@ -196,13 +201,18 @@ public class DefaultSQLCompositionContext implements SQLCompositionContext {
 					throw new SQLStatementPreparationException("The named parameter " + namedParameterPlaceholder
 							+ " at index " + i + " was not found in SQL composition context");
 				}
-				
+
+				LOGGER.debug(() -> "Resolve parameter for placeholder " + namedParameterPlaceholder);
+
 				// intermediate parameter resolution
 				final SQLParameter<?> actualParameter = resolve(parameter, SQLParameter.class).orElse(parameter);
 
 				// resolve parameter as SQL
-				SQLExpression parameterExpression = resolve(actualParameter, SQLExpression.class).orElseThrow(
+				final SQLExpression parameterExpression = resolve(actualParameter, SQLExpression.class).orElseThrow(
 						() -> new InvalidExpressionException("Failed to resolve parameter [" + actualParameter + "]"));
+
+				LOGGER.debug(() -> "Resolved parameter for placeholder " + namedParameterPlaceholder + " as "
+						+ parameterExpression.getValue());
 
 				// replace parameter
 				sb.append(parameterExpression.getValue());

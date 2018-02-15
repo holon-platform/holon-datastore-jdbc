@@ -61,4 +61,13 @@ public class DefaultSQLToken implements SQLToken {
 	public void validate() throws InvalidExpressionException {
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DefaultSQLToken [value=" + value + "]";
+	}
+
 }

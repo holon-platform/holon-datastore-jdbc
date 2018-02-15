@@ -21,11 +21,13 @@ import java.util.Map.Entry;
 
 import com.holonplatform.core.Path;
 import com.holonplatform.core.beans.BeanPropertySet;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResult;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
 
 /**
  * Bean SQL result converter.
@@ -35,6 +37,8 @@ import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
  * @since 5.0.0
  */
 public class BeanSQLResultConverter<T> implements SQLResultConverter<T> {
+
+	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	/**
 	 * Bean property set
@@ -88,11 +92,24 @@ public class BeanSQLResultConverter<T> implements SQLResultConverter<T> {
 			throw new SQLException("Failed to istantiate bean class [" + beanPropertySet.getBeanClass() + "]", e);
 		}
 
-		for (Entry<String, Path<?>> entry : pathSelection.entrySet()) {
+		LOGGER.debug(() -> "Convert result to a bean instance of type [" + beanPropertySet.getBeanClass() + "]");
+
+		for (final Entry<String, Path<?>> entry : pathSelection.entrySet()) {
+
+			LOGGER.debug(
+					() -> "Convert selection label [" + entry.getKey() + "] using path [" + entry.getValue() + "]");
+
 			// result value
 			Object value = result.getValue(entry.getKey());
+
+			LOGGER.debug(() -> "Result value for selection label [" + entry.getKey() + "] is [" + value + "]");
+
 			// deserialize value
 			Object deserialized = deserializer.deserialize(context, entry.getValue(), value);
+
+			LOGGER.debug(
+					() -> "Deserialized value for selection label [" + entry.getKey() + "] is [" + deserialized + "]");
+
 			// write value in bean instance
 			beanPropertySet.write((Path<Object>) entry.getValue(), deserialized, instance);
 		}

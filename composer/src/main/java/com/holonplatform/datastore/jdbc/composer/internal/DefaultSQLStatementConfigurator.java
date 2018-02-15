@@ -35,6 +35,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.utils.CalendarUtils;
 import com.holonplatform.core.internal.utils.ConversionUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
@@ -54,7 +55,12 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
  */
 public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator {
 
+	/**
+	 * Singleton instance
+	 */
 	INSTANCE;
+
+	private final static Logger LOGGER = SQLComposerLogger.create();
 
 	/*
 	 * (non-Javadoc)
@@ -98,6 +104,10 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 	 */
 	private static void setNullStatementParameterValue(SQLContext context, PreparedStatement jdbcStatement,
 			int parameterIndex, Class<?> type) throws SQLException {
+
+		LOGGER.debug(() -> "Setting NULL statement parameter value at index [" + parameterIndex + "] for type [" + type
+				+ "]");
+
 		Optional<SQLType> sqlType = context.getTypeConverter().getSqlType(context, type);
 		if (!sqlType.isPresent()) {
 			// try to use NULL type
@@ -109,8 +119,11 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 			}
 		}
 
-		SQLType parameterType = sqlType.orElseThrow(() -> new SQLException(
+		final SQLType parameterType = sqlType.orElseThrow(() -> new SQLException(
 				"Failed to set statement parameter for value type [" + type + "]: no SQL type can be resolved"));
+
+		LOGGER.debug(() -> "Setting NULL statement parameter value at index [" + parameterIndex + "] for type [" + type
+				+ "] and SQL type [" + parameterType + "]");
 
 		// set null value
 		if (parameterType.getName().isPresent()) {
@@ -134,16 +147,21 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 	private static Object setStatementParameterValue(SQLContext context, PreparedStatement jdbcStatement,
 			int parameterIndex, Class<?> type, Object value, TemporalType temporalType) throws SQLException {
 
+		LOGGER.debug(() -> "Setting statement parameter value at index [" + parameterIndex + "] for type [" + type
+				+ "] and value [" + value + "]");
+
 		// CharSequence
 		if (TypeUtils.isCharSequence(type)) {
 			final String str = value.toString();
 			jdbcStatement.setString(parameterIndex, str);
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as String");
 			return str;
 		}
 
 		// boolean
 		if (TypeUtils.isBoolean(type)) {
 			jdbcStatement.setBoolean(parameterIndex, (Boolean) value);
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Boolean");
 			return value;
 		}
 
@@ -151,34 +169,42 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		if (TypeUtils.isInteger(type)) {
 			// check value type matches
 			jdbcStatement.setInt(parameterIndex, checkNumericValue(value, Integer.class));
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Integer");
 			return value;
 		}
 		if (TypeUtils.isLong(type)) {
 			jdbcStatement.setLong(parameterIndex, checkNumericValue(value, Long.class));
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Long");
 			return value;
 		}
 		if (TypeUtils.isDouble(type)) {
 			jdbcStatement.setDouble(parameterIndex, checkNumericValue(value, Double.class));
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Double");
 			return value;
 		}
 		if (TypeUtils.isFloat(type)) {
 			jdbcStatement.setFloat(parameterIndex, checkNumericValue(value, Float.class));
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Float");
 			return value;
 		}
 		if (TypeUtils.isShort(type)) {
 			jdbcStatement.setShort(parameterIndex, checkNumericValue(value, Short.class));
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Short");
 			return value;
 		}
 		if (Byte.class.isAssignableFrom(type)) {
 			jdbcStatement.setByte(parameterIndex, checkNumericValue(value, Byte.class));
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Byte");
 			return value;
 		}
 		if (BigDecimal.class.isAssignableFrom(type)) {
 			jdbcStatement.setBigDecimal(parameterIndex, checkNumericValue(value, BigDecimal.class));
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as BigDecimal");
 			return value;
 		}
 		if (BigInteger.class.isAssignableFrom(type)) {
 			jdbcStatement.setLong(parameterIndex, checkNumericValue(value, Long.class));
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Long");
 			return value;
 		}
 
@@ -186,12 +212,16 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		if (TypeUtils.isEnum(type)) {
 			Enum<?> enumValue = checkEnumValue(value, type);
 			jdbcStatement.setInt(parameterIndex, enumValue.ordinal());
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex
+					+ "] setted as Integer using ordinal value " + enumValue.ordinal() + " of enum "
+					+ enumValue.getClass());
 			return enumValue;
 		}
 
 		// Byte[]
 		if (type == byte[].class) {
 			jdbcStatement.setBytes(parameterIndex, (byte[]) value);
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Byte array");
 			return value;
 		}
 
@@ -199,6 +229,7 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		if (java.sql.Date.class.isAssignableFrom(type)) {
 			if (java.sql.Date.class.isAssignableFrom(value.getClass())) {
 				jdbcStatement.setDate(parameterIndex, (java.sql.Date) value);
+				LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Date");
 				return value;
 			}
 		}
@@ -208,19 +239,24 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 				if (temporalType != null && temporalType == TemporalType.DATE_TIME) {
 					final java.sql.Timestamp ts = new java.sql.Timestamp(dateValue.getTime());
 					jdbcStatement.setTimestamp(parameterIndex, ts);
+					LOGGER.debug(
+							() -> "Statement parameter value at index [" + parameterIndex + "] setted as Timestamp");
 					return ts;
 				}
 				if (temporalType != null && temporalType == TemporalType.TIME) {
 					final java.sql.Time t = new java.sql.Time(dateValue.getTime());
 					jdbcStatement.setTime(parameterIndex, t);
+					LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Time");
 					return t;
 				}
 				if (temporalType != null && temporalType == TemporalType.DATE) {
 					Date truncated = CalendarUtils.floorTime(dateValue);
 					jdbcStatement.setDate(parameterIndex, new java.sql.Date(truncated.getTime()));
+					LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Date");
 					return truncated;
 				}
 				jdbcStatement.setDate(parameterIndex, new java.sql.Date(dateValue.getTime()));
+				LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Date");
 				return dateValue;
 			}
 		}
@@ -230,6 +266,7 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 			if (ld != null) {
 				final java.sql.Date d = java.sql.Date.valueOf(ld);
 				jdbcStatement.setDate(parameterIndex, d);
+				LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Date");
 				return d;
 			}
 		}
@@ -238,6 +275,7 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 			if (lt != null) {
 				final java.sql.Time t = java.sql.Time.valueOf(lt);
 				jdbcStatement.setTime(parameterIndex, t);
+				LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Time");
 				return t;
 			}
 		}
@@ -246,6 +284,7 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 			if (ldt != null) {
 				final java.sql.Timestamp ts = java.sql.Timestamp.valueOf(ldt);
 				jdbcStatement.setTimestamp(parameterIndex, ts);
+				LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Timestamp");
 				return ts;
 			}
 		}
@@ -253,18 +292,22 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 		// Reader (CharacterStream)
 		if (Reader.class.isAssignableFrom(type)) {
 			jdbcStatement.setCharacterStream(parameterIndex, (Reader) value);
+			LOGGER.debug(
+					() -> "Statement parameter value at index [" + parameterIndex + "] setted as Character Stream");
 			return value;
 		}
 
 		// Blob
 		if (Blob.class.isAssignableFrom(type)) {
 			jdbcStatement.setBlob(parameterIndex, (Blob) value);
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Blob");
 			return value;
 		}
 
 		// Clob
 		if (Clob.class.isAssignableFrom(type)) {
 			jdbcStatement.setClob(parameterIndex, (Clob) value);
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as Clob");
 			return value;
 		}
 
@@ -273,6 +316,8 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 			final File file = (File) value;
 			try (FileInputStream fis = new FileInputStream(file)) {
 				jdbcStatement.setBinaryStream(parameterIndex, fis, file.length());
+				LOGGER.debug(
+						() -> "Statement parameter value at index [" + parameterIndex + "] setted as Binary Stream");
 				return file;
 			} catch (IOException e) {
 				throw new SQLException("Failed to read File [" + file + "]", e);
@@ -286,11 +331,15 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 
 				if (context.getDialect().supportsBinaryStreamParameter()) {
 					jdbcStatement.setBinaryStream(parameterIndex, lis.getActualStream(), lis.getLength());
+					LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex
+							+ "] setted as Binary Stream");
 					return lis;
 				} else {
 					try {
 						jdbcStatement.setBytes(parameterIndex, ConversionUtils
 								.convertInputStreamToBytes(((LimitedInputStream) value).getActualStream()));
+						LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex
+								+ "] setted as Byte array");
 					} catch (IOException e) {
 						throw new SQLException("Failed to convert InputStream to bytes", e);
 					}
@@ -301,6 +350,8 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 				try {
 					jdbcStatement.setBytes(parameterIndex,
 							ConversionUtils.convertInputStreamToBytes((ByteArrayInputStream) value));
+					LOGGER.debug(
+							() -> "Statement parameter value at index [" + parameterIndex + "] setted as Byte array");
 				} catch (IOException e) {
 					throw new SQLException("Failed to convert ByteArrayInputStream to bytes", e);
 				}
@@ -310,14 +361,17 @@ public enum DefaultSQLStatementConfigurator implements SQLStatementConfigurator 
 
 		// default
 
-		Optional<SQLType> sqlType = context.getTypeConverter().getSqlType(context, type);
+		final Optional<SQLType> sqlType = context.getTypeConverter().getSqlType(context, type);
 		if (sqlType.isPresent()) {
 			jdbcStatement.setObject(parameterIndex, value, sqlType.get().getType());
+			LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex
+					+ "] setted as generic Object using sql type " + sqlType.get().getType());
 			return value;
 		}
 
 		// generic object
 		jdbcStatement.setObject(parameterIndex, value);
+		LOGGER.debug(() -> "Statement parameter value at index [" + parameterIndex + "] setted as generic Object");
 		return value;
 
 	}
