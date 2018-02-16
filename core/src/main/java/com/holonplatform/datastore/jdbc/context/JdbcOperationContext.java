@@ -61,11 +61,20 @@ public interface JdbcOperationContext extends SQLContext, ConnectionHandler, Dat
 	 * Create and configure a {@link PreparedStatement} using given {@link SQLStatement} and connection.
 	 * @param statement SQL statement (not null)
 	 * @param connection Connection (not null)
-	 * @return The JDBC statement
+	 * @return The JDBC {@link PreparedStatement}
 	 * @throws DataAccessException If an error occurred
 	 */
 	PreparedStatement prepareStatement(SQLStatement statement, Connection connection);
-	
+
+	/**
+	 * Create and configure a {@link PreparedStatement} for an <code>INSERT</code> type operation, using given
+	 * {@link SQLStatement} and connection.
+	 * @param statement SQL statement (not null)
+	 * @param connection Connection (not null)
+	 * @param primaryKey Optional primary key to use to retrieve any auto-generated key
+	 * @return The JDBC {@link PreparedStatement}
+	 * @throws DataAccessException If an error occurred
+	 */
 	PreparedStatement prepareInsertStatement(SQLStatement statement, Connection connection, SQLPrimaryKey primaryKey);
 
 }
