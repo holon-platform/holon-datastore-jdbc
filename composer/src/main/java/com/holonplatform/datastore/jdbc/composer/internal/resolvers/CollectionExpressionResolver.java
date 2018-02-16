@@ -21,7 +21,6 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.query.CollectionExpression;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLLiteral;
@@ -65,6 +64,6 @@ public enum CollectionExpressionResolver implements SQLExpressionResolver<Collec
 
 		// resolve as Literal
 		return context.resolve(SQLLiteral.create(expression.getModelValue(),
-				((ConstantExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class);
+				((CollectionExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class);
 	}
 }
