@@ -31,7 +31,7 @@ public interface SQLContext extends ExpressionResolverProvider {
 	SQLDialect getDialect();
 
 	/**
-	 * Get the {@link SQLValueSerializer} if this context.
+	 * Get the {@link SQLValueSerializer} of this context.
 	 * @return The {@link SQLValueSerializer}
 	 */
 	default SQLValueSerializer getValueSerializer() {
@@ -39,7 +39,7 @@ public interface SQLContext extends ExpressionResolverProvider {
 	}
 
 	/**
-	 * Get the {@link SQLValueDeserializer} if this context.
+	 * Get the {@link SQLValueDeserializer} of this context.
 	 * @return the {@link SQLValueDeserializer}
 	 */
 	default SQLValueDeserializer getValueDeserializer() {
