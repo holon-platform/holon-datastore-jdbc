@@ -89,7 +89,7 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 	public <T> T deserialize(SQLExecutionContext context, TypedExpression<T> expression,
 			final Object valueToDeserialize) throws SQLException {
 
-		ObjectUtils.argumentNotNull(expression, "Vaue deserialization expression must be not null");
+		ObjectUtils.argumentNotNull(expression, "Value deserialization expression must be not null");
 
 		LOGGER.debug(() -> "<DefaultSQLValueDeserializer> Deserializing value [" + valueToDeserialize + "] of type ["
 				+ ((valueToDeserialize == null) ? "NULL" : valueToDeserialize.getClass()) + "] for expression type ["
