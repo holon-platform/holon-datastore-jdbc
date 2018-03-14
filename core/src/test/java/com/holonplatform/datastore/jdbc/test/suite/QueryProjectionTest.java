@@ -215,10 +215,10 @@ public class QueryProjectionTest extends AbstractJdbcDatastoreSuiteTest {
 		assertEquals(2, results.size());
 
 		assertEquals(1L, results.get(0).getKeycode());
-		assertEquals("One", results.get(0).getStrv());
+		assertEquals("One", results.get(0).getText());
 
 		assertEquals(2L, results.get(1).getKeycode());
-		assertEquals("Two", results.get(1).getStrv());
+		assertEquals("Two", results.get(1).getText());
 	}
 
 	@Test

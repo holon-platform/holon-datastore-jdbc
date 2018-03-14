@@ -29,6 +29,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
+import com.holonplatform.datastore.jdbc.internal.support.DataPathAwarePathMatcher;
 
 /**
  * {@link PropertyBoxOperationConfiguration} identifier resolver.
@@ -101,7 +102,8 @@ public class OperationIdentifierResolver
 	 */
 	private static Optional<SQLPrimaryKey> getPrimaryKeyFromIdentifiers(PropertyBox propertyBox) {
 		if (propertyBox != null) {
-			final Set<Path<?>> ids = PathPropertyBoxAdapter.create(propertyBox).getPathIdentifiers();
+			final Set<Path<?>> ids = PathPropertyBoxAdapter.builder(propertyBox)
+					.pathMatcher(new DataPathAwarePathMatcher()).build().getPathIdentifiers();
 			if (!ids.isEmpty()) {
 				return Optional.of(SQLPrimaryKey.create(ids.toArray(new Path<?>[ids.size()])));
 			}

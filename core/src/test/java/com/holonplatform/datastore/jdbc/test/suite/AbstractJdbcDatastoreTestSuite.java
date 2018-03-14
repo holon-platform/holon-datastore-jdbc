@@ -34,14 +34,15 @@ import com.holonplatform.datastore.jdbc.test.suite.database.SQLiteTest;
 		UpdateTest.class, SaveTest.class, DeleteTest.class, ClobTest.class, BlobTest.class, BulkInsertTest.class,
 		BulkUpdateTest.class, BulkDeleteTest.class, BulkUpdateAliasTest.class, BulkDeleteAliasTest.class,
 		AggregationFunctionsTest.class, StringFunctionsTest.class, TemporalFunctionsTest.class,
-		DataTargetResolverTest.class, CustomExpressionsTest.class, H2Test.class, HSQLTest.class, DerbyTest.class,
-		MySQLTest.class, MariaDBTest.class, PostgreSQLTest.class, SQLServerTest.class, SQLiteTest.class })
+		DataTargetResolverTest.class, DataMappingTest.class, CustomExpressionsTest.class, BeanDatastoreTest.class,
+		H2Test.class, HSQLTest.class, DerbyTest.class, MySQLTest.class, MariaDBTest.class, PostgreSQLTest.class,
+		SQLServerTest.class, SQLiteTest.class })
 public abstract class AbstractJdbcDatastoreTestSuite {
 
 	public static Datastore datastore;
-	
+
 	public static boolean rightJoinTest = true;
-	
+
 	public static boolean updateAliasTest = true;
 
 }

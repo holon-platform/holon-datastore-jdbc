@@ -17,12 +17,16 @@ package com.holonplatform.datastore.jdbc.test.data;
 
 import java.io.Serializable;
 
+import com.holonplatform.core.beans.DataPath;
+
 public class TestProjectionBean implements Serializable {
 
 	private static final long serialVersionUID = 7323766007354763956L;
 
 	private long keycode;
-	private String strv;
+	
+	@DataPath("strv")
+	private String text;
 
 	public long getKeycode() {
 		return keycode;
@@ -32,12 +36,12 @@ public class TestProjectionBean implements Serializable {
 		this.keycode = keycode;
 	}
 
-	public String getStrv() {
-		return strv;
+	public String getText() {
+		return text;
 	}
 
-	public void setStrv(String strv) {
-		this.strv = strv;
+	public void setText(String text) {
+		this.text = text;
 	}
 
 }

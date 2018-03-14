@@ -17,29 +17,15 @@ package com.holonplatform.datastore.jdbc.internal.support;
 
 import com.holonplatform.core.Path;
 import com.holonplatform.core.datastore.DataMappable;
-import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.core.property.PathPropertySetAdapter.PathMatcher;
-import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 
 /**
- * A {@link PathMatcher} which uses {@link SQLDialect#getColumnName(String)} to normalize path names and ignores case
- * when matching path names.
+ * A {@link PathMatcher} which uses checks {@link DataMappable#PATH} configuration property if available when matching
+ * path names.
  * 
  * @since 5.1.0
  */
-public class DialectPathMatcher implements PathMatcher {
-
-	private final SQLDialect dialect;
-
-	/**
-	 * Constructor.
-	 * @param dialect SQL dialect (not null)
-	 */
-	public DialectPathMatcher(SQLDialect dialect) {
-		super();
-		ObjectUtils.argumentNotNull(dialect, "Dialect must be not null");
-		this.dialect = dialect;
-	}
+public class DataPathAwarePathMatcher implements PathMatcher {
 
 	/*
 	 * (non-Javadoc)
@@ -49,7 +35,7 @@ public class DialectPathMatcher implements PathMatcher {
 	@Override
 	public boolean match(Path<?> path, Path<?> otherPath) {
 		if (path != null && otherPath != null) {
-			return getPathName(path).equalsIgnoreCase(dialect.getColumnName(getPathName(otherPath)));
+			return getPathName(path).equals(getPathName(otherPath));
 		}
 		return false;
 	}

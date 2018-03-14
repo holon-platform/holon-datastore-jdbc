@@ -21,6 +21,7 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.Path;
+import com.holonplatform.core.datastore.DataMappable;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
@@ -64,7 +65,7 @@ public enum PathResolver implements SQLExpressionResolver<Path> {
 		final Path<?> path = context.resolve(expression, Path.class).orElse(expression);
 
 		// get path name
-		final String name = path.getName();
+		final String name = getPathName(path);
 
 		// check parent alias
 		Optional<String> alias = path.getParent()
@@ -72,10 +73,20 @@ public enum PathResolver implements SQLExpressionResolver<Path> {
 		if (!alias.isPresent()) {
 			alias = context.isStatementCompositionContext().flatMap(ctx -> ctx.getAliasOrRoot(path));
 		}
-		
+
 		// serialize path
 		return Optional.of(SQLExpression.create(alias.map(a -> a + "." + name).orElse(name)));
 
+	}
+
+	/**
+	 * Get the path data model name, using {@link DataMappable#getDataPath()} if path is {@link DataMappable} or
+	 * returning the path name if not.
+	 * @param path The path for which to obtain the data path name
+	 * @return The data path name
+	 */
+	private static String getPathName(Path<?> path) {
+		return DataMappable.isDataMappable(path).flatMap(dm -> dm.getDataPath()).orElse(path.getName());
 	}
 
 }

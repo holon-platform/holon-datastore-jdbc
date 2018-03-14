@@ -21,13 +21,17 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TAR
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.holonplatform.core.beans.DataPath;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.datastore.beans.BeanDatastore;
+import com.holonplatform.core.datastore.beans.BeanDatastore.BeanOperationResult;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunction;
@@ -115,6 +119,75 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 			assertNotNull(dbl);
 			assertEquals(Double.valueOf(12.3d), dbl);
 		});
+	}
+
+	@Test
+	public void testBeanAutoIncrement() {
+		test(datastore -> {
+			inTransaction(() -> {
+
+				final BeanDatastore beanDatastore = BeanDatastore.of(datastore);
+
+				Test2 value = new Test2();
+				value.setValue("Auto increment 4");
+
+				BeanOperationResult<Test2> result = beanDatastore.insert(value);
+				assertEquals(1, result.getAffectedCount());
+				assertTrue(result.getResult().isPresent());
+
+				assertEquals(Long.valueOf(4), result.getResult().get().getKey());
+				assertEquals("Auto increment 4", result.getResult().get().getValue());
+
+			});
+		});
+	}
+
+	public static final class Test2 {
+
+		@DataPath("code")
+		private Long key;
+
+		@DataPath("text")
+		private String value;
+
+		public Long getKey() {
+			return key;
+		}
+
+		public void setKey(Long key) {
+			this.key = key;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (int) (key ^ (key >>> 32));
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Test2 other = (Test2) obj;
+			if (key != other.key)
+				return false;
+			return true;
+		}
+
 	}
 
 }
