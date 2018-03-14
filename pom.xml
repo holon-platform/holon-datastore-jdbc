@@ -68,6 +68,10 @@
 
 		<!-- HikariCP (test) -->
 		<hikaricp.version>2.7.7</hikaricp.version>
+		
+		<!-- Test JPA bean processors -->
+		
+		<holon.jpa.version>5.1.0-SNAPSHOT</holon.jpa.version>
 
 		<!-- Test/dialects databases -->
 

@@ -35,8 +35,8 @@ import com.holonplatform.datastore.jdbc.test.suite.database.SQLiteTest;
 		BulkUpdateTest.class, BulkDeleteTest.class, BulkUpdateAliasTest.class, BulkDeleteAliasTest.class,
 		AggregationFunctionsTest.class, StringFunctionsTest.class, TemporalFunctionsTest.class,
 		DataTargetResolverTest.class, DataMappingTest.class, CustomExpressionsTest.class, BeanDatastoreTest.class,
-		H2Test.class, HSQLTest.class, DerbyTest.class, MySQLTest.class, MariaDBTest.class, PostgreSQLTest.class,
-		SQLServerTest.class, SQLiteTest.class })
+		BeanDatastoreJpaTest.class, H2Test.class, HSQLTest.class, DerbyTest.class, MySQLTest.class, MariaDBTest.class,
+		PostgreSQLTest.class, SQLServerTest.class, SQLiteTest.class })
 public abstract class AbstractJdbcDatastoreTestSuite {
 
 	public static Datastore datastore;
