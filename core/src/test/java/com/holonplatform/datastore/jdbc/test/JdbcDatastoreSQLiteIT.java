@@ -40,12 +40,10 @@ public class JdbcDatastoreSQLiteIT extends AbstractJdbcDatastoreTestSuiteIT {
 
 	}
 
-	// TODO
 	public void testRightJoins() {
 		// not supported by SQLite
 	}
 
-	// TODO
 	public void testLocalDateTimeWithTimestampFilter() {
 	}
 
