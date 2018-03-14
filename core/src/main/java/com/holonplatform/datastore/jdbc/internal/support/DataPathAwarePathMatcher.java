@@ -15,8 +15,8 @@
  */
 package com.holonplatform.datastore.jdbc.internal.support;
 
+import com.holonplatform.core.DataMappable;
 import com.holonplatform.core.Path;
-import com.holonplatform.core.datastore.DataMappable;
 import com.holonplatform.core.property.PathPropertySetAdapter.PathMatcher;
 
 /**
