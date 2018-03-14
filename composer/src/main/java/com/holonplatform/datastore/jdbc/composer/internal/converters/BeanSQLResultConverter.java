@@ -52,7 +52,6 @@ public class BeanSQLResultConverter<T> implements SQLResultConverter<T> {
 
 	/**
 	 * Constructor
-	 * @param dialect Dialect (not null)
 	 * @param beanPropertySet Bean property set (not null)
 	 * @param pathSelection Query selection (not null)
 	 */

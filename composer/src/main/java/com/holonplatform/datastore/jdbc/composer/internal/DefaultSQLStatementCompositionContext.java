@@ -190,7 +190,6 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 	 * Check if an alias has to be generated for given path, only if alias mode is not {@link AliasMode#UNSUPPORTED} and
 	 * given path does not provide an explicit alias.
 	 * @param path Path for which to generate the alias (not null)
-	 * @param checkParentContext Whether to check the parent context to obtain the alias, if available
 	 */
 	protected void parsePathAlias(final AliasablePath<?, ?> path) {
 		// check explicit path not provided and alias auto generation is enabled

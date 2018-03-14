@@ -58,7 +58,8 @@ public class PropertyBoxSQLResultConverter implements SQLResultConverter<Propert
 	/**
 	 * Constructor
 	 * @param propertySet Property set to use (not null)
-	 * @param propertySelection Query selection (not null)
+	 * @param selectionProperties Selection properties (not null)
+	 * @param selectionExpressions Selection expressions (not null)
 	 */
 	public PropertyBoxSQLResultConverter(PropertySet<?> propertySet, Map<String, Property<?>> selectionProperties,
 			Map<String, TypedExpression<?>> selectionExpressions) {
