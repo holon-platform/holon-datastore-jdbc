@@ -73,7 +73,6 @@ public class TestDataBean {
 	@DataPath("tms2")
 	private LocalDateTime localDateTimeValue;
 
-	@DataPath("tm")
 	private LocalTime localTimeValue;
 
 	public TestDataBean() {
@@ -179,6 +178,7 @@ public class TestDataBean {
 		this.localDateTimeValue = localDateTimeValue;
 	}
 
+	@DataPath("tm")
 	public LocalTime getLocalTimeValue() {
 		return localTimeValue;
 	}
