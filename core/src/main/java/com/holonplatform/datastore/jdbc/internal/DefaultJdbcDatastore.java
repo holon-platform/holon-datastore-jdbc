@@ -39,8 +39,8 @@ import com.holonplatform.core.internal.datastore.AbstractDatastore;
 import com.holonplatform.core.internal.utils.ClassUtils;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.composer.ConnectionOperation;
 import com.holonplatform.datastore.jdbc.composer.ConnectionHandler;
+import com.holonplatform.datastore.jdbc.composer.ConnectionOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer;
@@ -64,6 +64,7 @@ import com.holonplatform.datastore.jdbc.internal.operations.JdbcSave;
 import com.holonplatform.datastore.jdbc.internal.operations.JdbcUpdate;
 import com.holonplatform.datastore.jdbc.internal.resolvers.OperationIdentifierResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PrimaryKeyResolver;
+import com.holonplatform.datastore.jdbc.internal.support.JdbcOperationUtils;
 import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransaction;
 import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransactionProvider;
 import com.holonplatform.jdbc.DataSourceBuilder;
@@ -673,7 +674,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 					&& getDialect().supportsGetGeneratedKeys()) {
 				pkNames = new String[primaryKey.getPaths().length];
 				for (int i = 0; i < primaryKey.getPaths().length; i++) {
-					pkNames[i] = getDialect().getColumnName(primaryKey.getPaths()[i].getName());
+					pkNames[i] = getDialect().getColumnName(JdbcOperationUtils.getPathName(primaryKey.getPaths()[i]));
 				}
 
 				if (getDialect().supportGetGeneratedKeyByName()) {

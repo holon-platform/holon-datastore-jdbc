@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.DataMappable;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.ObjectUtils;
@@ -39,6 +40,16 @@ public final class JdbcOperationUtils implements Serializable {
 	private static final long serialVersionUID = -6098697007380654478L;
 
 	private JdbcOperationUtils() {
+	}
+
+	/**
+	 * Get the path name, using the data model name through {@link DataMappable#getDataPath()} if path is
+	 * {@link DataMappable} and the data path name is available or returning the path name if not.
+	 * @param path The path for which to obtain the name
+	 * @return The path name
+	 */
+	public static String getPathName(Path<?> path) {
+		return DataMappable.isDataMappable(path).flatMap(dm -> dm.getDataPath()).orElse(path.getName());
 	}
 
 	/**

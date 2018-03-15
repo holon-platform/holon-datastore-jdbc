@@ -35,19 +35,9 @@ public class DataPathAwarePathMatcher implements PathMatcher {
 	@Override
 	public boolean match(Path<?> path, Path<?> otherPath) {
 		if (path != null && otherPath != null) {
-			return getPathName(path).equals(getPathName(otherPath));
+			return JdbcOperationUtils.getPathName(path).equals(JdbcOperationUtils.getPathName(otherPath));
 		}
 		return false;
-	}
-
-	/**
-	 * Get the path data model name, using {@link DataMappable#getDataPath()} if path is {@link DataMappable} or
-	 * returning the path name if not.
-	 * @param path The path for which to obtain the data path name
-	 * @return The data path name
-	 */
-	private static String getPathName(Path<?> path) {
-		return DataMappable.isDataMappable(path).flatMap(dm -> dm.getDataPath()).orElse(path.getName());
 	}
 
 }
