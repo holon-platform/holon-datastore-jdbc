@@ -34,7 +34,7 @@ import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.spring.internal.JdbcDatastoreRegistrar;
 import com.holonplatform.jdbc.DatabasePlatform;
-import com.holonplatform.spring.internal.PrimaryMode;
+import com.holonplatform.spring.PrimaryMode;
 
 /**
  * Annotation to be used on Spring Configuration classes to setup a JDBC {@link Datastore}.

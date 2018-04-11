@@ -42,10 +42,10 @@ import com.holonplatform.jdbc.DatabasePlatform;
 import com.holonplatform.jdbc.spring.EnableDataSource;
 import com.holonplatform.jdbc.spring.SpringJdbcConnectionHandler;
 import com.holonplatform.spring.EnvironmentConfigPropertyProvider;
+import com.holonplatform.spring.PrimaryMode;
 import com.holonplatform.spring.internal.AbstractConfigPropertyRegistrar;
 import com.holonplatform.spring.internal.BeanRegistryUtils;
 import com.holonplatform.spring.internal.GenericDataContextBoundBeanDefinition;
-import com.holonplatform.spring.internal.PrimaryMode;
 
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.TypeCache;

@@ -29,7 +29,7 @@ import com.holonplatform.core.internal.config.DefaultConfigPropertySet;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.jdbc.DatabasePlatform;
-import com.holonplatform.spring.internal.PrimaryMode;
+import com.holonplatform.spring.PrimaryMode;
 
 /**
  * A {@link ConfigPropertySet} for JDBC Datastore configuration, using {@link #DEFAULT_NAME} as property prefix.
