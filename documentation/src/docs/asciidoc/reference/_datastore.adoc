@@ -1,6 +1,7 @@
-== Datastore
+[[JDBCDatastore]]
+== JDBC Datastore
 
-The `holon-datastore-jdbc` artifact is the main entry point to use the JDBC Datastore.
+The `holon-datastore-jdbc` artifact is the main entry point to use the JDBC `Datastore` API implementation.
 
 _Maven coordinates_:
 [source, xml, subs="attributes+"]
@@ -10,45 +11,309 @@ _Maven coordinates_:
 <version>{revnumber}</version>
 ----
 
-The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.html[JdbcDatastore^] interface represents the *JDBC Datastore*, which extends the core *Datastore* interface.
+The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.html[JdbcDatastore^] interface represents the *JDBC Datastore* API implementation, extending the core `Datastore` API.
 
-The `withConnection` method can be used to execute a JDBC operation using a Datastore managed `java.sql.Connection`, providing the operation execution code through the `ConnectionOperation` functional interface. The connection finalization operations are executed by the JDBC Datastore after the execution of the provided operation.
+The `JdbcDatastore` API, besides the standard `Datastore` API operations, provides methods to:
 
-[source, java]
-----
-include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=connection,indent=0]
-----
+* Create and configure a `JdbcDatastore` API instance, using the provided _builder.
+* Directly working with `JdbcDatastore` managed _connections_, represented by the standard JDBC connection interface (`java.sql.Connection`).
 
-IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core *Datastore* interface should be used as a reference for persistence operations, instead of the specific *JdbcDatastore* interface. This way, the concrete Datastore implementation may be replaced by a different one at any time, without any change to rest of the code.
+IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core `Datastore` API interface should be used instead of the specific `JdbcDatastore` API by your application code. This way, the concrete `Datastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
 
-=== Setup
+[[JDBCDatastoreSetup]]
+=== Setup and configuration
 
-The JDBC Datastore supports default Datastore configuration properties:
+To create a *JDBC Datastore* instance, the `builder()` static method of the `JdbcDatastore` API can be used to obtain the JDBC Datastore _builder_ API. 
 
-* `holon.datastore.trace`: To enable/disable Datastore operations tracing 
-* `holon.datastore.dialect`: To configure the JDBC dialect class to use (providing the fully qualified class name). See <<Dialects>> for the available default JDBC dialects.
-
-To create a *JdbcDatastore* instance, the `builder()` static method of the interface can be used.
+The JDBC Datastore builder provides a `JdbcDatastore` instance:
 
 [source, java]
 ----
-include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup,indent=0]
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=builder1,indent=0]
 ----
-<1> Set an explicit `DataSource` instance to use
-<2> Set the database platform: if no dialect is explicitly provided, the Datastore will try to auto-detect the dialect to use relying on the database platform type
-<3> Provide a `DataSourceConfigProperties` structure using the `jdbc.properties` file, to build and configure a DataSource according to the available properties. See link:holon-core.html#jdbc-datasource-configuration[JDBC DataSource]
-<4> Set a custom dialect
-<5> Build a Datastore bound to a _data context id_, which will be used to distinguish different data sources
-<6> Build a `DataSource` using given _data context id_ and associate it to the Datastore. In this case, the configuration properties are expected to be expressed with the _data context id_ as prefix, for example `holon.datasource.*db1*.url=...`
+<1> Obtain the JDBC Datastore builder to configure and create a new JDBC Datastore instance
 
-=== Data targets and paths
+But, as stated in the previous section, to reach the goal of a *complete abstraction* from the persistence store technology and the persistence model, the core `Datastore` API interface should be used by your application code, instead of the specific `JdbcDatastore` API.
 
-The JDBC Datastore relies on the following conventions regarding *DataTarget*s and *Path*s:
+So you can simply obtain the JDBC Datastore implementation as a core `Datastore` API implementation:
 
-* The *DataTarget* _name_ is interpreted as the database _table_ (or _view_) name
-* The *Path* _name_ is interpreted as a table _column_ name
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=builder2,indent=0]
+----
+<1> Obtain the JDBC Datastore builder to configure and create a new JDBC Datastore instance and expose it as core `Datastore` API type 
 
-TIP: See the core link:holon-core.html#Datastore[Datastore] documentation for more informations about *DataTarget*s and *Path*s, and about the use of extension hooks such as *DataTargetResolver* for target names resolution.
+==== Common Datastore configuration options
+
+The JDBC Datastore builder API extends the core `Datastore` builder API, which provides common Datastore configuration settings as listed below.
+
+|===
+|Builder method |Arguments |Description
+
+|`dataContextId`
+|The _data context id_ `String` value
+|Set the _data context id_ to which the Datastore is bound. Can be used, for example, to declare configuration properties for multiple Datastore instances. See the link:holon-core#DatastoreDataContextId[Multiple Datastores configuration^] documentation section.
+
+|`traceEnabled`
+|`true` or `false`
+|Whether to enable Datastore operations _tracing_. When enabled, the JDBC Datastore will log any SQL operation performed using the Datastore API.
+
+|`configuration`
+|A `DatastoreConfigProperties` instance
+|Set the `DatastoreConfigProperties` type configuration property set instance to use in order to read the Datastore configuration properties. See the link:holon-core#DatastoreConfiguration[Datastore configuration^] documentation section for details. This configuration properties can be used as an alternative for the programmatic configuration performed with the previous builder methods. 
+|===
+
+Example of base JDBC Datastore configuration:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup1,indent=0]
+----
+<1> Set a _data context id_ for the Datastore
+<2> Activate operations _tracing_ in log
+
+The configuration properties can also be provided through an external configuration property source, using the properties provided by the link:{coreapidir}/com/holonplatform/core/datastore/DatastoreConfigProperties.html[DatastoreConfigProperties^] property set.
+
+For example, supposing to have a properties file named `datastore.properties` like this:
+
+[source, text]
+----
+holon.datastore.trace=true
+----
+
+We can use it as configuration property source to enable the Datastore _tracing_ mode:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup2,indent=0]
+----
+<1> Use the `datastore.properties` file as configuration property source
+
+==== `DataSource` configuration
+
+The JDBC Datastore implementation relies on the `javax.sql.DataSource` API to access the concrete data store using JDBC, and the `DataSource` instance to be used must be provided at JDBC Datastore configuration time.
+
+The `DataSource` reference is the only *required* JDBC Datastore configuration attribute and can be provided in two ways:
+
+*1. Direct:*
+
+The concrete `DataSource` implementation can be provided using the JDBC Datastore builder, through the `dataSource(DataSource dataSource)` method.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup3,indent=0]
+----
+<1> Set the `DataSource` instance to use
+
+*2. Indirect:*
+
+A `DataSource` instance can be otained using the link:holon-jdbc.html[Holon Platform JDBC module] `DataSource` configuration facilities through a set of configuration properties, represented by the link:{jdbcapidir}/com/holonplatform/jdbc/DataSourceConfigProperties.html[DataSourceConfigProperties^] property set.
+
+NOTE: See the link:holon-jdbc.html#DataSourceConfigProperties[JDBC module DataSource configuration properties^] documentation to learn about the available `DataSource` configuration properties.
+
+A `DataSourceConfigProperties` instance can be loaded using the link:holon-core.html#ConfigProperty[configuration property providers^] API and provided to the JDBC Datastore builder.
+
+For example, supposing to have a properties file named `datasource.properties` like this:
+
+[source, text]
+----
+holon.datasource.url=jdbc:h2:mem:test
+holon.datasource.username=sa
+----
+
+The JDBC Datastore instance can be created in the following way:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup4,indent=0]
+----
+<1> A `DataSource` instance will be created and configured for the JDBC Datastore using the DataSource configuration properties loaded from the `datasource.properties` file
+
+TIP: See the link:holon-jdbc.html#DataSourceConfiguration[DataSource configuration^] documentation section of the Holon Platform JDBC module for detailed information about the `DataSource` creation and configuration APIs and strategies.
+
+==== Database platform configuration
+
+For some internal operations, the JDBC Datastore needs to know the concrete _Database platform_ to which the `DataSource` instance is bound (for example _H2_, _MySQL_ and so on). The _Database platform_ is used, for example, to auto-detect the <<Dialect,SQL dialect>> to use if not directly specified at JDBC Datastore configuration time.
+
+The _Database platform_ can be explicitly specified either using:
+
+* The JDBC Datastore `database` builder method, using the link:{jdbcapidir}/com/holonplatform/jdbc/DatabasePlatform.html[DatabasePlatform^] enumeration.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup5,indent=0]
+----
+<1> Database platform specification
+
+* Or the `holon.datasource.platform` configuration property, if provided in the `DataSource` configuration property set when using the _indirect_ `DataSource` instance configuration, as described in the previous section.
+
+*Database platform auto detection:*
+
+When the _Database platform_ is not explicitly specified, the JDBC Datastore will try to *auto-detect* it, inspecting the JDBC connection URL of the provided `DataSource` instance.
+
+[[Dialect]]
+==== SQL Dialect configuration
+
+To ensure operations consistency and efficiency, the JDBC Datastore uses the link:{apidir}/com/holonplatform/jdbc/composer/SQLDialect.html[SQLDialect^] API abstraction in order to resolve each database platform specificity and SQL language difference.
+
+Normally, the `SQLDialect` implementation to use is *auto-detected* by the JDBC Datastore, relying on the  _Database platform_ to which the `DataSource` instance is bound, as described in the previous section.
+
+The `SQLDialect` implementation to use can be also explicitly configured using the JDBC Datastore builder. This can be done in two ways:
+
+*1. `SQLDialect` configuration using the JDBC Datastore builder:*
+
+The SQL dialect to use can be directly configured using the JDBC Datastore builder, using the `dialect(SQLDialect dialect)` or the `dialect(String dialectClassName)` method.
+
+The `SQLDialect` API provides a static methods to obtain the `SQLDialect` for a specific database platform or to directly obtain a specific dialect implementation within the available ones. 
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup6,indent=0]
+----
+<1> Configure the dialect using a specific dialect implementation
+<2> Configure the dialect using the dialect class name
+
+*1. `SQLDialect` configuration using a configuration property:*
+
+The SQL dialect to use can be also configured using the default `holon.datastore.dialect` Datastore configuration property, available from the link:{coreapidir}/com/holonplatform/core/datastore/DatastoreConfigProperties.html[DatastoreConfigProperties^] property set.
+
+The *fully qualified dialect class name* must be provided as property value.
+
+For example, supposing to have a properties file named `datastore.properties` like this:
+
+[source, text]
+----
+holon.datastore.dialect=com.holonplatform.datastore.jdbc.composer.dialect.H2Dialect
+holon.datastore.trace=true
+----
+
+We can use it as configuration property source to configure the JDBC Datastore dialect:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup7,indent=0]
+----
+<1> Use the `datastore.properties` file as configuration property source
+
+[[IdentifierResolutionStrategy]]
+==== Identifier resolution strategy
+
+For some of its internal operations, the JDBC Datastore needs to know the actual table *primary key* to ensure consistency, for example for the `save` Datastore API operation, which performs an _insert_ type operation if a row is not present or an _update_ type operation otherwise.
+
+Any standard `Datastore` API operation relies on the Holon Platform property model to represent the data model, using the `PropertyBox` API to receive and provide the data model attributes values. 
+
+To ensure consistency for operations which have to _identify_ a `PropertyBox` instance against the concrete data model (in the JDBC world, the _row_ of a table), the JDBC Datastore needs to know which properties of the `PropertyBox` property set have to be considered as *identifier properties*, if any. This way, the identifier property values can be used to implement a consistent strategy to map the `PropertyBox` instances to the proper table _rows_.
+
+The JDBC Datastore *identifier resolution strategy* defines how this is accomplished, and it is represented by the link:{apidir}/com/holonplatform/datastore/jdbc/config/IdentifierResolutionStrategy.html[IdentifierResolutionStrategy^] enumeration.
+
+The available identifier resolution strategies are:
+
+|===
+|Strategy |Description
+
+|`IDENTIFIER_PROPERTIES`
+|Use the `PropertySet` *identifier properties* as `PropertyBox` identifier properties. See link:holon-core.html#IdentifierProperties[PropertySet identifier properties] for details.
+
+|`TABLE_PRIMARY_KEY`
+|Use the database table *primary key* to obtain the `PropertyBox` identifier properties.
+
+|`AUTO`
+|Use the `IDENTIFIER_PROPERTIES` strategy when the `PropertyBox` property set provides configured identifier properties, otherwise use the `TABLE_PRIMARY_KEY` strategy.
+|===
+
+The `AUTO` identifier resolution strategy is the *default* strategy adopted by the JDBC Datastore.
+
+To configure a specific identifier resolution strategy, the JDBC Datastore builder API can be used, through the `identifierResolutionStrategy` method.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup8,indent=0]
+----
+<1> Set the identifier resolution strategy to `TABLE_PRIMARY_KEY`
+
+==== JDBC connection handler
+
+The JDBC Datastore builder allows to configure the JDBC connection lifecycle through the link:{jdbcapidir}/com/holonplatform/jdbc/JdbcConnectionHandler.html[JdbcConnectionHandler^] API. 
+
+When a custom implementation is provided, the `getConnection` and `releaseConnection` methods of the `JdbcConnectionHandler` API will be use to obtain a JDBC connection and to release it, respectively.
+
+The default JDBC connection handler used by the JDBC Datastore simply uses the `getConnection()` method of the `DataSource` to obtain a connection and the `Connection.close()` method to release it.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=setup9,indent=0]
+----
+<1> Configure a custom `JdbcConnectionHandler` for the JDBC Datastore
+
+[[NamingConventions]]
+=== Data model attributes naming conventions
+
+The JDBC Datastore relies on the following conventions regarding the mappings between the Holon Platform _property model_ and the concrete JDBC data model (i.e. the RDMBS schema):
+
+* A *link:holon-core.html#DataTarget[DataTarget^] name* is mapped to a RDBMS *table (or view) name*.
+
+* A *`Path` name* (and so a link:holon-core.html#PathProperty[PathProperty^] path name) is mapped to a RDBMS table (or view) *column name*.
+
+NOTE: The `SQLDialect` in use could decide to apply some manipulation operations to the DataTarget or Path names in order to properly match the database schema elements names. For example, it could apply uppercase transformations if the undelying RDBMS only supports uppercase schema objects names.
+
+For example, given a _table_ definition as follows:
+
+[source, sql]
+----
+create table test (
+  code numeric(20) primary key, 
+  text varchar(100)
+)
+----
+
+The property model will be defined simply using the table and column names:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=naming1,indent=0]
+----
+<1> Map the `ID` property to the `code` path name (i.e. the table column name)
+<2> Map the `VALUE` property to the `text` path name (i.e. the table column name)
+<3> The `TEST` PropertySet is the `test` table schema representation. Furthermore, the `ID` property is configured as the property set identifier property
+<4> The `TARGET` DataTarget is defined using the `test` name, which corresponds to the database table name
+
+Now the `Datastore` API can be used to manage the `test` table data:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=naming2,indent=0]
+----
+<1> Create a JDBC `Datastore` API instance
+<2> Save a `test` table row (insert if not exists, update otherwise) with the given property values
+<3> Query the `test` table where the `ID` property value (i.e. the `code` table column value) is greater or equal to 1 and obtain the table rows as a Stream of `PropertyBox` values
+<4> Query the `test` table and obtain a list of the `VALUE` property values (i.e. the `text` table column value), ordering ascending by the `ID` property value
+<5> Execute a _bulk_ delete operation, removing all the rows with the `ID` property value (i.e. the `code` table column value) greater than 0
+
+[[DataPathMappings]]
+==== Data path mappings
+
+The JDBC Datastore fully supports the link:holon-core.html#DataMappable[DataMappable^] API, which can be used to provide a _mapping_ between a data related object path name and the actual path name to be used with the concrete data model schema.
+
+When the `getDataPath()` method of a `DataMappable` type object returns a non empty value, such value will be used as actual *data path*, i.e. as RDBMS schema object name, instead of the default path name with which the object was configured.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastore.java[tag=mapping,indent=0]
+----
+<1> In this case, the `str` table column name will be used instead of `propertyName` when the property is involved in persistence related JDBC Datastore operations
+
+This can be useful, for example, when an existing data model representation wants to used with a JDBC Datastore and the path property names do not match the actual RDBMS data model schema names.
+
+As an example, we suppose to have a JPA entity model definition that we want to use as property model definition with a JDBC Datastore implementation. 
+
+If we don't want to define a brand new property model, through a `PathProperty` set declaration, the link:holon-core.html#BeanIntrospector[Bean introspection^] API can be used to obtain a link:holon-core.html#BeanPropertySet[BeanPropertySet^] from the JPA entity definitions. But this way the `PathProperty` path names of the `BeanPropertySet` will be the _JPA entity Bean property names_, and it is not assured that they match the RDBMS schema objects names. In particular, if the `@Column(name="xxx")` is used on the Bean properties.
+
+The *data path* mapping can be used to provide the actual data attribute name for the properties of the bean property set, in this case using the `name` attribute of the JPA `@Column` annotation.
+
+We can use the link:holon-jpa.html[Holon Platform JPA module^] to automatically map the `name` attribute of the JPA `@Column` annotation in the corresponding *data path* value of the bean property set `PathProperty`. Just ensure that the `holon-jpa-bean-processors` artifact is present in classpath.
+
+At this point, the bean introspection API will use the provided link:holon-jpa.html#JPAPostProcessors[JPA bean post processors^] to automatically configure the data path mapping in the properties, and the JDBC Datastore API can be seamlessy used, without any additional configuration.
+
 
 [[Relational-expressions]]
 === Relational expressions

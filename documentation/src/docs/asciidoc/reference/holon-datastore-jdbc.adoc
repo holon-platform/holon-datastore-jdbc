@@ -1,23 +1,38 @@
-= Holon JDBC Datastore
+= Holon Platform JDBC Datastore Module - Reference manual
+:description: Holon platform JDBC Datastore module reference documentation. \
+The Holon JDBC Datastore is the Java DataBase Connectivity (JDBC) reference implementation of the Datastore API, using the SQL language for data access and management.
 :revnumber: {project-version}
 :apidir: ../api/holon-datastore-jdbc
+:coreapidir: ../api/holon-core
+:jdbcapidir: ../api/holon-jdbc
 :linkattrs:
 :sectnums:
 :nofooter:
 :toc: left
 :toclevels: 3
 
-Copyright © 2016-2017
+Copyright © 2016-2018
 
 _Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically._
 
 == Introduction
 
-The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:../../api/holon-core/com/holonplatform/core/datastore/Datastore.html[Datastore^] abstraction. 
+The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:../../api/holon-core/com/holonplatform/core/datastore/Datastore.html[Datastore^] API. 
 
-TIP: See the link:holon-core.html#Datastore[Datastore] documentation for further information about *Datastores*.
+TIP: See the link:holon-core.html#Datastore[Datastore] documentation for further information about the Datastore `API`.
 
-This Datastore uses the Java *DataSource* interface as a factory to obtain database connections and perform operations on the persistence store using the _SQL_ language through the JDBC API.
+The JDBC `Datastore` implementation uses the Java `javax.sql.DataSource` API to access the the physical data source and the _SQL_ language to perform data access and management operations.
+
+=== Sources and contributions
+
+The Holon Platform *JDBC Datastore* module source code is available from the GitHub repository link:https://github.com/holon-platform/holon-datastore-jdbc[https://github.com/holon-platform/holon-datastore-jdbc^].
+
+See the repository `README` file for information about:
+
+* The source code structure.
+* How to build the module artifacts from sources.
+* Where to find the code examples.
+* How to contribute to the module development.
 
 == Obtaining the artifacts
 
@@ -78,5 +93,5 @@ The Holon Platform JDBC Datastore module requires https://www.java.com[Java] *8*
 
 === JDBC Drivers
 
-To retrieve back database generated keys, the JDBC driver in use must be compliant to the *JDBC API version 3 or higher*.
+To retrieve back the database generated keys, the JDBC driver in use must be compliant to the *JDBC API version 3 or higher*.
 
