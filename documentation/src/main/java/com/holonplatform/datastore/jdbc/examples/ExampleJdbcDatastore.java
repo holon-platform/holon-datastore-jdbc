@@ -19,18 +19,26 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import javax.sql.DataSource;
 
+import com.holonplatform.core.Path;
 import com.holonplatform.core.Validator;
+import com.holonplatform.core.beans.BeanDataTarget;
 import com.holonplatform.core.beans.BeanPropertySet;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.core.property.NumericProperty;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
@@ -221,23 +229,40 @@ public class ExampleJdbcDatastore {
 		// end::mapping[]
 	}
 
+	@SuppressWarnings("hiding")
 	static
 	// tag::mapping2[]
-	class MyEntity {
+	@Entity @Table(name = "test") class MyEntity {
 
-		public static final BeanPropertySet<MyEntity> PROPERTIES = BeanPropertySet.create(MyEntity.class);
+		public static final BeanPropertySet<MyEntity> PROPERTIES = BeanPropertySet.create(MyEntity.class); // <1>
+
+		public static final DataTarget<MyEntity> TARGET = BeanDataTarget.of(MyEntity.class); // <2>
 
 		@Id
-		@Column(name = "CODE")
+		@Column(name = "code")
 		private Long id;
 
-		@Column(name = "VALUE")
-		private String name;
+		@Column(name = "text")
+		private String value;
 
 		// getters and setters omitted
 
 	}
 	// end::mapping2[]
+
+	public void mapping3() {
+		// tag::mapping3[]
+		Datastore datastore = JdbcDatastore.builder().dataSource(createOrObtainDatasource()).build(); // <1>
+
+		PropertyBox value = PropertyBox.builder(MyEntity.PROPERTIES) //
+				.set(MyEntity.PROPERTIES.property("id"), 1L) //
+				.set(MyEntity.PROPERTIES.property("value"), "One").build();
+		datastore.save(MyEntity.TARGET, value); // <2>
+
+		Stream<PropertyBox> results = datastore.query().target(MyEntity.TARGET)
+				.filter(MyEntity.PROPERTIES.property("id").goe(1L)).stream(MyEntity.PROPERTIES); // <3>
+		// end::mapping3[]
+	}
 
 	public void connection() {
 		// tag::connection[]
@@ -252,31 +277,79 @@ public class ExampleJdbcDatastore {
 		// end::connection[]
 	}
 
-	public void ids() {
-		// tag::ids[]
+	public void ids1() {
+		// tag::ids1[]
+		Datastore datastore = getDatastore(); // build or obtain a JDBC Datastore
+
+		PropertyBox value = buildPropertyBoxValue();
+
+		OperationResult result = datastore.insert(DataTarget.named("test"), value); // <1>
+
+		Map<Path<?>, Object> keys = result.getInsertedKeys(); // <2>
+		Optional<Long> keyValue = result.getInsertedKey(ID); // <3>
+		keyValue = result.getFirstInsertedKey(Long.class); // <4>
+		// end::ids1[]
+	}
+
+	public static PropertyBox buildPropertyBoxValue() {
+		return null;
+	}
+
+	public void ids2() {
+		// tag::ids2[]
 		final PathProperty<Long> KEY = PathProperty.create("key", Long.class); // <1>
 		final PathProperty<String> TEXT = PathProperty.create("text", String.class);
 
-		Datastore datastore = getDatastore(); // build or obtain a Datastore
+		Datastore datastore = getDatastore(); // build or obtain a JDBC Datastore
 
 		PropertyBox value = PropertyBox.builder(KEY, TEXT).set(TEXT, "test").build(); // <2>
 
 		datastore.insert(DataTarget.named("tableName"), value, DefaultWriteOption.BRING_BACK_GENERATED_IDS); // <3>
 
 		Long keyValue = value.getValue(KEY); // <4>
-		// end::ids[]
+		// end::ids2[]
 	}
 
-	public void where() {
-		// tag::where[]
-		QueryFilter filter = WhereFilter.create("name=? and id=?", "TestName", 1); // <1>
-		// end::where[]
+	public void where1() {
+		// tag::where1[]
+		QueryFilter whereFilter = WhereFilter.create("name='John'"); // <1>
+
+		Stream<Long> results = getDatastore().query().target(TARGET).filter(whereFilter).stream(ID); // <2>
+		// end::where1[]
+	}
+
+	public void where2() {
+		// tag::where2[]
+		QueryFilter whereFilter = WhereFilter.create("name=?", "John"); // <1>
+		// end::where2[]
 	}
 
 	public void orderby() {
 		// tag::orderby[]
-		QuerySort sort = OrderBySort.create("id asc, name desc"); // <1>
+		QuerySort orderBySort = OrderBySort.create("id asc, name desc"); // <1>
+
+		Stream<Long> results = getDatastore().query().target(TARGET).sort(orderBySort).stream(ID); // <2>
 		// end::orderby[]
+	}
+
+	public void transactional() {
+		// tag::transactional[]
+		final Datastore datastore = getDatastore(); // build or obtain a JDBC Datastore
+
+		datastore.requireTransactional().withTransaction(tx -> { // <1>
+			PropertyBox value = buildPropertyBoxValue();
+			datastore.save(TARGET, value);
+
+			tx.commit(); // <2>
+		});
+
+		OperationResult result = datastore.requireTransactional().withTransaction(tx -> { // <3>
+
+			PropertyBox value = buildPropertyBoxValue();
+			return datastore.save(TARGET, value);
+
+		}, TransactionConfiguration.withAutoCommit()); // <4>
+		// end::transactional[]
 	}
 
 	private static DataSource createOrObtainDatasource() {
@@ -288,13 +361,11 @@ public class ExampleJdbcDatastore {
 		return null;
 	}
 
-	@SuppressWarnings("static-method")
-	private Datastore getDatastore() {
+	private static Datastore getDatastore() {
 		return null;
 	}
 
-	@SuppressWarnings("static-method")
-	private JdbcDatastore getJdbcDatastore() {
+	private static JdbcDatastore getJdbcDatastore() {
 		return null;
 	}
 
