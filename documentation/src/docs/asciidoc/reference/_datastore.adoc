@@ -439,6 +439,8 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 
 The JDBC `Datastore` API supports custom *SQL* filters and sorts expressions, i.e. `QueryFilter` and `QuerySort` type expressions for which the *SQL statement* that represents the `WHERE` and `ORDER BY` conditions is directly provided.
 
+IMPORTANT: Since this kind of expressions accept SQL statements without performing any validation or parsing, you must pay maximum attention using them, since this way the code can be exposed to security concerns such as *SQL injection type attacks*.
+
 ==== WhereFilter
 
 The link:{apidir}/com/holonplatform/datastore/jdbc/WhereFilter.html[WhereFilter^] interface is a `QueryFilter` representing a portion of the SQL `WHERE` clause expression.

@@ -34,6 +34,10 @@ See the repository `README` file for information about:
 * Where to find the code examples.
 * How to contribute to the module development.
 
+== Security related considerations
+
+The SQL composition engine of JDBC Datastore API is designed to *avoid and prevent SQL injection type attacks*, since a meta-language is used for the Datastore operations definition a any provided _parameter_ value is managed using JDBC `PreparedStatement` statements types.
+
 == Obtaining the artifacts
 
 The Holon Platform uses https://maven.apache.org[Maven^] for projects build and configuration. All the platform artifacts are published in the *Maven Central Repository*, so there is no need to explicitly declare additional repositories in your project `pom` file.
