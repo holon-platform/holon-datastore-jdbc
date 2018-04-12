@@ -263,4 +263,102 @@ public interface SQLDialect extends Serializable {
 		return Optional.empty();
 	}
 
+	// -------
+
+	/**
+	 * Get the {@link SQLDialect} for the H2 database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect h2() {
+		return new H2Dialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the Derby database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect derby() {
+		return new DerbyDialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the HSQLDB database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect hsqldb() {
+		return new HSQLDialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the MySQL database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect mySQL() {
+		return new MySQLDialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the MariaDB database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect mariaDB() {
+		return new MariaDBDialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the PostgreSQL database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect postgreSQL() {
+		return new PostgreSQLDialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the Oracle database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect oracle() {
+		return new OracleDialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the SQL Server database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect sqlServer() {
+		return new SQLServerDialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the DB2 database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect db2() {
+		return new DB2Dialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the Informix database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect informix() {
+		return new InformixDialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the SAP HANA database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect HANA() {
+		return new HANADialect();
+	}
+
+	/**
+	 * Get the {@link SQLDialect} for the SQLite database platform.
+	 * @return The dialect implementation
+	 */
+	static SQLDialect sqlite() {
+		return new SQLiteDialect();
+	}
+
 }
