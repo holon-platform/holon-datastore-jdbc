@@ -18,7 +18,7 @@ package com.holonplatform.datastore.jdbc.composer;
 /**
  * JDBC connection handler.
  * <p>
- * The concrete handler should manage connection lifecycle, including connection retrieving and releasing. 
+ * The concrete handler should manage connection lifecycle, including connection retrieving and releasing.
  * </p>
  *
  * @since 5.1.0
@@ -32,5 +32,16 @@ public interface ConnectionHandler {
 	 * @return Operation result
 	 */
 	<R> R withConnection(ConnectionOperation<R> operation);
-	
+
+	/**
+	 * Execute given {@link ConnectionRunnable} operation using a managed connection.
+	 * @param operation Operation to execute (not null)
+	 */
+	default void withConnection(ConnectionRunnable operation) {
+		withConnection(connection -> {
+			operation.execute(connection);
+			return null;
+		});
+	}
+
 }

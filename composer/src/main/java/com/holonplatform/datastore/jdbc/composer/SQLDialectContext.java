@@ -61,8 +61,9 @@ public interface SQLDialectContext extends ExpressionResolverSupport {
 		if (metadata.isPresent()) {
 			return metadata;
 		}
-		return getConnectionProvider()
-				.map(connectionProvider -> connectionProvider.withConnection(c -> c.getMetaData()));
+		return getConnectionProvider().map(connectionProvider -> connectionProvider.withConnection(c -> {
+			return c.getMetaData();
+		}));
 	}
 
 }

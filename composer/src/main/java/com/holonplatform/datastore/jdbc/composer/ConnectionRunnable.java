@@ -18,25 +18,27 @@ package com.holonplatform.datastore.jdbc.composer;
 import java.sql.Connection;
 
 /**
- * Represents an operation to be executed using a Datastore managed {@link Connection}.
- * 
- * @param <R> Operation result type
+ * Represents an operation to be executed using a Datastore managed JDBC {@link Connection}.
+ * <p>
+ * Differently from {@link ConnectionOperation}, the operation execution does not return any result.
+ * </p>
  * 
  * @since 5.1.0
+ * 
+ * @see ConnectionOperation
  */
 @FunctionalInterface
-public interface ConnectionOperation<R> {
+public interface ConnectionRunnable {
 
 	/**
-	 * Execute an operation using a managed JDBC {@link Connection} and returns a result.
+	 * Execute an operation using a managed JDBC {@link Connection}.
 	 * <p>
-	 * The {@link Connection} lifecycle should be managed by the connection provider, so the connection
-	 * should not be closed from whithin the connection operation method.
+	 * The {@link Connection} lifecycle should be managed by the connection provider, so the connection should not be
+	 * closed from whithin the connection operation method.
 	 * </p>
 	 * @param connection The JDBC Connection
-	 * @return Operation result
 	 * @throws Exception If an error occurred
 	 */
-	R execute(Connection connection) throws Exception;
+	void execute(Connection connection) throws Exception;
 
 }
