@@ -77,6 +77,40 @@ The Holon Platform provides an *overall Maven BOM (Bill of Materials)* to easily
 
 See link:index.html#obtain-the-platform-artifacts[Obtain the platform artifacts] for details.
 
+[[WhatsNew51x]]
+== What's new in version 5.1.x
+
+* Support of the the `PropertySet` *identifier properties* to detect the persistent entities primary keys avoiding additional database accesses. See <<IdentifierResolutionStrategy>>.
+
+* Full support for date and time *functions* and for `java.time.*` temporal types. See link:holon-core.html#TemporalFunctions[Datastore API temporal functions support^].
+
+* Technology-independent *transactions* support through the `Transactional` API. See <<Transactions>>.
+
+* Complete and deep revision and rewriting of the internal *SQL composer engine*, which is now separated as an independent artifact (`holon-datastore-jdbc-composer`). This ensures more consistent operation resolution strategies, remarkable performance improvements and extensibility by design. See <<JDBCDatastoreExtension>>.
+
+* Improved support for industry-standard vendors RDBMS, such as Oracle Database, Microsoft SQLServer, IBM DB2 and SAP HANA.
+
+[[MigratingFrom50x]]
+=== Migrating from version 5.0.x
+
+==== Deprecations
+
+* *JdbcDatastore Builder API*: link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.Builder.html#autoCommit-boolean-[autoCommit^]. The default auto-commit mode setup for JDBC connections is deprecated in favor of the new _transactional_ API support. Transactional operations should be used to manage connections auto-commit. See <<Transactions>>.
+
+==== Dialects
+
+Because of the complete and deep revision and rewriting of the internal SQL composer engine, the package structure and class name is deeply changed. This not affects the public API in any way, only the concrete _sql dialect_ implementations were relocated and the dialect class name is changed from `JdbcDialect` to `SQLDialect`.
+
+The new dialect implementations can be found in the `holon-datastore-jdbc-composer` artifact, under the `com.holonplatform.datastore.jdbc.composer.dialect` package.
+
+So if a dialect fully qualified class name was used to specify the JDBC Datastore dialect, it has to be replaced with the new `SQLDialect` implementation class.
+
+==== SQL filter and sort
+
+The `com.holonplatform.datastore.jdbc.JdbcWhereFilter` and `com.holonplatform.datastore.jdbc.JdbcOrderBySort`, which allow custom `QueryFilter` and `QuerySort` declarations directly providing the SQL `WHERE` and `ORDER BY` parts, are replaced with the link:{apidir}/com/holonplatform/datastore/jdbc/WhereFilter.html[WhereFilter^] and link:{apidir}/com/holonplatform/datastore/jdbc/OrderBySort.html[OrderBySort^] classes, located in the `holon-datastore-jdbc-composer` artifact.
+
+The classes semantic and API is the same as before. See <<CustomSQLFilterSort>>.
+
 // Inclusions
 
 include::_datastore.adoc[]
