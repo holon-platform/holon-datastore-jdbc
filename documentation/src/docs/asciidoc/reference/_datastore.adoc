@@ -131,6 +131,7 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 
 TIP: See the link:holon-jdbc.html#DataSourceConfiguration[DataSource configuration^] documentation section of the Holon Platform JDBC module for detailed information about the `DataSource` creation and configuration APIs and strategies.
 
+[[DatabasePlatform]]
 ==== Database platform configuration
 
 For some internal operations, the JDBC Datastore needs to know the concrete _Database platform_ to which the `DataSource` instance is bound (for example _H2_, _MySQL_ and so on). The _Database platform_ is used, for example, to auto-detect the <<Dialect,SQL dialect>> to use if not directly specified at JDBC Datastore configuration time.

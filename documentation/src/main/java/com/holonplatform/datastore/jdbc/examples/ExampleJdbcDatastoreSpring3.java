@@ -18,29 +18,54 @@ package com.holonplatform.datastore.jdbc.examples;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
-import com.holonplatform.jdbc.spring.EnableDataSource;
 
-public class ExampleJdbcDatastoreSpring4 {
+public class ExampleJdbcDatastoreSpring3 {
 
+	static
 	// tag::config[]
-	@EnableDataSource // <1>
-	@EnableJdbcDatastore // <2>
-	@PropertySource("jdbc.properties") // <3>
-	@Configuration
-	class Config {
+	@Configuration class Config {
+
+		@Configuration
+		@EnableJdbcDatastore(dataContextId = "one") // <1>
+		static class Config1 {
+
+			@Bean(name = "dataSource_one")
+			public DataSource dataSource() {
+				return buildDataSource();
+			}
+
+		}
+
+		@Configuration
+		@EnableJdbcDatastore(dataContextId = "two") // <2>
+		static class Config2 {
+
+			@Bean(name = "dataSource_two")
+			public DataSource dataSource() {
+				return buildDataSource();
+			}
+
+		}
 
 	}
 
 	@Autowired
-	DataSource dataSource;
+	@Qualifier("one")
+	Datastore datastore1; // <3>
 
 	@Autowired
-	Datastore datastore;
+	@Qualifier("two")
+	Datastore datastore2;
 	// end::config[]
+
+	private static DataSource buildDataSource() {
+		return null;
+	}
 
 }

@@ -15,32 +15,21 @@
  */
 package com.holonplatform.datastore.jdbc.examples;
 
-import javax.sql.DataSource;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
-import com.holonplatform.jdbc.spring.EnableDataSource;
+import com.holonplatform.jdbc.DatabasePlatform;
 
-public class ExampleJdbcDatastoreSpring4 {
+public class ExampleJdbcDatastoreSpring6 {
 
 	// tag::config[]
-	@EnableDataSource // <1>
-	@EnableJdbcDatastore // <2>
-	@PropertySource("jdbc.properties") // <3>
+	@EnableJdbcDatastore(platform = DatabasePlatform.H2) // <1>
 	@Configuration
 	class Config {
 
+		// ...
+
 	}
-
-	@Autowired
-	DataSource dataSource;
-
-	@Autowired
-	Datastore datastore;
 	// end::config[]
 
 }
