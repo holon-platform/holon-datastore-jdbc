@@ -510,11 +510,18 @@ IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the 
 [[JDBCDatastoreExtension]]
 === Extending the JDBC Datastore API
 
+[[JDBCExpressionResolvers]]
 === Expression resolvers
 
-The JDBC Datastore supports `ExpressionResolver` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreExpressionResolver.html[JdbcDatastoreExpressionResolver^] base type and default _Java service extensions_.
+The `Datastore` API can be extended using the `ExpressionResolver` API, to add new expression resolution strategies, modify existing ones and to handle new `Expression` types.
 
-To automatically register an `ExpressionResolver` this way, a class implementing `JdbcDatastoreExpressionResolver` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver` and placed in the  `META-INF/services` folder in classpath.
+NOTE: See the link:holon-core.html#DatastoreExpressionResolverExtension[Datastore API extension] documentation section for details.
+
+==== JDBC Expression resolvers automatic registration
+
+The JDBC Datastore supports `ExpressionResolver` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreExpressionResolver.html[JdbcDatastoreExpressionResolver^] base type and the default _Java service extensions_ modality.
+
+To automatically register an `ExpressionResolver` this way, a class implementing `JdbcDatastoreExpressionResolver` has to be created and its fully qualified name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver`, placed in the `META-INF/services` folder in classpath.
 
 [[CommodityFactories]]
 === Commodity factories
