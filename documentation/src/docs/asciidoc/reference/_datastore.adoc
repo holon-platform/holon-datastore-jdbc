@@ -492,6 +492,21 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 <3> Obtain the `Transactional` API to execute the Datastore operation within a transaction and return a value
 <4> The transaction is configured with the _auto commit_ mode, this way the transaction is automatically committed at the transactional operation end if no error occurred
 
+=== `JdbcDatastore` API
+
+The specialized link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.html[JdbcDatastore^] API, which extends the standard `Datastore` API, makes available an additional methods through the link:{apidir}/com/holonplatform/datastore/jdbc/composer/ConnectionHandler.html[ConnectionHandler^] interface to *execute an operation using a Datastore managed JDBC connection*.
+
+The JDBC Datastore will take care of connection providing and finalization (i.e. connection closing operations).
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreApi.java[tag=connection,indent=0]
+----
+<1> Execute an operation using a JDBC Datastore managed connection
+<1> Execute an operation using a JDBC Datastore managed connection and return a `String` type result
+
+IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core `Datastore` API interface should be used instead of the specific `JdbcDatastore` API by your application code. This way, the concrete `Datastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
+
 [[JDBCDatastoreExtension]]
 === Extending the JDBC Datastore API
 
@@ -504,15 +519,45 @@ To automatically register an `ExpressionResolver` this way, a class implementing
 [[CommodityFactories]]
 === Commodity factories
 
-The JDBC Datastore supports `DatastoreCommodityFactory` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityFactory.html[JdbcDatastoreCommodityFactory^] base type and default _Java service extensions_.
+The JDBC `Datastore` API supports _Datastore commodities_ registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityFactory.html[JdbcDatastoreCommodityFactory^] type.
 
-To automatically register an `DatastoreCommodityFactory` this way, a class implementing `JdbcDatastoreCommodityFactory` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory` placed in the  `META-INF/services` folder in classpath.
+NOTE: See the link:holon-core.html#DatastoreCommodities[Datastore commodities definition and registration] documentation section to learn how the _Datastore commodity_ architecture can be used to provide extensions to the default `Datastore` API.
 
-The link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityContext.html[JdbcDatastoreCommodityContext^] interface represents the JDBC Datastore specific commodity context and it is provided at commodity creation time to factories.
+The `JdbcDatastoreCommodityFactory` type provides a specialized  link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityContext.html[JdbcDatastoreCommodityContext^] API as Datastore commodity context, to make available a set of JDBC `Datastore` specific configuration attributes and references, for example:
 
-The context extends the `JdbcDatastore` interface itself and provides the following additional resources:
+* The `DataSource` instance used by the JDBC `Datastore`.
+* The configured (or auto-detected) <<Dialect,SQL dialect>>.
+* The configured (or auto-detected) <<DatabasePlatform,database platform>>.
+* The configured <<IdentifierResolutionStrategy,identifier resolution strategy>>.
+* The available _expression resolvers_ 
+* A set of APIs and configuration methods available from the _SQL composer engine_.
 
-* The `DataSource` bound the JDBC Datastore;
-* The `DatabasePlatform` to which the DataSource is connected, if available;
-* The `JdbcDialect` used by the JDBC Datastore;
-* Whether the Datastore _trace_ mode is enabled.
+Furthermore, it makes available some API methods to invoke some JDBC Datastore operations, such as the `withConnection(ConnectionOperation<R> operation)` method to execute an operation using a Datastore managed JDBC connection or method to inspect and create other Datastore _commodities_.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=commodity,indent=0]
+----
+<1> Datastore commodity API
+<2> Commodity implementation
+<3> Commodity factory implementation
+
+A Datastore commodity factory class which extends the `JdbcDatastoreCommodityFactory` interface can be registered in a JDBC `Datastore` in two ways:
+
+*1. Direct registration using the JDBC `Datastore` API builder:*
+
+The JDBC `Datastore` API builder provides the 
+
+The JDBC `Datastore` API supports `DatastoreCommodityFactory` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityFactory.html[JdbcDatastoreCommodityFactory^] type using a _Java service extensions_ based registration method.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=factoryreg,indent=0]
+----
+<1> Register the `MyCommodityFactory` commodity factory in given JDBC `Datastore` implementation
+
+*2. Automatic registration using the  _Java service extensions_:*
+
+To automatically register an commodity factory using the standard _Java service extensions_ based method, a class implementing `JdbcDatastoreCommodityFactory` has to be created and its qualified full name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory`,  placed in the `META-INF/services` folder of the classpath.
+
+When this registration method is used, the commodity factories defined this way will be registered for *any JDBC `Datastore` API instance*.
