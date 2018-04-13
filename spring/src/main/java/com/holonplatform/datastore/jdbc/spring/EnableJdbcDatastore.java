@@ -84,7 +84,8 @@ public @interface EnableJdbcDatastore {
 	/**
 	 * Set the database platform using the {@link DatabasePlatform} enumeration.
 	 * <p>
-	 * If specified, can be used by the JDBC datastore to auto-dectect a suitable dialect.
+	 * If specified, can be used by the JDBC datastore to auto-dectect a suitable dialect. When not specified, it will
+	 * be auto-detected using the JDBC connection URL.
 	 * </p>
 	 * @return The database platform, or {@link DatabasePlatform#NONE} if not specified
 	 */

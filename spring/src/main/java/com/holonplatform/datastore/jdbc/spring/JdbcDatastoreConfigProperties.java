@@ -29,7 +29,6 @@ import com.holonplatform.core.internal.config.DefaultConfigPropertySet;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.jdbc.DatabasePlatform;
-import com.holonplatform.spring.PrimaryMode;
 
 /**
  * A {@link ConfigPropertySet} for JDBC Datastore configuration, using {@link #DEFAULT_NAME} as property prefix.
@@ -44,22 +43,22 @@ public interface JdbcDatastoreConfigProperties extends ConfigPropertySet, DataCo
 	static final String DEFAULT_NAME = "holon.datastore.jdbc";
 
 	/**
+	 * Whether to qualify the Datastore bean as <code>primary</code>, i.e. the preferential bean to be injected in a
+	 * single-valued dependency when multiple candidates are present.
+	 * <p>
+	 * By default, the registred Datastore bean is marked as primary only when the {@link DataSource} bean to which is
+	 * bound is registered as primary candidate bean.
+	 * </p>
+	 */
+	static final ConfigProperty<Boolean> PRIMARY = ConfigProperty.create("primary", Boolean.class);
+
+	/**
 	 * The database platform to use. Must be one of the names enumerated in {@link DatabasePlatform}.
 	 * <p>
 	 * Auto-detected by default.
 	 * </p>
 	 */
 	static final ConfigProperty<DatabasePlatform> PLATFORM = ConfigProperty.create("platform", DatabasePlatform.class);
-
-	/**
-	 * Whether to qualify the Datastore bean as <code>primary</code>, i.e. the preferential bean to be injected in a
-	 * single-valued dependency when multiple candidates are present.
-	 * <p>
-	 * When mode is {@link PrimaryMode#AUTO} (default mode), the registred Datastore bean is marked as primary only when
-	 * the {@link DataSource} bean to which is bound is registered as primary bean.
-	 * </p>
-	 */
-	static final ConfigProperty<PrimaryMode> PRIMARY_MODE = ConfigProperty.create("primary-mode", PrimaryMode.class);
 
 	/**
 	 * Whether to add {@link Transactional} behaviour to transactional Datastore methods, to automatically create or

@@ -114,10 +114,12 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 					EnableDataSource.DEFAULT_DATASOURCE_BEAN_NAME);
 		}
 
+		PrimaryMode primaryMode = BeanRegistryUtils.getAnnotationValue(attributes, "primary", PrimaryMode.AUTO);
+
 		// defaults
 		JdbcDatastoreConfigProperties defaultConfig = JdbcDatastoreConfigProperties.builder(dataContextId)
-				.withProperty(JdbcDatastoreConfigProperties.PRIMARY_MODE,
-						BeanRegistryUtils.getAnnotationValue(attributes, "primary", PrimaryMode.AUTO))
+				.withProperty(JdbcDatastoreConfigProperties.PRIMARY,
+						(primaryMode == PrimaryMode.TRUE) ? Boolean.TRUE : null)
 				.withProperty(JdbcDatastoreConfigProperties.PLATFORM,
 						BeanRegistryUtils.getAnnotationValue(attributes, "platform", DatabasePlatform.NONE))
 				.withProperty(JdbcDatastoreConfigProperties.TRANSACTIONAL,
@@ -155,10 +157,10 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 				.withPropertySource(EnvironmentConfigPropertyProvider.create(environment)).build();
 
 		// Configuration
-		PrimaryMode primaryMode = defaultConfig
-				.getConfigPropertyValueOrElse(JdbcDatastoreConfigProperties.PRIMARY_MODE,
-						() -> jdbcDatastoreConfig.getConfigPropertyValue(JdbcDatastoreConfigProperties.PRIMARY_MODE))
-				.orElse(PrimaryMode.AUTO);
+		boolean primary = defaultConfig
+				.getConfigPropertyValueOrElse(JdbcDatastoreConfigProperties.PRIMARY,
+						() -> jdbcDatastoreConfig.getConfigPropertyValue(JdbcDatastoreConfigProperties.PRIMARY))
+				.orElse(false);
 
 		DatabasePlatform platform = defaultConfig
 				.getConfigPropertyValueOrElse(JdbcDatastoreConfigProperties.PLATFORM,
@@ -177,8 +179,7 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 				.orElse(IdentifierResolutionStrategy.AUTO);
 
 		// check primary
-		boolean primary = PrimaryMode.TRUE == primaryMode;
-		if (!primary && PrimaryMode.AUTO == primaryMode) {
+		if (!primary) {
 			if (registry.containsBeanDefinition(datasourceBeanName)) {
 				BeanDefinition bd = registry.getBeanDefinition(datasourceBeanName);
 				primary = bd.isPrimary();
@@ -210,6 +211,10 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 		pvs.add("dataSource", new RuntimeBeanReference(datasourceBeanName));
 		pvs.add("identifierResolutionStrategy", identifierResolutionStrategy);
 		pvs.add("connectionHandler", SpringJdbcConnectionHandler.create());
+
+		if (dataContextId != null) {
+			pvs.add("dataContextId", dataContextId);
+		}
 
 		if (platform != null && platform != DatabasePlatform.NONE) {
 			pvs.add("database", platform);
