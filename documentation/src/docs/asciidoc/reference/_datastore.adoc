@@ -503,7 +503,7 @@ The JDBC Datastore will take care of connection providing and finalization (i.e.
 include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreApi.java[tag=connection,indent=0]
 ----
 <1> Execute an operation using a JDBC Datastore managed connection
-<1> Execute an operation using a JDBC Datastore managed connection and return a `String` type result
+<2> Execute an operation using a JDBC Datastore managed connection and return a `String` type result
 
 IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core `Datastore` API interface should be used instead of the specific `JdbcDatastore` API by your application code. This way, the concrete `Datastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
 
@@ -517,11 +517,145 @@ The `Datastore` API can be extended using the `ExpressionResolver` API, to add n
 
 NOTE: See the link:holon-core.html#DatastoreExpressionResolverExtension[Datastore API extension] documentation section for details.
 
-==== JDBC Expression resolvers automatic registration
+==== JDBC Expression resolvers registration
+
+A new `ExpressionResolver` can be registered in the JDBC `Datastore` API in two ways:
+
+*1. Using the JDBC `Datastore` API instance:*
+
+An `ExpressionResolver` can be registered either using the `Datastore` _builder_ API at Datastore configuration time:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=expreg1,indent=0]
+----
+<1> Register and new `ExpressionResolver`
+
+Or using the `Datastore` API itself, which extends the `ExpressionResolverSupport` API:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=expreg2,indent=0]
+----
+<1> Register and new `ExpressionResolver`
+
+*2. Automatic registration using _Java service extensions_:*
 
 The JDBC Datastore supports `ExpressionResolver` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreExpressionResolver.html[JdbcDatastoreExpressionResolver^] base type and the default _Java service extensions_ modality.
 
 To automatically register an `ExpressionResolver` this way, a class implementing `JdbcDatastoreExpressionResolver` has to be created and its fully qualified name must be specified in a file named `com.holonplatform.datastore.jdbc.config.JdbcDatastoreExpressionResolver`, placed in the `META-INF/services` folder in classpath.
+
+When this registration method is used, the expression resolvers defined this way will be registered for *any JDBC `Datastore` API instance*.
+
+==== Specific expression resolvers registration
+
+All the default `Datastore` API operation representations supports *operation specific* expression resolvers registration, through the `ExpressionResolverSupport` API.
+
+An `ExpressionResolver` registered for a specific `Datastore` API operation execution will be available only for the execution of that operation, and will be ignored by any other `Datastore` API operation.
+
+For example, to register an expression resolver only for a single `Query` execution, the `Query` builder API can be used:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=expreg3,indent=0]
+----
+<1> Register an expression resolver only for the specific `Query` operation definition
+
+==== Expression resolvers priority
+
+According to the standard convention, the `javax.annotation.Priority` annotation can be used on `ExpressionResolver` classes to indicate in what order the expression resolvers bound to the same _type resolution pair_ (i.e. the expression type handled by a resolver and the target expression type into which it will be resolved) must be applied.
+
+The less is the `javax.annotation.Priority` number assigned to a resolver, the higher will be it's priority order.
+
+All the default JDBC Datastore expression resolvers have the _minimum_ priority order, allowing to override their behavior and resolution strategies with custom expression resolvers with a higher assigned priority order (i.e. a priority number less then `Integer.MAX_VALUE`).
+
+==== Expression validation
+
+The internal JDBC Datastore _SQL composer engine_ will perform *validation* on any `Expression` instance to resolve and each corresponding resolved `Expression` instance, using the default expression `validate()` method.
+
+So the `validate()` method can be used to implement custom expression validation logic and throw an `InvalidExpressionException` when validation fails.
+
+==== JDBC Datastore expressions
+
+Besides the standard link:holon-core.html#DatastoreExpressionResolverExtension[Datastore API expressions], such as `DataTarget`, `QueryFilter` and `QuerySort`, which can be used to extend the `Datastore` API with new expression implementations and new resolution strategies, the JDBC `Datastore` API can be extended using a set of *specific SQL resolution expressions*, used by the internal _SQL composer engine_ to implement the resolution and composition strategy to obtain SQL statements from the `Datastore` API meta-language expressions.
+
+These SQL expression are available from the `com.holonplatform.datastore.jdbc.composer.expression` package of the `holon-datastore-jdbc-composer` artifact.
+
+The link:{apidir}/com/holonplatform/datastore/jdbc/composer/expression/SQLExpression.html[SQLExpression^] is the expression which represents an _SQL statement part_, used to compose the actual SQL statement which will be executed using the JDBC API. So this is the _final_ target expression used by the _SQL composer engine_ to obtain a SQL statement part from other, more abstract, expression types.
+
+The `SQLExpression` type can be used to directly resolve an abstract `Datastore` API expression into a SQL statement part.
+
+For example, supposing to have a `KeyIs` class which represents a `QueryFilter` expression type to represent the expression _"the `key` column name value is equal to a given Long type value"_:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=expres1,indent=0]
+----
+
+We want to create an `ExpressionResolver` class to resolve the `KeyIs` expression directly into a *SQL WHERE statemet part*, using the `SQLExpression` type. Using the convenience `create` method of the `ExpressionResolver` API, we can do it in the following way:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=expres2,indent=0]
+----
+<1> Expression type to resolve
+<2> Target expression type
+<3> Expression resolution logic: since we resolve the `KeyIs` expression directly into `SQLExpression` type, the SQL WHERE clause part is provide
+
+After the `ExpressionResolver` is registered in the `Datastore` API, the new `KeyIs` expression can be used in the `Datastore` API operations which support the `QueryFilter` expression type just like any other filter expression. For exmaple, in a `Query` expression:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=expres3,indent=0]
+----
+<1> Register the new expression resolver
+<2> Use the `KeyIs` expression in a query definition
+
+The _SQL composer engine_ will translate the given `KeyIs` expression in the SQL WHERE statement part `key = 1`, using the previously defined expression resolver.
+
+Other expression types are used to represent elements of a query or a Datastore operation, to be resolved into a _final_ `SQLExpression` type. These expression types often represent an _intermediate_ expression type, between the highest abstract layer (i.e. an expression of the `Datastore` API meta-language) and the final SQL statement part representation (i.e. the  `SQLExpression` type).
+
+Some examples are:
+
+* link:{apidir}/com/holonplatform/datastore/jdbc/composer/expression/SQLLiteral.html[SQLLiteral^] to represent a _literal_ value.
+* link:{apidir}/com/holonplatform/datastore/jdbc/composer/expression/SQLParameter.html[SQLParameter^] to represent a _parameter_ value.
+* link:{apidir}/com/holonplatform/datastore/jdbc/composer/expression/SQLFunction.html[SQLFunction^] to represent a _SQL function_.
+* link:{apidir}/com/holonplatform/datastore/jdbc/composer/expression/SQLProjection.html[SQLProjection^] to represent a _SQL SELECT_ projection.
+* link:{apidir}/com/holonplatform/datastore/jdbc/composer/expression/SQLStatement.html[SQLStatement^] to represent a full _SQL statement_ with parameters support.
+* link:{apidir}/com/holonplatform/datastore/jdbc/composer/expression/SQLQueryDefinition.html[SQLQueryDefinition^] and link:{apidir}/com/holonplatform/datastore/jdbc/composer/expression/SQLQuery.html[SQLQuery^] to represent the definition of a _SQL query_ and the query statement representation with the `SQLResultConverter` to use to covert the query results in the expected Java type.
+
+For example, let's see how the `SQLFunction` expression can be used as an _intermediate_ SQL expression type to define a new SQL _function_.
+
+We want to define a *IfNull* function, which returns a _fallback_ value expression when a given _expression_ is _null_, following the syntax of the link:https://dev.mysql.com/doc/refman/5.7/en/control-flow-functions.html#function_ifnull[MySQL IFNULL function^].
+
+We will use the `QueryFunction` expression type to represent the function, since it is the default _function_ expression representation of the `Datastore` API.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreFunction.java[tag=function1,indent=0]
+----
+<1> The _nullable_ expression representation
+<2> The _fallback_ expression representation to be returned when the first expression value is _null_ 
+<3> Convenience constructor to accept a _constant_ expression value as fallback expression
+<4> Validate the arguments
+<5> The two function _arguments_ will be the _nullable_ expression and the _fallback_ expression
+
+Now we create an expression resolver to resolve the `QueryFunction` expression into a *`SQLFunction` intermediate SQL expression type*:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreFunction.java[tag=function2,indent=0]
+----
+<1> Use the `SQLFunction` `create` method to provide the SQL function representation using the function arguments. The function arguments are already provided by the SQL composition engine as serialized SQL expression tokens, according to the actual arguments expression types
+
+Now the function can be registered in the `Datastore` API and used the same way as any other `QueryFunction` expression implementation.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreFunction.java[tag=function3,indent=0]
+----
+<1> Register the `IfNull` function expression resolver in Datastore
+<2> The `IfNull` function is used to provide a fallback `(fallback)` value in a query projection for the `STR` String property value
 
 [[CommodityFactories]]
 === Commodity factories
