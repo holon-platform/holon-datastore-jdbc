@@ -16,7 +16,7 @@ The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.html[JdbcDatast
 The `JdbcDatastore` API, besides the standard `Datastore` API operations, provides methods to:
 
 * Create and configure a `JdbcDatastore` API instance, using the provided _builder_.
-* Directly working with `JdbcDatastore` managed _connections_, represented by the standard JDBC connection interface (`java.sql.Connection`).
+* Directly working with `JdbcDatastore` managed _connections_, represented by the standard JDBC connection interface (`java.sql.Connection`). See <<JdbcDatastoreAPI>>.
 
 IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core `Datastore` API interface should be used instead of the specific `JdbcDatastore` API by your application code. This way, the concrete `Datastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
 
@@ -492,6 +492,7 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 <3> Obtain the `Transactional` API to execute the Datastore operation within a transaction and return a value
 <4> The transaction is configured with the _auto commit_ mode, this way the transaction is automatically committed at the transactional operation end if no error occurred
 
+[[JdbcDatastoreAPI]]
 === `JdbcDatastore` API
 
 The specialized link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.html[JdbcDatastore^] API, which extends the standard `Datastore` API, makes available an additional methods through the link:{apidir}/com/holonplatform/datastore/jdbc/composer/ConnectionHandler.html[ConnectionHandler^] interface to *execute an operation using a Datastore managed JDBC connection*.
