@@ -118,7 +118,7 @@ public class ExampleJdbcDatastoreExtension {
 		// end::expreg1[]
 
 		// tag::expreg2[]
-		datastore.addExpressionResolver(new MyExpressionResolver()); // <2>
+		datastore.addExpressionResolver(new MyExpressionResolver()); // <1>
 		// end::expreg2[]
 
 		// tag::expreg3[]
