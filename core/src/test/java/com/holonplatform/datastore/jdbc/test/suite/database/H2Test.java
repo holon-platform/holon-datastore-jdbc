@@ -23,6 +23,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import com.holonplatform.core.beans.DataPath;
@@ -37,6 +39,8 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunction;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionExpression;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionResolver;
+import com.holonplatform.datastore.jdbc.test.expression.MyEqualPredicate;
+import com.holonplatform.datastore.jdbc.test.expression.MyEqualPredicateResolver;
 import com.holonplatform.jdbc.DatabasePlatform;
 
 public class H2Test extends AbstractDatabaseSuiteTest {
@@ -140,6 +144,14 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 
 			});
 		});
+	}
+	
+	@Test
+	public void testExpressionContext() {
+		List<Long> res = getDatastore().query().withExpressionResolver(new MyEqualPredicateResolver()).target(NAMED_TARGET)
+				.filter(new MyEqualPredicate<>(STR, "Two")).list(KEY);
+		assertEquals(1, res.size());
+		assertEquals(Long.valueOf(2L), res.get(0));
 	}
 
 	public static final class Test2 {

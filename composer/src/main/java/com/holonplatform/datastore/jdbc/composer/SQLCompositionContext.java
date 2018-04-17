@@ -146,6 +146,19 @@ public interface SQLCompositionContext extends SQLContext, ResolutionContext, Ex
 		return new DefaultSQLCompositionContext(context);
 	}
 
+	/**
+	 * Checks if given {@link ResolutionContext} is a {@link SQLCompositionContext}.
+	 * @param context The context to check
+	 * @return if given context is a {@link SQLCompositionContext}, it is returned as a {@link SQLCompositionContext}
+	 *         type. Otherwise, an empty Optional is returned.
+	 */
+	static Optional<SQLCompositionContext> isSQLCompositionContext(ResolutionContext context) {
+		if (context instanceof SQLCompositionContext) {
+			return Optional.of((SQLCompositionContext) context);
+		}
+		return Optional.empty();
+	}
+
 	// Utils
 
 	/**
