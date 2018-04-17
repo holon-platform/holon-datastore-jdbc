@@ -657,6 +657,24 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 <1> Register the `IfNull` function expression resolver in Datastore
 <2> The `IfNull` function is used to provide a fallback `(fallback)` value in a query projection for the `STR` String property value
 
+==== JDBC Expression resolution context
+
+The JDBC `Datastore` API makes available an extension of the standard expression `ResolutionContext`, to provide a set of configuration attributes and SQL resolution context specific operations. This resolution context extension is represented by the link:{apidir}/com/holonplatform/datastore/jdbc/composer/SQLCompositionContext.html[SQLCompositionContext^] API.
+
+When used within the JDBC `Datastore` API, the `ResolutionContext` provided to the registered expresion resolvers is `SQLCompositionContext` for any JDBC `Datastore` API standard operation. To obtain a `SQLCompositionContext`, the `isSQLCompositionContext` method can be used.
+
+The link:{apidir}/com/holonplatform/datastore/jdbc/composer/SQLStatementCompositionContext.html[SQLStatementCompositionContext^] API is a further context extension which provides methods related to SQL _statements_ composition. It can be obtained from a `SQLCompositionContext` through the `isStatementCompositionContext()` method.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreExtension.java[tag=context1,indent=0]
+----
+<1> Let's suppose we are implementing an expression resolver resolution method
+<2> Check and obtain the current `ResolutionContext` as a `SQLCompositionContext`
+<3> As an example, the current `SQLDialect` is requested
+<4> If the context is a SQL _statement_ resolution context, it can be obtained as a `SQLStatementCompositionContext`
+<5> Add a _named_ parameter to the current SQL statement context
+
 [[CommodityFactories]]
 === Commodity factories
 

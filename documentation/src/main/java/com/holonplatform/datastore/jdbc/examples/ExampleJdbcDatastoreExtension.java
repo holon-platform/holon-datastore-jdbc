@@ -28,8 +28,10 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfi
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
+import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
+import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLToken;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory;
@@ -163,6 +165,37 @@ public class ExampleJdbcDatastoreExtension {
 
 		Query query = datastore.query().filter(new KeyIs(1L)); // <2>
 		// end::expres3[]
+	}
+
+	class SomeExpressionResolver implements ExpressionResolver<SQLExpression, SQLExpression> {
+
+		// tag::context1[]
+		@Override
+		public Optional<SQLExpression> resolve(SQLExpression expression, ResolutionContext context) // <1>
+				throws InvalidExpressionException {
+
+			SQLCompositionContext.isSQLCompositionContext(context).ifPresent(ctx -> { // <2>
+				SQLDialect dialect = ctx.getDialect(); // <3>
+
+				ctx.isStatementCompositionContext().ifPresent(sctx -> { // <4>
+					sctx.addNamedParameter(SQLParameter.create("test", String.class)); // <5>
+				});
+			});
+
+			return Optional.empty();
+		}
+		// end::context1[]
+
+		@Override
+		public Class<? extends SQLExpression> getExpressionType() {
+			return null;
+		}
+
+		@Override
+		public Class<? extends SQLExpression> getResolvedType() {
+			return null;
+		}
+
 	}
 
 }
