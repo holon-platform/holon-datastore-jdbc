@@ -692,7 +692,7 @@ The `JdbcDatastoreCommodityFactory` type provides a specialized  link:{apidir}/c
 * The available _expression resolvers_ 
 * A set of APIs and configuration methods available from the _SQL composer engine_.
 
-Furthermore, it makes available some API methods to invoke some JDBC Datastore operations, such as the `withConnection(ConnectionOperation<R> operation)` method to execute an operation using a Datastore managed JDBC connection or method to inspect and create other Datastore _commodities_.
+Furthermore, it makes available some API methods to invoke some JDBC Datastore operations, such as the `withConnection(ConnectionOperation<R> operation)` method to execute an operation using a Datastore managed JDBC connection or methods to inspect and create other Datastore _commodities_.
 
 [source, java]
 ----
@@ -705,8 +705,6 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 A Datastore commodity factory class which extends the `JdbcDatastoreCommodityFactory` interface can be registered in a JDBC `Datastore` in two ways:
 
 *1. Direct registration using the JDBC `Datastore` API builder:*
-
-The JDBC `Datastore` API builder provides the 
 
 The JDBC `Datastore` API supports `DatastoreCommodityFactory` automatic registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityFactory.html[JdbcDatastoreCommodityFactory^] type using a _Java service extensions_ based registration method.
 
