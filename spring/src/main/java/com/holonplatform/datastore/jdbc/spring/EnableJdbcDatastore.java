@@ -29,10 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.datastore.DataContextBound;
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.spring.internal.JdbcDatastoreRegistrar;
 import com.holonplatform.jdbc.DatabasePlatform;
-import com.holonplatform.spring.internal.PrimaryMode;
+import com.holonplatform.spring.PrimaryMode;
 
 /**
  * Annotation to be used on Spring Configuration classes to setup a JDBC {@link Datastore}.
@@ -82,7 +84,8 @@ public @interface EnableJdbcDatastore {
 	/**
 	 * Set the database platform using the {@link DatabasePlatform} enumeration.
 	 * <p>
-	 * If specified, can be used by the JDBC datastore to auto-dectect a suitable dialect.
+	 * If specified, can be used by the JDBC datastore to auto-dectect a suitable dialect. When not specified, it will
+	 * be auto-detected using the JDBC connection URL.
 	 * </p>
 	 * @return The database platform, or {@link DatabasePlatform#NONE} if not specified
 	 */
@@ -93,7 +96,7 @@ public @interface EnableJdbcDatastore {
 	 * single-valued dependency when multiple candidates are present.
 	 * <p>
 	 * When mode is {@link PrimaryMode#AUTO}, the registred Datastore bean is marked as primary only when the
-	 * {@link Datastore} bean to which is bound is registered as primary bean.
+	 * {@link DataSource} bean to which is bound is registered as primary bean.
 	 * </p>
 	 * @return Primary mode, defaults to {@link PrimaryMode#AUTO}
 	 */
@@ -113,5 +116,11 @@ public @interface EnableJdbcDatastore {
 	 *         <code>true</code>.
 	 */
 	boolean transactional() default true;
+
+	/**
+	 * Set the {@link IdentifierResolutionStrategy} to use to resolve {@link PropertyBox} identifiers.
+	 * @return The {@link IdentifierResolutionStrategy}
+	 */
+	IdentifierResolutionStrategy identifierResolutionStrategy() default IdentifierResolutionStrategy.AUTO;
 
 }

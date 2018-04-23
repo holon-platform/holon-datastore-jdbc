@@ -35,8 +35,8 @@ import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
+import com.holonplatform.datastore.jdbc.composer.dialect.H2Dialect;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.dialect.H2Dialect;
 import com.holonplatform.jdbc.DatabasePlatform;
 
 @RunWith(SpringJUnit4ClassRunner.class)

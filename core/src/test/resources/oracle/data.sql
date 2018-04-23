@@ -7,4 +7,11 @@ INSERT INTO test1 VALUES (2, 'Two', null, DATE '2016-04-19', DATE '2016-04-19', 
 INSERT INTO test3 VALUES (2, 'TestJoin');
 INSERT INTO test3 VALUES (3, 'TestJoin3');
 
+INSERT INTO test_recur (code, name, parent) VALUES (1, 'test1', null);
+INSERT INTO test_recur (code, name, parent) VALUES (2, 'test2', 'test1');
+INSERT INTO test_recur (code, name, parent) VALUES (3, 'test3', 'test2');
+
+INSERT INTO test_nopk (nmb, txt) VALUES (1, 'First');
+INSERT INTO test_nopk (nmb, txt) VALUES (2, 'Second');
+
 commit;

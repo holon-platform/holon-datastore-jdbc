@@ -1,13 +1,17 @@
 # Holon platform JDBC Datastore
 
-This is the reference __JDBC__ `Datastore` implementation of the [Holon Platform](https://holon-platform.com), using the `JDBC` API and the `SQL` language for data access and manipulation.
+This is the reference __JDBC__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the Java `JDBC` API and the `SQL` language for data access and manipulation.
 
-The JDBC Datastore relies on the following conventions regarding __DataTarget__ and __Path__ naming strategy:
+See the [Datastore API documentation](https://docs.holon-platform.com/current/reference/holon-core.html#Datastore) for information about the Holon Platform `Datastore` API.
+
+The JDBC Datastore implementation relies on the following conventions regarding __DataTarget__ and __Path__ naming strategy:
 
 * The [DataTarget](https://docs.holon-platform.com/current/reference/holon-core.html#DataTarget) _name_ is interpreted as the database _table_ (or _view_) name.
 * The [Path](https://docs.holon-platform.com/current/reference/holon-core.html#Path) _name_ is interpreted as a table _column_ name.
 
 As a _relational Datastore_, standard [relational expressions](https://docs.holon-platform.com/current/reference/holon-datastore-jdbc.html#Relational-expressions) are supported (alias, joins and sub-queries).
+
+__Transactions__ support is ensured through the Holon Platform `Transactional` API.
 
 The JDBC Datastore leverages on __dialects__ to transparently support different RDBMS vendors. Dialects for the following RDBMS are provided:
 
@@ -25,6 +29,12 @@ The JDBC Datastore leverages on __dialects__ to transparently support different 
 * SQLite
 
 A complete __Spring__ and __Spring Boot__ support is provided for JDBC Datastore integration in a Spring environment and for __auto-configuration__ facilities.
+
+See the module [documentation](https://docs.holon-platform.com/current/reference/holon-datastore-jdbc.html) for details.
+
+Just like any other platform module, this artifact is part of the [Holon Platform](https://holon-platform.com) ecosystem, but can be also used as a _stand-alone_ library.
+
+See the [platform documentation](https://docs.holon-platform.com/current/reference) for further details.
 
 ## Code structure
 
@@ -119,10 +129,11 @@ Maven _group id_: `com.holon-platform.jdbc`
 
 Artifact id | Description
 ----------- | -----------
-`holon-datastore-jdbc` | __JDBC__ `Datastore` implementation
+`holon-datastore-jdbc` | __JDBC__ `Datastore` API implementation
+`holon-datastore-jdbc-composer` | The SQL composer engine based on the Java __JDBC__ API
 `holon-datastore-jdbc-spring` | __Spring__ integration using the `@EnableJdbcDatastore` annotation
 `holon-datastore-jdbc-spring-boot` | __Spring Boot__ integration for JDBC Datastore auto-configuration
-`holon-starter-jdbc-datastore` | __Spring Boot__ _starter_ for JDBC Datastore auto-configuration
-`holon-starter-jdbc-datastore-hikaricp` | __Spring Boot__ _starter_ for JDBC Datastore auto-configuration using the [HikariCP](https://github.com/brettwooldridge/HikariCP) _pooling_ DataSource implementation
+`holon-starter-jdbc-datastore` | __Spring Boot__ _starter_ for the JDBC Datastore auto-configuration
+`holon-starter-jdbc-datastore-hikaricp` | __Spring Boot__ _starter_ for the JDBC Datastore auto-configuration using the [HikariCP](https://github.com/brettwooldridge/HikariCP) _pooling_ DataSource  
 `holon-datastore-jdbc-bom` | Bill Of Materials
 `documentation-datastore-jdbc` | Documentation

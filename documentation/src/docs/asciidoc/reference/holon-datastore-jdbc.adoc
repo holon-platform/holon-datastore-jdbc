@@ -1,23 +1,42 @@
-= Holon JDBC Datastore
+= Holon Platform JDBC Datastore Module - Reference manual
+:description: Holon platform JDBC Datastore module reference documentation. \
+The Holon JDBC Datastore is the Java DataBase Connectivity (JDBC) reference implementation of the Datastore API, using the SQL language for data access and management.
 :revnumber: {project-version}
 :apidir: ../api/holon-datastore-jdbc
+:coreapidir: ../api/holon-core
+:jdbcapidir: ../api/holon-jdbc
 :linkattrs:
 :sectnums:
 :nofooter:
 :toc: left
 :toclevels: 3
 
-Copyright © 2016-2017
+Copyright © 2016-2018
 
 _Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically._
 
 == Introduction
 
-The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:../../api/holon-core/com/holonplatform/core/datastore/Datastore.html[Datastore^] abstraction. 
+The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:../../api/holon-core/com/holonplatform/core/datastore/Datastore.html[Datastore^] API. 
 
-TIP: See the link:holon-core.html#Datastore[Datastore] documentation for further information about *Datastores*.
+TIP: See the link:holon-core.html#Datastore[Datastore] documentation for further information about the Datastore `API`.
 
-This Datastore uses the Java *DataSource* interface as a factory to obtain database connections and perform operations on the persistence store using the _SQL_ language through the JDBC API.
+The JDBC `Datastore` implementation uses the Java `javax.sql.DataSource` API to access the the physical data source and the _SQL_ language to perform data access and management operations.
+
+=== Sources and contributions
+
+The Holon Platform *JDBC Datastore* module source code is available from the GitHub repository link:https://github.com/holon-platform/holon-datastore-jdbc[https://github.com/holon-platform/holon-datastore-jdbc^].
+
+See the repository `README` file for information about:
+
+* The source code structure.
+* How to build the module artifacts from sources.
+* Where to find the code examples.
+* How to contribute to the module development.
+
+== Security related considerations
+
+The SQL composition engine of JDBC Datastore API is designed to *avoid and prevent SQL injection type attacks*, since a meta-language is used for the Datastore operations definition a any provided _parameter_ value is managed using JDBC `PreparedStatement` statements types.
 
 == Obtaining the artifacts
 
@@ -58,6 +77,40 @@ The Holon Platform provides an *overall Maven BOM (Bill of Materials)* to easily
 
 See link:index.html#obtain-the-platform-artifacts[Obtain the platform artifacts] for details.
 
+[[WhatsNew51x]]
+== What's new in version 5.1.x
+
+* Support of the the `PropertySet` *identifier properties* to detect the persistent entities primary keys avoiding additional database accesses. See <<IdentifierResolutionStrategy>>.
+
+* Full support for date and time *functions* and for `java.time.*` temporal types. See link:holon-core.html#TemporalFunctions[Datastore API temporal functions support^].
+
+* Technology-independent *transactions* support through the `Transactional` API. See <<Transactions>>.
+
+* Complete and deep revision and rewriting of the internal *SQL composer engine*, which is now separated as an independent artifact (`holon-datastore-jdbc-composer`). This ensures more consistent operation resolution strategies, remarkable performance improvements and extensibility by design. See <<JDBCDatastoreExtension>>.
+
+* Improved support for industry-standard vendors RDBMS, such as Oracle Database, Microsoft SQLServer, IBM DB2 and SAP HANA.
+
+[[MigratingFrom50x]]
+=== Migrating from version 5.0.x
+
+==== Deprecations
+
+* *JdbcDatastore Builder API*: link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.Builder.html#autoCommit-boolean-[autoCommit^]. The default auto-commit mode setup for JDBC connections is deprecated in favor of the new _transactional_ API support. Transactional operations should be used to manage connections auto-commit. See <<Transactions>>.
+
+==== Dialects
+
+Because of the complete and deep revision and rewriting of the internal SQL composer engine, the package structure and class name is deeply changed. This not affects the public API in any way, only the concrete _sql dialect_ implementations were relocated and the dialect class name is changed from `JdbcDialect` to `SQLDialect`.
+
+The new dialect implementations can be found in the `holon-datastore-jdbc-composer` artifact, under the `com.holonplatform.datastore.jdbc.composer.dialect` package.
+
+So if a dialect fully qualified class name was used to specify the JDBC Datastore dialect, it has to be replaced with the new `SQLDialect` implementation class.
+
+==== SQL filter and sort
+
+The `com.holonplatform.datastore.jdbc.JdbcWhereFilter` and `com.holonplatform.datastore.jdbc.JdbcOrderBySort`, which allow custom `QueryFilter` and `QuerySort` declarations directly providing the SQL `WHERE` and `ORDER BY` parts, are replaced with the link:{apidir}/com/holonplatform/datastore/jdbc/WhereFilter.html[WhereFilter^] and link:{apidir}/com/holonplatform/datastore/jdbc/OrderBySort.html[OrderBySort^] classes, located in the `holon-datastore-jdbc-composer` artifact.
+
+The classes semantic and API is the same as before. See <<CustomSQLFilterSort>>.
+
 // Inclusions
 
 include::_datastore.adoc[]
@@ -78,5 +131,5 @@ The Holon Platform JDBC Datastore module requires https://www.java.com[Java] *8*
 
 === JDBC Drivers
 
-To retrieve back database generated keys, the JDBC driver in use must be compliant to the *JDBC API version 3 or higher*.
+To retrieve back the database generated keys, the JDBC driver in use must be compliant to the *JDBC API version 3 or higher*.
 

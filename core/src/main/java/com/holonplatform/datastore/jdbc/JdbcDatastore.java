@@ -15,59 +15,30 @@
  */
 package com.holonplatform.datastore.jdbc;
 
-import java.sql.Connection;
-import java.util.function.Function;
-
 import javax.sql.DataSource;
 
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
-import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.datastore.transaction.Transactional;
+import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.datastore.jdbc.composer.ConnectionHandler;
+import com.holonplatform.datastore.jdbc.composer.SQLDialect;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
+import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityFactory;
 import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
+import com.holonplatform.jdbc.JdbcConnectionHandler;
 
 /**
  * JDBC {@link Datastore}.
  * 
  * @since 5.0.0
  */
-public interface JdbcDatastore extends Datastore, DatastoreCommodityRegistrar<JdbcDatastoreCommodityContext> {
-
-	/**
-	 * Execute given <code>operation</code> using a new {@link Connection} provided by the Datastore and return the
-	 * operation result.
-	 * <p>
-	 * The connection lifecycle if managed by Datastore, performing the appropriate closing operations at the end of the
-	 * {@link Function} execution.
-	 * </p>
-	 * @param <R> Operation result type
-	 * @param operation The operation to execute (not null)
-	 * @return Operation result
-	 * @throws IllegalStateException If a {@link DataSource} is not available or not initialized
-	 * @throws DataAccessException If an error occurred during connection management or operation execution
-	 */
-	<R> R withConnection(ConnectionOperation<R> operation);
-
-	/**
-	 * Represents an operation to be executed using a Datastore managed {@link Connection}.
-	 * @param <R> Operation result type
-	 */
-	@FunctionalInterface
-	public interface ConnectionOperation<R> {
-
-		/**
-		 * Execute an operation and returns a result.
-		 * @param connection JDBC Connection
-		 * @return Operation result
-		 * @throws Exception If an operation execution error occurred
-		 */
-		R execute(Connection connection) throws Exception;
-
-	}
-
-	// Builder
+public interface JdbcDatastore extends Datastore, Transactional, ConnectionHandler,
+		DatastoreCommodityRegistrar<JdbcDatastoreCommodityContext> {
 
 	/**
 	 * Get a builder to create a {@link JdbcDatastore} instance.
@@ -119,7 +90,7 @@ public interface JdbcDatastore extends Datastore, DatastoreCommodityRegistrar<Jd
 		 * @param dialect The dialect to set (not null)
 		 * @return this
 		 */
-		Builder<D> dialect(JdbcDialect dialect);
+		Builder<D> dialect(SQLDialect dialect);
 
 		/**
 		 * Set the fully qualified dialect class name to use as datastore dialect.
@@ -137,8 +108,38 @@ public interface JdbcDatastore extends Datastore, DatastoreCommodityRegistrar<Jd
 		 * Set whether the auto-commit mode has to be setted for connections. (default is <code>true</code>)
 		 * @param autoCommit Whether to set connections auto-commit
 		 * @return this
+		 * @deprecated Use transaction operations to manage connection auto-commit or provide a custom
+		 *             {@link JdbcConnectionHandler} for more complex situations
 		 */
+		@Deprecated
 		Builder<D> autoCommit(boolean autoCommit);
+
+		/**
+		 * Set a custom {@link JdbcConnectionHandler} to be used for Datastore JDBC connections handling.
+		 * @param connectionHandler The connection handler to set (not null)
+		 * @return this
+		 */
+		Builder<D> connectionHandler(JdbcConnectionHandler connectionHandler);
+
+		/**
+		 * Set the {@link IdentifierResolutionStrategy}.
+		 * <p>
+		 * The identifier resolution strategy is used by the datastore to perform operations which involve a
+		 * {@link PropertyBox} and for which the {@link PropertyBox} identifier properties are required to match the
+		 * {@link PropertyBox} data with the database table primary key.
+		 * </p>
+		 * @param identifierResolutionStrategy The identifier resolution strategy to set (not null)
+		 * @return this
+		 */
+		Builder<D> identifierResolutionStrategy(IdentifierResolutionStrategy identifierResolutionStrategy);
+
+		/**
+		 * Register a {@link JdbcDatastoreCommodityFactory}.
+		 * @param <C> Commodity type
+		 * @param commodityFactory The factory to register (not null)
+		 * @return this
+		 */
+		<C extends DatastoreCommodity> Builder<D> withCommodity(JdbcDatastoreCommodityFactory<C> commodityFactory);
 
 	}
 

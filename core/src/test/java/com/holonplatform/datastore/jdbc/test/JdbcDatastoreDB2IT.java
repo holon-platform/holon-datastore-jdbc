@@ -17,60 +17,24 @@ package com.holonplatform.datastore.jdbc.test;
 
 import javax.sql.DataSource;
 
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.junit.BeforeClass;
 
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.data.KeyIs;
+import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.jdbc.DataSourceBuilder;
-import com.holonplatform.jdbc.DataSourceConfigProperties;
-import com.holonplatform.jdbc.DatabasePlatform;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = JdbcDatastoreDB2IT.Config.class)
-@DirtiesContext
-public class JdbcDatastoreDB2IT extends AbstractDatastoreIntegrationTest {
+public class JdbcDatastoreDB2IT extends AbstractJdbcDatastoreTestSuiteIT {
 
-	@Configuration
-	@EnableTransactionManagement
-	protected static class Config {
+	@BeforeClass
+	public static void initDatastore() {
 
-		@Bean
-		public DataSource dataSource() {
-			return DataSourceBuilder.create().build(
-					DataSourceConfigProperties.builder().withPropertySource("db2/datasource.properties").build());
-		}
+		final DataSource dataSource = DataSourceBuilder.build("db2/datasource.properties");
+		initSQL(dataSource, "db2/schema.sql", "db2/data.sql");
 
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new DataSourceTransactionManager(dataSource());
-		}
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withCommodity(DatabasePlatformCommodity.FACTORY)
+				.withExpressionResolver(KeyIsFilter.RESOLVER).traceEnabled(true).build();
 
-		@Bean
-		public JdbcDatastore datastore() {
-			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.DB2)
-					.withExpressionResolver(KeyIs.RESOLVER)
-					// .traceEnabled(true)
-					.build();
-		}
-
-	}
-
-	@Autowired
-	private Datastore datastore;
-
-	@Override
-	protected Datastore getDatastore() {
-		return datastore;
 	}
 
 }

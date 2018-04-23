@@ -17,15 +17,15 @@ package com.holonplatform.datastore.jdbc.test.config;
 
 import javax.sql.DataSource;
 
-import com.holonplatform.datastore.jdbc.JdbcDialect;
+import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 
 @SuppressWarnings("serial")
 public class TestCommodityImpl implements TestCommodity {
 
 	private final DataSource dataSource;
-	private final JdbcDialect dialect;
+	private final SQLDialect dialect;
 
-	public TestCommodityImpl(DataSource dataSource, JdbcDialect dialect) {
+	public TestCommodityImpl(DataSource dataSource, SQLDialect dialect) {
 		super();
 		this.dataSource = dataSource;
 		this.dialect = dialect;

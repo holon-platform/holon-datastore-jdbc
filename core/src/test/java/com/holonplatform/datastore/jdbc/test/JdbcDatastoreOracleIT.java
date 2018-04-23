@@ -17,63 +17,26 @@ package com.holonplatform.datastore.jdbc.test;
 
 import javax.sql.DataSource;
 
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.junit.BeforeClass;
 
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
-import com.holonplatform.datastore.jdbc.test.data.KeyIs;
+import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
+import com.holonplatform.datastore.jdbc.test.expression.CastFunction;
+import com.holonplatform.datastore.jdbc.test.expression.KeyIsFilter;
 import com.holonplatform.jdbc.DataSourceBuilder;
-import com.holonplatform.jdbc.DataSourceConfigProperties;
-import com.holonplatform.jdbc.DatabasePlatform;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = JdbcDatastoreOracleIT.Config.class)
-@DirtiesContext
-public class JdbcDatastoreOracleIT extends AbstractDatastoreIntegrationTest {
+public class JdbcDatastoreOracleIT extends AbstractJdbcDatastoreTestSuiteIT {
 
-	@Configuration
-	@EnableTransactionManagement
-	protected static class Config {
+	@BeforeClass
+	public static void initDatastore() {
 
-		@Bean
-		public DataSource dataSource() {
-			DataSource ds = DataSourceBuilder.create().build(
-					DataSourceConfigProperties.builder().withPropertySource("oracle/datasource.properties").build());
-			// init
-			initSQL(ds, "oracle/schema.sql", "oracle/data.sql");
-			return ds;
-		}
+		final DataSource dataSource = DataSourceBuilder.build("oracle/datasource.properties");
+		initSQL(dataSource, "oracle/schema.sql", "oracle/data.sql");
 
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new DataSourceTransactionManager(dataSource());
-		}
+		datastore = JdbcDatastore.builder().dataSource(dataSource).withCommodity(DatabasePlatformCommodity.FACTORY)
+				.withExpressionResolver(KeyIsFilter.RESOLVER).withExpressionResolver(new CastFunction.Resolver())
+				.traceEnabled(true).build();
 
-		@Bean
-		public JdbcDatastore datastore() {
-			return JdbcDatastore.builder().dataSource(dataSource()).database(DatabasePlatform.ORACLE)
-					.withExpressionResolver(KeyIs.RESOLVER)
-					// .traceEnabled(true)
-					.build();
-		}
-
-	}
-
-	@Autowired
-	private Datastore datastore;
-
-	@Override
-	protected Datastore getDatastore() {
-		return datastore;
 	}
 
 }

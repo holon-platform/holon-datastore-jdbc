@@ -1,15 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.holon-platform</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.0.9</version>
+		<version>1.0.11</version>
 	</parent>
 
 	<groupId>com.holon-platform.jdbc</groupId>
 	<artifactId>holon-datastore-jdbc-root</artifactId>
-	<version>5.0.6-SNAPSHOT</version>
+	<version>5.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -48,8 +49,8 @@
 		<connection>scm:git:https://github.com/holon-platform/holon-datastore-jdbc.git</connection>
 		<url>https://github.com/holon-platform/holon-datastore-jdbc</url>
 		<developerConnection>scm:git:https://github.com/holon-platform/holon-datastore-jdbc.git</developerConnection>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -58,15 +59,19 @@
 		<bintray.package>holon-datastore-jdbc</bintray.package>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.0.6</holon.core.version>
+		<holon.core.version>5.1.0-SNAPSHOT</holon.core.version>
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.0.4</holon.jdbc.version>
+		<holon.jdbc.version>5.1.0-SNAPSHOT</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.7.9</bytebuddy.version>
+		<bytebuddy.version>1.8.7</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>2.7.4</hikaricp.version>
+		<hikaricp.version>3.1.0</hikaricp.version>
+		
+		<!-- Test JPA bean processors -->
+		
+		<holon.jpa.version>5.1.0-SNAPSHOT</holon.jpa.version>
 
 		<!-- Test/dialects databases -->
 
@@ -92,10 +97,13 @@
 		<informix-driver.version>4.10.8.1</informix-driver.version>
 		<!-- SQLite -->
 		<sqlite-driver.version>3.20.0</sqlite-driver.version>
+		<!-- HANA -->
+		<hana-driver.version>1.120.6</hana-driver.version>
 
 	</properties>
 
 	<modules>
+		<module>composer</module>
 		<module>core</module>
 		<module>spring</module>
 		<module>spring-boot</module>
@@ -135,6 +143,7 @@
 							<id>start</id>
 							<phase>pre-integration-test</phase>
 							<goals>
+								<!-- <goal>build</goal> -->
 								<goal>start</goal>
 							</goals>
 						</execution>

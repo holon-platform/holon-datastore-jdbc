@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.holon-platform.jdbc</groupId>
 		<artifactId>holon-datastore-jdbc-root</artifactId>
-		<version>5.0.6-SNAPSHOT</version>
+		<version>5.1.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>holon-datastore-jdbc</artifactId>
@@ -22,10 +23,26 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<includes>
+						<include>**/*UT.java</include>
+					</includes>
 					<excludes>
 						<exclude>**/*IT.java</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<!-- Test jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
@@ -103,11 +120,32 @@
 							</includes>
 						</configuration>
 					</plugin>
-					<!-- <plugin> <groupId>io.fabric8</groupId> <artifactId>docker-maven-plugin</artifactId> 
-						<configuration> <images> <image> <name>holon/db2</name> <build> <dockerFileDir>db2</dockerFileDir> 
-						</build> <run> <env> <DB2INST1_PASSWORD>holontest</DB2INST1_PASSWORD> <LICENSE>accept</LICENSE> 
-						</env> <ports> <port>50000:50000</port> </ports> <wait> <time>30000</time> 
-						</wait> </run> </image> </images> </configuration> </plugin> -->
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<configuration>
+							<images>
+								<image>
+									<name>holon/db2</name>
+									<build>
+										<dockerFileDir>db2</dockerFileDir>
+									</build>
+									<run>
+										<env>
+											<DB2INST1_PASSWORD>testdb2-pwd</DB2INST1_PASSWORD>
+											<LICENSE>accept</LICENSE>
+										</env>
+										<ports>
+											<port>50000:50000</port>
+										</ports>
+										<wait>
+											<time>90000</time>
+										</wait>
+									</run>
+								</image>
+							</images>
+						</configuration>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -285,10 +323,9 @@
 							</includes>
 						</configuration>
 					</plugin>
-					<!-- Not using docker by now -->
 					<!-- <plugin> <groupId>io.fabric8</groupId> <artifactId>docker-maven-plugin</artifactId> 
 						<configuration> <images> <image> <name>holon/sqlserver</name> <build> <dockerFileDir>sqlserver</dockerFileDir> 
-						</build> <run> <env> <SA_PASSWORD>sa123pwd</SA_PASSWORD> <ACCEPT_EULA>Y</ACCEPT_EULA> 
+						</build> <run> <env> <SA_PASSWORD>T0pSecret</SA_PASSWORD> <ACCEPT_EULA>Y</ACCEPT_EULA> 
 						</env> <ports> <port>1433:1433</port> </ports> <wait> <time>15000</time> 
 						</wait> </run> </image> </images> </configuration> </plugin> -->
 				</plugins>
@@ -343,6 +380,32 @@
 				</plugins>
 			</build>
 		</profile>
+
+		<!-- HANA integration test -->
+		<profile>
+			<id>it-hana</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<includes>
+								<include>**/*HANAIT.java</include>
+							</includes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
 	</profiles>
 
 	<dependencyManagement>
@@ -362,23 +425,11 @@
 
 	<dependencies>
 
-		<!-- Holon core -->
-		<dependency>
-			<groupId>com.holon-platform.core</groupId>
-			<artifactId>holon-core</artifactId>
-			<version>${holon.core.version}</version>
-		</dependency>
-		<!-- Holon jdbc -->
+		<!-- Holon jdbc composer -->
 		<dependency>
 			<groupId>com.holon-platform.jdbc</groupId>
-			<artifactId>holon-jdbc</artifactId>
-			<version>${holon.jdbc.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.holon-platform.core</groupId>
-					<artifactId>holon-core</artifactId>
-				</exclusion>
-			</exclusions>
+			<artifactId>holon-datastore-jdbc-composer</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- Test -->
@@ -398,34 +449,19 @@
 			<version>${hikaricp.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<scope>test</scope>
-		</dependency>
 
-		<!-- Oracle driver and data types -->
-
+		<!-- Test JPA bean processors -->
 		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc7</artifactId>
-			<version>${oracle-driver.version}</version>
-			<optional>true</optional>
+			<groupId>com.holon-platform.jpa</groupId>
+			<artifactId>holon-jpa-bean-processors</artifactId>
+			<version>${holon.jpa.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>javax.persistence-api</artifactId>
+			<version>2.2</version>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- Test databases -->
@@ -470,6 +506,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc7</artifactId>
+			<version>${oracle-driver.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
 			<version>${sqlite-driver.version}</version>
@@ -494,6 +537,13 @@
 			<groupId>com.microsoft.sqlserver</groupId>
 			<artifactId>jdbc</artifactId>
 			<version>${sqlserver-driver.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sap.hana</groupId>
+			<artifactId>jdbc</artifactId>
+			<version>${hana-driver.version}</version>
 			<scope>test</scope>
 		</dependency>
 

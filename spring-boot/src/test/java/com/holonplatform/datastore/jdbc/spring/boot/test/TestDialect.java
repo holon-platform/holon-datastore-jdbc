@@ -15,7 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.spring.boot.test;
 
-import com.holonplatform.datastore.jdbc.dialect.H2Dialect;
+import com.holonplatform.datastore.jdbc.composer.dialect.H2Dialect;
 
 @SuppressWarnings("serial")
 public class TestDialect extends H2Dialect {

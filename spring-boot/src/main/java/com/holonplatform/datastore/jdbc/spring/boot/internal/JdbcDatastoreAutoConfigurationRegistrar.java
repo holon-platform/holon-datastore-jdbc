@@ -15,17 +15,12 @@
  */
 package com.holonplatform.datastore.jdbc.spring.boot.internal;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -33,11 +28,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.datastore.jdbc.spring.JdbcDatastoreConfigProperties;
 import com.holonplatform.datastore.jdbc.spring.internal.JdbcDatastoreRegistrar;
 import com.holonplatform.jdbc.spring.internal.DataSourceFactoryBean;
 import com.holonplatform.spring.internal.BeanRegistryUtils;
-import com.holonplatform.spring.internal.DataContextBoundBeanDefinition;
-import com.holonplatform.spring.internal.PrimaryMode;
 
 /**
  * Registrar for JDBC {@link Datastore} beans registration.
@@ -98,34 +92,14 @@ public class JdbcDatastoreAutoConfigurationRegistrar
 	 */
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry registry) {
-		if (beanFactory instanceof ListableBeanFactory) {
-			// Get DataSource bean names
-			List<String> dataSourceBeanNames = BeanRegistryUtils.getBeanNames((ListableBeanFactory) beanFactory,
-					DataSource.class);
-			List<String> dataSourceFactoryBeanNames = BeanRegistryUtils.getBeanNames((ListableBeanFactory) beanFactory,
-					DataSourceFactoryBean.class);
-			final List<String> dsBeanNames = new ArrayList<>(
-					dataSourceBeanNames.size() + dataSourceFactoryBeanNames.size());
-			dataSourceBeanNames.forEach(n -> dsBeanNames.add(n));
-			dataSourceFactoryBeanNames.forEach(n -> {
-				if (!dsBeanNames.contains(n)) {
-					dsBeanNames.add(n);
-				}
-			});
-
-			for (String dsBeanName : dsBeanNames) {
-				// get data context id, if available
-				String dataContextId = null;
-				BeanDefinition bd = registry.getBeanDefinition(dsBeanName);
-				if (bd instanceof DataContextBoundBeanDefinition) {
-					dataContextId = ((DataContextBoundBeanDefinition) bd).getDataContextId().orElse(null);
-				}
-
-				// register JDBC datastore
-				JdbcDatastoreRegistrar.registerDatastore(registry, environment, dataContextId, PrimaryMode.AUTO,
-						dsBeanName, null, true, beanClassLoader);
-			}
+		for (String[] dataSourceDefinition : BeanRegistryUtils.getBeanNamesWithDataContextId(registry, beanFactory,
+				DataSource.class, DataSourceFactoryBean.class)) {
+			// register JDBC datastore
+			final String dataContextId = dataSourceDefinition[1];
+			JdbcDatastoreRegistrar.registerDatastore(registry, environment, dataContextId, dataSourceDefinition[0],
+					JdbcDatastoreConfigProperties.builder(dataContextId).build(), beanClassLoader);
 		}
+
 	}
 
 }

@@ -36,8 +36,8 @@ import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
+import com.holonplatform.datastore.jdbc.composer.dialect.H2Dialect;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
-import com.holonplatform.datastore.jdbc.dialect.H2Dialect;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
 import com.holonplatform.datastore.jdbc.spring.test.config.TestCommodity;
 import com.holonplatform.datastore.jdbc.spring.test.config.TestCommodityFactory;
@@ -59,10 +59,10 @@ public class TestEnableJdbcDatastore {
 
 	}
 
-	final static DataTarget<String> NAMED_TARGET = DataTarget.named("test1");
+	private final static DataTarget<String> NAMED_TARGET = DataTarget.named("test1");
 
-	final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
-	final static PathProperty<String> STR = PathProperty.create("strv", String.class);
+	private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
+	private final static PathProperty<String> STR = PathProperty.create("strv", String.class);
 
 	@Autowired
 	private JdbcDatastore datastore;

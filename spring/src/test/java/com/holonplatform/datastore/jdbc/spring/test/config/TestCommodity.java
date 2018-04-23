@@ -16,9 +16,12 @@
 package com.holonplatform.datastore.jdbc.spring.test.config;
 
 import com.holonplatform.core.datastore.DatastoreCommodity;
+import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 
 public interface TestCommodity extends DatastoreCommodity {
 
+	IdentifierResolutionStrategy getIdentifierResolutionStrategy();
+	
 	void test();
 
 }
