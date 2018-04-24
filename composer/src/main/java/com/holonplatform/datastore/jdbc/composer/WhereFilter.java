@@ -13,12 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc;
+package com.holonplatform.datastore.jdbc.composer;
 
 import java.util.List;
 
 import com.holonplatform.core.query.QueryFilter;
-import com.holonplatform.datastore.jdbc.internal.DefaultWhereFilter;
+import com.holonplatform.datastore.jdbc.composer.internal.DefaultWhereFilter;
 
 /**
  * A {@link QueryFilter} which uses a SQL where predicate to express query filter conditions.

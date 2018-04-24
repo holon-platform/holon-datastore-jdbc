@@ -13,13 +13,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.composer.internal;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import com.holonplatform.core.internal.utils.ObjectUtils;
-import com.holonplatform.datastore.jdbc.WhereFilter;
+import com.holonplatform.datastore.jdbc.composer.WhereFilter;
 
 /**
  * Default {@link WhereFilter} implementation.

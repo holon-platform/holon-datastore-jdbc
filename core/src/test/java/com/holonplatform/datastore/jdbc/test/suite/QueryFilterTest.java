@@ -40,7 +40,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.holonplatform.core.internal.query.filter.NotFilter;
-import com.holonplatform.datastore.jdbc.WhereFilter;
+import com.holonplatform.datastore.jdbc.composer.WhereFilter;
 
 public class QueryFilterTest extends AbstractJdbcDatastoreSuiteTest {
 

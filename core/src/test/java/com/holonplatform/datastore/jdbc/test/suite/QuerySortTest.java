@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import com.holonplatform.core.query.QuerySort;
 import com.holonplatform.core.query.QuerySort.SortDirection;
-import com.holonplatform.datastore.jdbc.OrderBySort;
+import com.holonplatform.datastore.jdbc.composer.OrderBySort;
 
 public class QuerySortTest extends AbstractJdbcDatastoreSuiteTest {
 

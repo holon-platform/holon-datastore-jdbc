@@ -13,10 +13,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc;
+package com.holonplatform.datastore.jdbc.composer;
 
 import com.holonplatform.core.query.QuerySort;
-import com.holonplatform.datastore.jdbc.internal.DefaultOrderBySort;
+import com.holonplatform.datastore.jdbc.composer.internal.DefaultOrderBySort;
 
 /**
  * A {@link QuerySort} which uses SQL order by directives to express sorts.
