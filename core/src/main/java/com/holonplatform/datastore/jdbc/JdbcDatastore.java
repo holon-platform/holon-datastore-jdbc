@@ -20,6 +20,7 @@ import javax.sql.DataSource;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityRegistrar;
+import com.holonplatform.core.datastore.DatastoreOperations;
 import com.holonplatform.core.datastore.transaction.Transactional;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.composer.ConnectionHandler;
@@ -52,7 +53,7 @@ public interface JdbcDatastore extends Datastore, Transactional, ConnectionHandl
 	 * {@link JdbcDatastore} builder.
 	 * @param <D> {@link JdbcDatastore} type
 	 */
-	public interface Builder<D extends JdbcDatastore> extends Datastore.Builder<D, Builder<D>> {
+	public interface Builder<D extends JdbcDatastore> extends DatastoreOperations.Builder<D, Builder<D>> {
 
 		/**
 		 * Set the {@link DataSource} to use.
