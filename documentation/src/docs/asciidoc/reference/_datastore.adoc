@@ -391,6 +391,45 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 <2> Save a `test` table row (insert if not exists, update otherwise) with the given property values
 <3> Query the `test` table where the `id` property value (i.e. the `code` table column value) is greater or equal to `1` and obtain the table rows as a Stream of `PropertyBox` values
 
+[[SQLDataTypes]]
+=== SQL data types mapping
+
+When the Java type is _serialized_ as a SQL data type (for example when used as query parameter) or a SQL data type is _deserialized_ as a Java type (for example to map it as a `Property` value), the JDBC conventions are used to perform the type mapping.
+
+When a SQL type has not a direct Java type representation, the following conventions are used:
+
+.SQL types mapping
+|===
+|SQL type |Supported Java types
+
+|CLOB
+a|`java.lang.String`, `java.io.Reader`
+
+|BLOB
+a|`byte[]`, `java.io.InputStream`
+|===
+
+.Java types mapping
+|===
+|Java type |SQL type |Notes
+
+a|`java.lang.Enum`
+|INTEGER
+|By default, the ordinal enum value is used for the mapping
+
+a|`java.time.LocalDate`
+|DATE
+|A specific SQL dialect could use a different data type and perform value manipulation if required by the specific SQL type semantic
+
+a|`java.time.LocalTime`
+|TIME
+|A specific SQL dialect could use a different data type and perform value manipulation if required by the specific SQL type semantic
+
+a|`java.time.LocalDateTime`
+|TIMESTAMP
+|A specific SQL dialect could use a different data type and perform value manipulation if required by the specific SQL type semantic
+|===
+
 [[Relational-expressions]]
 === Relational expressions
 
