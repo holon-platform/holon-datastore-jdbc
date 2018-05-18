@@ -24,7 +24,7 @@ import javax.annotation.Priority;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.NullExpression;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.query.CollectionExpression;
+import com.holonplatform.core.query.CollectionConstantExpression;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
@@ -87,9 +87,9 @@ public enum SQLParameterizableExpressionResolver implements SQLExpressionResolve
 					constant.getModelType(), constant.getTemporalType().orElse(null)));
 		}
 		// CollectionExpression
-		if (expression instanceof CollectionExpression) {
+		if (expression instanceof CollectionConstantExpression) {
 			expression.validate();
-			final CollectionExpression<?> collection = (CollectionExpression<?>) expression;
+			final CollectionConstantExpression<?> collection = (CollectionConstantExpression<?>) expression;
 			Collection<?> values = collection.getModelValue();
 			if (values == null) {
 				namedParameter = context.addNamedParameter(SQLParameter.create(null, collection.getModelType()));

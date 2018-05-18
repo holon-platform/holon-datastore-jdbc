@@ -31,7 +31,6 @@ import com.holonplatform.core.datastore.operation.InsertOperation;
 import com.holonplatform.core.datastore.operation.InsertOperationConfiguration;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsertOperation;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
-import com.holonplatform.core.property.Property;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
@@ -155,17 +154,14 @@ public class JdbcInsert extends AbstractInsertOperation {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void setBackGeneratedKey(SQLExecutionContext context, PathPropertyBoxAdapter adapter, Path keyPath,
+	private void setBackGeneratedKey(SQLExecutionContext context, PathPropertyBoxAdapter adapter, Path<?> keyPath,
 			Object keyValue) throws SQLException {
-		if (keyValue != null) {
-			Optional<Property> property = adapter.getProperty(keyPath);
-			if (property.isPresent()) {
-				final TypedExpression valueExpression = (property.get() instanceof TypedExpression)
-						? (TypedExpression) property.get()
-						: ConstantExpression.create(keyValue);
-				adapter.setValue(keyPath,
-						operationContext.getValueDeserializer().deserialize(context, valueExpression, keyValue));
-			}
+		if (keyValue != null && adapter.contains(keyPath)) {
+			final TypedExpression valueExpression = adapter.getProperty(keyPath).map(p -> (TypedExpression) p)
+					.orElse(ConstantExpression.create(keyValue));
+			adapter.setValue((Path) keyPath,
+					operationContext.getValueDeserializer().deserialize(context, valueExpression, keyValue));
+
 		}
 	}
 
