@@ -58,9 +58,9 @@
 		<bintray.package>holon-datastore-jdbc</bintray.package>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.1.0</holon.core.version>
+		<holon.core.version>5.1.1</holon.core.version>
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.1.1</holon.jdbc.version>
+		<holon.jdbc.version>5.1.2</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
 		<bytebuddy.version>1.8.7</bytebuddy.version>
@@ -70,7 +70,7 @@
 		
 		<!-- Test JPA bean processors -->
 		
-		<holon.jpa.version>5.1.0</holon.jpa.version>
+		<holon.jpa.version>5.1.1</holon.jpa.version>
 
 		<!-- Test/dialects databases -->
 
