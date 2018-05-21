@@ -85,7 +85,7 @@
 		<!-- PostgreSQL -->
 		<postgre.version>9.4.1212</postgre.version>
 		<!-- Oracle -->
-		<oracle-driver.version>12.1.0.2</oracle-driver.version>
+		<oracle-driver.version>12.2.0.1</oracle-driver.version>
 		<!-- SQLServer -->
 		<sqlserver-driver.version>4.2</sqlserver-driver.version>
 		<!-- MariaDB -->

@@ -104,6 +104,8 @@ You can build the sources using Maven (version 3.3.x or above is recommended) li
 
 `mvn clean install`
 
+> __NOTE:__ The `holon-datastore-jdbc-composer` artifact requires the Oracle JDBC driver as *optional* dependency to compile the Oracle SQLDialect class. Since the Oracle JDBC driver is not available from Maven Central, to compile the project you should manually download and install it in your local Maven repository or follow the [Oracle Maven repository setup instructions here](https://blogs.oracle.com/dev2dev/get-oracle-jdbc-drivers-and-ucp-from-oracle-maven-repository-without-ides).
+
 ## Getting help
 
 * Check the [platform documentation](https://docs.holon-platform.com/current/reference) or the specific [module documentation](https://docs.holon-platform.com/current/reference/holon-datastore-jdbc.html).
