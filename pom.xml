@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -59,18 +61,19 @@
 
 		<!-- Holon Core -->
 		<holon.core.version>5.2.0-SNAPSHOT</holon.core.version>
+
 		<!-- Holon JDBC -->
 		<holon.jdbc.version>5.2.0-SNAPSHOT</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.8.7</bytebuddy.version>
+		<bytebuddy.version>1.8.11</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
 		<hikaricp.version>3.1.0</hikaricp.version>
-		
+
 		<!-- Test JPA bean processors -->
-		
-		<holon.jpa.version>5.1.0</holon.jpa.version>
+
+		<holon.jpa.version>5.1.1</holon.jpa.version>
 
 		<!-- Test/dialects databases -->
 
@@ -85,7 +88,7 @@
 		<!-- PostgreSQL -->
 		<postgre.version>9.4.1212</postgre.version>
 		<!-- Oracle -->
-		<oracle-driver.version>12.1.0.2</oracle-driver.version>
+		<oracle-driver.version>12.2.0.1</oracle-driver.version>
 		<!-- SQLServer -->
 		<sqlserver-driver.version>4.2</sqlserver-driver.version>
 		<!-- MariaDB -->

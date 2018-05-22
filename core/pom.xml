@@ -36,13 +36,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifestEntries>
-							<Automatic-Module-Name>com.holonplatform.datastore.jdbc</Automatic-Module-Name>
-						</manifestEntries>
-					</archive>
-				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -513,8 +506,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc7</artifactId>
+			<groupId>com.oracle.jdbc</groupId>
+			<artifactId>ojdbc8</artifactId>
 			<version>${oracle-driver.version}</version>
 			<scope>test</scope>
 		</dependency>

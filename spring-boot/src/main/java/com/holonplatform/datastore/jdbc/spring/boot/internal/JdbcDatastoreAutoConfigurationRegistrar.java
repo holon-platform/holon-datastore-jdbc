@@ -21,6 +21,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -92,14 +93,15 @@ public class JdbcDatastoreAutoConfigurationRegistrar
 	 */
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry registry) {
-		for (String[] dataSourceDefinition : BeanRegistryUtils.getBeanNamesWithDataContextId(registry, beanFactory,
-				DataSource.class, DataSourceFactoryBean.class)) {
-			// register JDBC datastore
-			final String dataContextId = dataSourceDefinition[1];
-			JdbcDatastoreRegistrar.registerDatastore(registry, environment, dataContextId, dataSourceDefinition[0],
-					JdbcDatastoreConfigProperties.builder(dataContextId).build(), beanClassLoader);
+		if (beanFactory instanceof ListableBeanFactory) {
+			for (String[] dataSourceDefinition : BeanRegistryUtils.getBeanNamesWithDataContextId(registry,
+					(ListableBeanFactory) beanFactory, DataSource.class, DataSourceFactoryBean.class)) {
+				// register JDBC datastore
+				final String dataContextId = dataSourceDefinition[1];
+				JdbcDatastoreRegistrar.registerDatastore(registry, environment, dataContextId, dataSourceDefinition[0],
+						JdbcDatastoreConfigProperties.builder(dataContextId).build(), beanClassLoader);
+			}
 		}
-
 	}
 
 }

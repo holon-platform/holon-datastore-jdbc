@@ -1,6 +1,6 @@
 # Holon platform JDBC Datastore
 
-> Latest release: [5.1.0](#obtain-the-artifacts)
+> Latest release: [5.1.2](#obtain-the-artifacts)
 
 This is the reference __JDBC__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the Java `JDBC` API and the `SQL` language for data access and manipulation.
 
@@ -70,7 +70,7 @@ _Maven BOM:_
     <dependency>
         <groupId>com.holon-platform.jdbc</groupId>
         <artifactId>holon-datastore-jdbc-bom</artifactId>
-        <version>5.1.0</version>
+        <version>5.1.2</version>
         <type>pom</type>
         <scope>import</scope>
     </dependency>
@@ -103,6 +103,8 @@ See the [Artifacts list](#artifacts-list) for a list of the available artifacts 
 You can build the sources using Maven (version 3.3.x or above is recommended) like this: 
 
 `mvn clean install`
+
+> __NOTE:__ The `holon-datastore-jdbc-composer` artifact requires the Oracle JDBC driver as *optional* dependency to compile the Oracle SQLDialect class. Since the Oracle JDBC driver is not available from Maven Central, to compile the project you should manually download and install it in your local Maven repository or follow the [Oracle Maven repository setup instructions here](https://blogs.oracle.com/dev2dev/get-oracle-jdbc-drivers-and-ucp-from-oracle-maven-repository-without-ides).
 
 ## Getting help
 
