@@ -61,7 +61,7 @@ public class TestJdbcDatastoreConfiguration {
 
 	}
 
-	private final static DataTarget<String> NAMED_TARGET = DataTarget.named("test1");
+	private final static DataTarget<String> NAMED_TARGET = DataTarget.named("testd");
 
 	private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
 	private final static PathProperty<String> STR = PathProperty.create("strv", String.class);

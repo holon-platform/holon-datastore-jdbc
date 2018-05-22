@@ -72,7 +72,6 @@
 		<hikaricp.version>3.1.0</hikaricp.version>
 
 		<!-- Test JPA bean processors -->
-
 		<holon.jpa.version>5.1.1</holon.jpa.version>
 
 		<!-- Test/dialects databases -->
