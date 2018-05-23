@@ -34,6 +34,12 @@ public interface SQLQueryDefinition extends Expression {
 	String getSelect();
 
 	/**
+	 * Get whether to add the <code>DISTINCT</code> clause.
+	 * @return Whether to add the <code>DISTINCT</code> clause
+	 */
+	boolean isDistinct();
+
+	/**
 	 * Get the <code>FROM</code> clause.
 	 * @return From SQL clause
 	 */

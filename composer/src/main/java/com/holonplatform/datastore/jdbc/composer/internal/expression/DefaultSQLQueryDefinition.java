@@ -33,6 +33,11 @@ public class DefaultSQLQueryDefinition implements SQLQueryDefinition {
 	private String select;
 
 	/**
+	 * DISTINCT clause
+	 */
+	private boolean distinct;
+
+	/**
 	 * FROM clause
 	 */
 	private String from;
@@ -68,6 +73,15 @@ public class DefaultSQLQueryDefinition implements SQLQueryDefinition {
 	@Override
 	public String getSelect() {
 		return select;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition#isDistinct()
+	 */
+	@Override
+	public boolean isDistinct() {
+		return distinct;
 	}
 
 	/*
@@ -112,6 +126,14 @@ public class DefaultSQLQueryDefinition implements SQLQueryDefinition {
 	 */
 	public void setSelect(String select) {
 		this.select = select;
+	}
+
+	/**
+	 * Set whether to add the DISTINCT clause.
+	 * @param distinct <code>true</code> to add the DISTINCT clause
+	 */
+	public void setDistinct(boolean distinct) {
+		this.distinct = distinct;
 	}
 
 	/**

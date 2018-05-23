@@ -114,6 +114,8 @@ public enum QueryOperationClausesResolver implements SQLContextExpressionResolve
 		});
 
 		// select
+		clauses.setDistinct(configuration.isDistinct());
+
 		final SQLProjection<?> projection = queryContext.resolveOrFail(expression.getProjection(), SQLProjection.class);
 		// add clause
 		clauses.setSelect(projection.getSelection().stream()
