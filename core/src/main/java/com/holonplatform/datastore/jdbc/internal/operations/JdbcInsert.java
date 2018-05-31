@@ -27,9 +27,9 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.DefaultWriteOption;
-import com.holonplatform.core.datastore.operation.InsertOperation;
-import com.holonplatform.core.datastore.operation.InsertOperationConfiguration;
-import com.holonplatform.core.internal.datastore.operation.AbstractInsertOperation;
+import com.holonplatform.core.datastore.operation.Insert;
+import com.holonplatform.core.datastore.operation.commons.InsertOperationConfiguration;
+import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
@@ -41,25 +41,25 @@ import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 import com.holonplatform.datastore.jdbc.internal.support.DialectPathMatcher;
 
 /**
- * JDBC {@link InsertOperation}.
+ * JDBC {@link Insert}.
  *
  * @since 5.1.0
  */
-public class JdbcInsert extends AbstractInsertOperation {
+public class JdbcInsert extends AbstractInsert {
 
 	private static final long serialVersionUID = -3547948214277724242L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, InsertOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, InsertOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Insert> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Insert>() {
 
 		@Override
-		public Class<? extends InsertOperation> getCommodityType() {
-			return InsertOperation.class;
+		public Class<? extends Insert> getCommodityType() {
+			return Insert.class;
 		}
 
 		@Override
-		public InsertOperation createCommodity(JdbcDatastoreCommodityContext context)
+		public Insert createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new JdbcInsert(context);
 		}

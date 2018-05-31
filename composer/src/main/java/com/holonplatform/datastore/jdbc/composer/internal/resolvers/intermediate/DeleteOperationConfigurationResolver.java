@@ -20,7 +20,7 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.datastore.operation.DeleteOperationConfiguration;
+import com.holonplatform.core.datastore.operation.commons.DeleteOperationConfiguration;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLStatementCompositionContext;

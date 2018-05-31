@@ -22,8 +22,8 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkUpdate;
-import com.holonplatform.core.datastore.operation.UpdateOperationConfiguration;
-import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation;
+import com.holonplatform.core.datastore.operation.commons.UpdateOperationConfiguration;
+import com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdate;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
 import com.holonplatform.datastore.jdbc.config.JdbcDatastoreCommodityContext;
@@ -34,7 +34,7 @@ import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
  * 
  * @since 5.0.0
  */
-public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> implements BulkUpdate {
+public class JdbcBulkUpdate extends AbstractBulkUpdate {
 
 	private static final long serialVersionUID = 1L;
 
@@ -59,15 +59,6 @@ public class JdbcBulkUpdate extends AbstractBulkUpdateOperation<BulkUpdate> impl
 	public JdbcBulkUpdate(JdbcOperationContext operationContext) {
 		super();
 		this.operationContext = operationContext;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.datastore.bulk.AbstractBulkUpdateOperation#getActualOperation()
-	 */
-	@Override
-	protected BulkUpdate getActualOperation() {
-		return this;
 	}
 
 	/*

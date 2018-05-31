@@ -21,8 +21,8 @@ import java.util.Set;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.datastore.operation.commons.PropertyBoxOperationConfiguration;
 import com.holonplatform.core.Path;
-import com.holonplatform.core.datastore.operation.PropertyBoxOperationConfiguration;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;

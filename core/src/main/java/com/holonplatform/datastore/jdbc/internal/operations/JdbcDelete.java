@@ -21,10 +21,10 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.DeleteOperation;
-import com.holonplatform.core.datastore.operation.DeleteOperationConfiguration;
+import com.holonplatform.core.datastore.operation.Delete;
+import com.holonplatform.core.datastore.operation.commons.DeleteOperationConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.datastore.operation.AbstractDeleteOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractDelete;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
@@ -33,25 +33,25 @@ import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 import com.holonplatform.datastore.jdbc.internal.support.JdbcOperationUtils;
 
 /**
- * JDBC {@link DeleteOperation}.
+ * JDBC {@link Delete}.
  *
  * @since 5.1.0
  */
-public class JdbcDelete extends AbstractDeleteOperation {
+public class JdbcDelete extends AbstractDelete {
 
 	private static final long serialVersionUID = 4155821525871792639L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, DeleteOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, DeleteOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Delete> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Delete>() {
 
 		@Override
-		public Class<? extends DeleteOperation> getCommodityType() {
-			return DeleteOperation.class;
+		public Class<? extends Delete> getCommodityType() {
+			return Delete.class;
 		}
 
 		@Override
-		public DeleteOperation createCommodity(JdbcDatastoreCommodityContext context)
+		public Delete createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new JdbcDelete(context);
 		}

@@ -30,8 +30,8 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkInsert;
-import com.holonplatform.core.datastore.operation.InsertOperationConfiguration;
-import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsertOperation;
+import com.holonplatform.core.datastore.operation.commons.InsertOperationConfiguration;
+import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsert;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
@@ -45,7 +45,7 @@ import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
  * 
  * @since 5.0.0
  */
-public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> implements BulkInsert {
+public class JdbcBulkInsert extends AbstractBulkInsert {
 
 	private static final long serialVersionUID = 1L;
 
@@ -70,15 +70,6 @@ public class JdbcBulkInsert extends AbstractBulkInsertOperation<BulkInsert> impl
 	public JdbcBulkInsert(JdbcOperationContext operationContext) {
 		super();
 		this.operationContext = operationContext;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsertOperation#getActualOperation()
-	 */
-	@Override
-	protected BulkInsert getActualOperation() {
-		return this;
 	}
 
 	/*
