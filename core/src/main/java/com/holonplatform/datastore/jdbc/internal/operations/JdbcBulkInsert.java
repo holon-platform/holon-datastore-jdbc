@@ -30,9 +30,12 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.bulk.BulkInsert;
-import com.holonplatform.core.datastore.operation.commons.InsertOperationConfiguration;
 import com.holonplatform.core.internal.datastore.bulk.AbstractBulkInsert;
-import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.core.internal.datastore.operation.common.InsertOperationConfiguration;
+import com.holonplatform.core.property.PathPropertySetAdapter;
+import com.holonplatform.core.property.Property;
+import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameterPlaceholder;
@@ -92,14 +95,18 @@ public class JdbcBulkInsert extends AbstractBulkInsert {
 				.target(getConfiguration().getTarget()).withWriteOptions(getConfiguration().getWriteOptions())
 				.withExpressionResolvers(getConfiguration().getExpressionResolvers());
 
-		// operation paths
-		final Path<?>[] operationPaths = getConfiguration().getOperationPaths()
-				.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation paths"));
+		// property set
+		final PropertySet<?> propertySet = getConfiguration().getPropertySet()
+				.orElseThrow(() -> new InvalidExpressionException("Missing bulk insert operation property set"));
 
-		Map<Path<?>, TypedExpression<?>> values = new LinkedHashMap<>(operationPaths.length);
-		for (Path<?> path : operationPaths) {
-			values.put(path, SQLParameterPlaceholder.create(path.getType()));
-		}
+		final PathPropertySetAdapter adapter = PathPropertySetAdapter.create(propertySet);
+
+		final List<Property<?>> properties = new ArrayList<>(propertySet.size());
+		final Map<Path<?>, TypedExpression<?>> values = new LinkedHashMap<>(propertySet.size());
+		adapter.propertyPaths().forEach(propertyPath -> {
+			properties.add(propertyPath.getProperty());
+			values.put(propertyPath.getPath(), SQLParameterPlaceholder.create(propertyPath.getProperty().getType()));
+		});
 		configuration.values(values);
 
 		// resolve
@@ -116,16 +123,17 @@ public class JdbcBulkInsert extends AbstractBulkInsert {
 
 			try (PreparedStatement stmt = c.prepareStatement(sql)) {
 
-				for (Map<Path<?>, ConstantExpression<?>> value : getConfiguration().getValues()) {
+				for (PropertyBox value : getConfiguration().getValues()) {
 					// resolve parameter values
 					List<SQLParameter> parameters = new ArrayList<>();
-					for (Path<?> path : operationPaths) {
-						ConstantExpression<?> pathExpression = value.get(path);
-						if (pathExpression != null) {
-							parameters.add(SQLParameter.create(pathExpression.getModelValue(),
-									pathExpression.getModelType(), pathExpression.getTemporalType().orElse(null)));
+					for (Property<?> p : properties) {
+						@SuppressWarnings("unchecked")
+						Property<Object> property = (Property<Object>) p;
+						if (value.containsValue(property)) {
+							parameters.add(SQLParameter.create(property.getModelValue(value.getValue(property)),
+									property.getModelType(), property.getTemporalType().orElse(null)));
 						} else {
-							parameters.add(SQLParameter.create(null, path.getType()));
+							parameters.add(SQLParameter.create(null, property.getType()));
 						}
 					}
 

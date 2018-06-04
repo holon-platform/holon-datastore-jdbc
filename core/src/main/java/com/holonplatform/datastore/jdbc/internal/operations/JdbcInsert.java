@@ -28,8 +28,8 @@ import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfi
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.operation.Insert;
-import com.holonplatform.core.datastore.operation.commons.InsertOperationConfiguration;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
+import com.holonplatform.core.internal.datastore.operation.common.InsertOperationConfiguration;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
