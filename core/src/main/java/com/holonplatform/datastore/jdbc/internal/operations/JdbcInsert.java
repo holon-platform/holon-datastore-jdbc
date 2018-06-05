@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import com.holonplatform.core.ConstantConverterExpression;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
@@ -31,7 +32,6 @@ import com.holonplatform.core.datastore.operation.Insert;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
 import com.holonplatform.core.internal.datastore.operation.common.InsertOperationConfiguration;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
@@ -158,7 +158,7 @@ public class JdbcInsert extends AbstractInsert {
 			Object keyValue) throws SQLException {
 		if (keyValue != null && adapter.contains(keyPath)) {
 			final TypedExpression valueExpression = adapter.getProperty(keyPath).map(p -> (TypedExpression) p)
-					.orElse(ConstantExpression.create(keyValue));
+					.orElse(ConstantConverterExpression.create(keyValue));
 			adapter.setValue((Path) keyPath,
 					operationContext.getValueDeserializer().deserialize(context, valueExpression, keyValue));
 

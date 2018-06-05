@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.holonplatform.core.ConstantConverterExpression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.property.StringProperty;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
@@ -48,7 +48,7 @@ public class ExampleJdbcDatastoreFunction {
 		}
 
 		public IfNull(QueryExpression<T> nullableValue, T fallbackValue) { // <3>
-			this(nullableValue, ConstantExpression.create(fallbackValue));
+			this(nullableValue, ConstantConverterExpression.create(fallbackValue));
 		}
 
 		@Override

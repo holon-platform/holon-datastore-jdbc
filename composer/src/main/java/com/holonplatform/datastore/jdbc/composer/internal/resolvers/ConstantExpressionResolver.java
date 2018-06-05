@@ -19,21 +19,21 @@ import java.util.Optional;
 
 import javax.annotation.Priority;
 
+import com.holonplatform.core.ConstantConverterExpression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLLiteral;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
- * {@link ConstantExpression} resolver.
+ * {@link ConstantConverterExpression} resolver.
  *
  * @since 5.0.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE)
-public enum ConstantExpressionResolver implements SQLExpressionResolver<ConstantExpression> {
+public enum ConstantExpressionResolver implements SQLExpressionResolver<ConstantConverterExpression> {
 
 	/**
 	 * Singleton instance.
@@ -45,8 +45,8 @@ public enum ConstantExpressionResolver implements SQLExpressionResolver<Constant
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends ConstantExpression> getExpressionType() {
-		return ConstantExpression.class;
+	public Class<? extends ConstantConverterExpression> getExpressionType() {
+		return ConstantConverterExpression.class;
 	}
 
 	/*
@@ -55,15 +55,17 @@ public enum ConstantExpressionResolver implements SQLExpressionResolver<Constant
 	 * com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(ConstantExpression expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(ConstantConverterExpression expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
 		// resolve as Literal
-		return context.resolve(SQLLiteral.create(expression.getModelValue(),
-				((ConstantExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class);
+		return context.resolve(
+				SQLLiteral.create(expression.getModelValue(),
+						((ConstantConverterExpression<?, ?>) expression).getTemporalType().orElse(null)),
+				SQLExpression.class);
 	}
 
 }

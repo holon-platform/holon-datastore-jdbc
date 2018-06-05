@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
+import com.holonplatform.core.CollectionConstantExpression;
+import com.holonplatform.core.ConstantConverterExpression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.NullExpression;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.query.CollectionConstantExpression;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
@@ -62,14 +62,14 @@ public enum SQLParameterizableExpressionResolver implements SQLExpressionResolve
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(SQLParameterizableExpression parameterizableExpression, SQLCompositionContext context)
-			throws InvalidExpressionException {
+	public Optional<SQLExpression> resolve(SQLParameterizableExpression parameterizableExpression,
+			SQLCompositionContext context) throws InvalidExpressionException {
 
 		// validate
 		parameterizableExpression.validate();
 
 		final TypedExpression<?> expression = parameterizableExpression.getExpression();
-		
+
 		String namedParameter = null;
 
 		// Null expression
@@ -79,15 +79,9 @@ public enum SQLParameterizableExpressionResolver implements SQLExpressionResolve
 			namedParameter = context.addNamedParameter(
 					SQLParameter.create(nullExpression.getModelValue(), nullExpression.getModelType()));
 		}
-		// ConstantExpression
-		if (expression instanceof ConstantExpression) {
-			expression.validate();
-			final ConstantExpression<?> constant = (ConstantExpression<?>) expression;
-			namedParameter = context.addNamedParameter(SQLParameter.create(constant.getModelValue(),
-					constant.getModelType(), constant.getTemporalType().orElse(null)));
-		}
+
 		// CollectionExpression
-		if (expression instanceof CollectionConstantExpression) {
+		else if (expression instanceof CollectionConstantExpression) {
 			expression.validate();
 			final CollectionConstantExpression<?> collection = (CollectionConstantExpression<?>) expression;
 			Collection<?> values = collection.getModelValue();
@@ -98,6 +92,14 @@ public enum SQLParameterizableExpressionResolver implements SQLExpressionResolve
 						.map(value -> context.addNamedParameter(SQLParameter.create(value, collection.getModelType())))
 						.collect(Collectors.joining(","));
 			}
+		}
+
+		// ConstantExpression
+		else if (expression instanceof ConstantConverterExpression) {
+			expression.validate();
+			final ConstantConverterExpression<?, ?> constant = (ConstantConverterExpression<?, ?>) expression;
+			namedParameter = context.addNamedParameter(SQLParameter.create(constant.getModelValue(),
+					constant.getModelType(), constant.getTemporalType().orElse(null)));
 		}
 
 		if (namedParameter != null) {
