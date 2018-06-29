@@ -33,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -43,7 +44,9 @@ import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -52,6 +55,7 @@ import com.holonplatform.core.beans.BeanIntrospector;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.ConstantExpression;
+import com.holonplatform.core.query.SelectAllProjection;
 import com.holonplatform.datastore.jdbc.test.data.TestData;
 import com.holonplatform.datastore.jdbc.test.data.TestDataImpl;
 import com.holonplatform.datastore.jdbc.test.data.TestEnum;
@@ -228,6 +232,26 @@ public class QueryProjectionTest extends AbstractJdbcDatastoreSuiteTest {
 		assertEquals(2, values.size());
 		assertEquals(Boolean.TRUE, values.get(0));
 		assertEquals(Boolean.FALSE, values.get(1));
+	}
+
+	@Test
+	public void testSelectAll() {
+		Map<String, Object> result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
+				.findOne(SelectAllProjection.create()).orElse(null);
+		
+		assertNotNull(result);
+		
+		assertEquals(15, result.size());
+		
+		final Set<String> keys = result.keySet().stream().map(v -> v.toLowerCase()).collect(Collectors.toSet());
+		assertTrue(keys.contains("keycode"));
+		assertTrue(keys.contains("strv"));
+		
+		Object value = result.get("strv");
+		if (value == null) {
+			value = result.get("strv".toUpperCase());
+		}
+		assertEquals("One", value);
 	}
 
 	private static void checkKey1Value(PropertyBox value) {
