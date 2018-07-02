@@ -92,6 +92,7 @@
 		<sqlserver-driver.version>4.2</sqlserver-driver.version>
 		<!-- MariaDB -->
 		<mariadb-driver.version>1.5.9</mariadb-driver.version>
+		<mariadb-driver2.version>2.2.5</mariadb-driver2.version>
 		<!-- DB2 -->
 		<db2-driver.version>10.5</db2-driver.version>
 		<!-- Informix -->

@@ -458,6 +458,14 @@
 		<!-- MariaDB integration test -->
 		<profile>
 			<id>it-mariadb</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.mariadb.jdbc</groupId>
+					<artifactId>mariadb-java-client</artifactId>
+					<version>${mariadb-driver.version}</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
 			<build>
 				<plugins>
 					<plugin>
@@ -485,6 +493,65 @@
 									<name>holon/mariadb</name>
 									<build>
 										<dockerFileDir>mariadb</dockerFileDir>
+									</build>
+									<run>
+										<env>
+											<MYSQL_ROOT_PASSWORD>root</MYSQL_ROOT_PASSWORD>
+											<MYSQL_DATABASE>testds</MYSQL_DATABASE>
+										</env>
+										<ports>
+											<port>3306:3306</port>
+										</ports>
+										<wait>
+											<time>15000</time>
+										</wait>
+									</run>
+								</image>
+							</images>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- MariaDB 10 integration test -->
+		<profile>
+			<id>it-mariadb10</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.mariadb.jdbc</groupId>
+					<artifactId>mariadb-java-client</artifactId>
+					<version>${mariadb-driver2.version}</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<includes>
+								<include>**/*MariaDBIT.java</include>
+							</includes>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<configuration>
+							<images>
+								<image>
+									<name>holon/mariadb10</name>
+									<build>
+										<dockerFileDir>mariadb10</dockerFileDir>
 									</build>
 									<run>
 										<env>
@@ -685,13 +752,6 @@
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
 			<version>${derby.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.mariadb.jdbc</groupId>
-			<artifactId>mariadb-java-client</artifactId>
-			<version>${mariadb-driver.version}</version>
 			<scope>test</scope>
 		</dependency>
 
