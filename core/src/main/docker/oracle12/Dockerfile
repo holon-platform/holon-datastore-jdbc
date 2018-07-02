@@ -1,13 +1,13 @@
-# holon/oracle
+# holon/oracle12
 
 # hostname: localhost
-# port: 49161
+# port: 1521
 # sid: xe
 # username: system
 # password: oracle
 
-FROM wnameless/oracle-xe-11g
+FROM sath89/oracle-12c
 
 ADD init.sql /docker-entrypoint-initdb.d/
 
-EXPOSE 49161
+EXPOSE 1521

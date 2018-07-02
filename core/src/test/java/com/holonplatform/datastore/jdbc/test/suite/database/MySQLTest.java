@@ -17,6 +17,7 @@ package com.holonplatform.datastore.jdbc.test.suite.database;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -53,7 +54,10 @@ public class MySQLTest extends AbstractDatabaseSuiteTest {
 
 				assertEquals(1, result.getInsertedKeys().size());
 
-				assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
+				Object key = result.getInsertedKeys().values().iterator().next();
+				assertNotNull(key);
+				assertTrue(key instanceof Number);
+				assertEquals(1, ((Number) key).intValue());
 				assertEquals("code", result.getInsertedKeys().keySet().iterator().next().getName());
 
 				// bring back ids
