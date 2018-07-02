@@ -28,7 +28,7 @@ public class JdbcDatastoreMySQLIT extends AbstractJdbcDatastoreTestSuiteIT {
 
 	@BeforeClass
 	public static void initDatastore() {
-
+		
 		final DataSource dataSource = DataSourceBuilder.build("mysql/datasource.properties");
 		initSQL(dataSource, "mysql/schema.sql", "mysql/data.sql");
 

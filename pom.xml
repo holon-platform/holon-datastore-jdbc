@@ -12,6 +12,7 @@
 	<groupId>com.holon-platform.jdbc</groupId>
 	<artifactId>holon-datastore-jdbc-root</artifactId>
 	<version>5.2.0-SNAPSHOT</version>
+
 	<packaging>pom</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -66,10 +67,10 @@
 		<holon.jdbc.version>5.2.0-SNAPSHOT</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.8.11</bytebuddy.version>
+		<bytebuddy.version>1.8.12</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>3.1.0</hikaricp.version>
+		<hikaricp.version>3.2.0</hikaricp.version>
 
 		<!-- Test JPA bean processors -->
 		<holon.jpa.version>5.1.1</holon.jpa.version>
@@ -84,14 +85,17 @@
 		<derby.version>10.13.1.1</derby.version>
 		<!-- MySQL -->
 		<mysql-driver.version>5.1.44</mysql-driver.version>
+		<mysql-driver8.version>8.0.11</mysql-driver8.version>
 		<!-- PostgreSQL -->
 		<postgre.version>9.4.1212</postgre.version>
+		<postgre10.version>42.2.2</postgre10.version>
 		<!-- Oracle -->
 		<oracle-driver.version>12.2.0.1</oracle-driver.version>
 		<!-- SQLServer -->
 		<sqlserver-driver.version>4.2</sqlserver-driver.version>
 		<!-- MariaDB -->
 		<mariadb-driver.version>1.5.9</mariadb-driver.version>
+		<mariadb-driver2.version>2.2.5</mariadb-driver2.version>
 		<!-- DB2 -->
 		<db2-driver.version>10.5</db2-driver.version>
 		<!-- Informix -->
