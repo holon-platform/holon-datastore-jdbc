@@ -23,6 +23,7 @@ import java.util.Optional;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 
 /**
  * Informix {@link SQLDialect}.
@@ -101,6 +102,19 @@ public class InformixDialect implements SQLDialect {
 	@Override
 	public String getColumnName(String columnName) {
 		return (columnName != null) ? columnName.toUpperCase() : null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#isLockFailedException(java.sql.SQLException)
+	 */
+	@Override
+	public boolean isLockFailedException(SQLException e) {
+		final int errorCode = SQLExceptionHelper.getErrorCode(e);
+		if (errorCode == -143 || errorCode == -154) {
+			return true;
+		}
+		return false;
 	}
 
 	/*

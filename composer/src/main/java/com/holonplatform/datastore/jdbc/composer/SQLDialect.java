@@ -21,6 +21,7 @@ import java.sql.Types;
 import java.util.Optional;
 
 import com.holonplatform.core.query.QueryFunction;
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.dialect.DB2Dialect;
 import com.holonplatform.datastore.jdbc.composer.dialect.DefaultDialect;
 import com.holonplatform.datastore.jdbc.composer.dialect.DerbyDialect;
@@ -192,6 +193,43 @@ public interface SQLDialect extends Serializable {
 	 */
 	default boolean supportGetGeneratedKeyByName() {
 		return true;
+	}
+
+	/**
+	 * Get the SQL lock clause for given lock condition.
+	 * @param mode Lock mode
+	 * @param timeout Lock timeout in milliseconds
+	 * @return Optional SQL lock clause
+	 */
+	default Optional<String> getLockClause(LockMode mode, long timeout) {
+		final LockMode lockMode = (mode != null) ? mode : LockMode.getDefault();
+		switch (lockMode) {
+		case PESSIMISTIC:
+			return Optional.of("FOR UPDATE");
+		default:
+			break;
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * Get the SQL lock hint to append to the FROM clause for given lock condition.
+	 * @param mode Lock mode
+	 * @param timeout Lock timeout in milliseconds
+	 * @return Optional SQL lock hint
+	 */
+	default Optional<String> getLockHint(LockMode mode, long timeout) {
+		return Optional.empty();
+	}
+
+	/**
+	 * Gets whether given exception represents a "lock failed" exception, i.e. an exception thrown by the RDBMS when a
+	 * lock cannot be acquired because of an existing lock or because the lock timeout expired.
+	 * @param e Exception to check (not null)
+	 * @return Whether given exception represents a "lock failed" exception
+	 */
+	default boolean isLockFailedException(SQLException e) {
+		return false;
 	}
 
 	/**

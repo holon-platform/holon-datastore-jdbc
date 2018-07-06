@@ -20,10 +20,12 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer.ValueProcessor;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 
 import oracle.jdbc.OracleConnection;
 import oracle.sql.TIMESTAMP;
@@ -115,6 +117,36 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	@Override
 	public String getColumnName(String columnName) {
 		return (columnName != null) ? columnName.toUpperCase() : null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#getLockClause(com.holonplatform.core.query.lock.LockMode,
+	 * long)
+	 */
+	@Override
+	public Optional<String> getLockClause(LockMode mode, long timeout) {
+		if (timeout == 0) {
+			return Optional.of("FOR UPDATE NOWAIT");
+		}
+		if (timeout > 0) {
+			return Optional.of("FOR UPDATE WAIT " + ((timeout < 1000) ? 1 : Math.round(timeout / 1000)));
+		}
+		return Optional.of("FOR UPDATE");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#isLockFailedException(java.sql.SQLException)
+	 */
+	@Override
+	public boolean isLockFailedException(SQLException e) {
+		final int errorCode = SQLExceptionHelper.getErrorCode(e);
+		if (errorCode == 54 || errorCode == 60 || errorCode == 4020 || errorCode == 4021 || errorCode == 30006) {
+			return true;
+		}
+		return false;
 	}
 
 	/*

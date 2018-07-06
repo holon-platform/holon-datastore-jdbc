@@ -19,9 +19,11 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 
 /**
  * MySQL {@link SQLDialect}.
@@ -37,6 +39,8 @@ public class MySQLDialect implements SQLDialect {
 	private boolean supportsGeneratedKeys;
 	private boolean generatedKeyAlwaysReturned;
 	private boolean supportsLikeEscapeClause;
+
+	private int majorVersion;
 
 	public MySQLDialect() {
 		super();
@@ -54,6 +58,8 @@ public class MySQLDialect implements SQLDialect {
 			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
 			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+
+			majorVersion = databaseMetaData.getDatabaseMajorVersion();
 		}
 	}
 
@@ -109,6 +115,39 @@ public class MySQLDialect implements SQLDialect {
 	@Override
 	public boolean deleteStatementTargetRequired() {
 		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#getLockClause(com.holonplatform.core.query.lock.LockMode,
+	 * long)
+	 */
+	@Override
+	public Optional<String> getLockClause(LockMode mode, long timeout) {
+		if (majorVersion >= 8) {
+			if (timeout == 0) {
+				return Optional.of("FOR UPDATE NOWAIT");
+			}
+		}
+		return Optional.of("FOR UPDATE");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#isLockFailedException(java.sql.SQLException)
+	 */
+	@Override
+	public boolean isLockFailedException(SQLException e) {
+		final int errorCode = SQLExceptionHelper.getErrorCode(e);
+		if (errorCode == 1205 || errorCode == 1206 || errorCode == 1207 || errorCode == 3572) {
+			return true;
+		}
+		final String sqlState = SQLExceptionHelper.getSqlState(e).orElse(null);
+		if ("41000".equals(sqlState) || "40001".equals(sqlState)) {
+			return true;
+		}
+		return false;
 	}
 
 	/*

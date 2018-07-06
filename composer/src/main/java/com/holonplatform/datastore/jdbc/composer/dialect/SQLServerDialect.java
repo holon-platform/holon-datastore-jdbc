@@ -29,11 +29,13 @@ import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 
 /**
@@ -149,6 +151,47 @@ public class SQLServerDialect implements SQLDialect {
 	@Override
 	public boolean deleteStatementTargetRequired() {
 		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#getLockClause(com.holonplatform.core.query.lock.LockMode,
+	 * long)
+	 */
+	@Override
+	public Optional<String> getLockClause(LockMode mode, long timeout) {
+		return Optional.empty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#getLockHint(com.holonplatform.core.query.lock.LockMode,
+	 * long)
+	 */
+	@Override
+	public Optional<String> getLockHint(LockMode mode, long timeout) {
+		if (timeout == 0) {
+			return Optional.of("WITH (UPDLOCK, HOLDLOCK, ROWLOCK, NOWAIT)");
+		}
+		return Optional.of("WITH (UPDLOCK, HOLDLOCK, ROWLOCK)");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#isLockFailedException(java.sql.SQLException)
+	 */
+	@Override
+	public boolean isLockFailedException(SQLException e) {
+		final int errorCode = SQLExceptionHelper.getErrorCode(e);
+		if (errorCode == 1222) {
+			return true;
+		}
+		final String sqlState = SQLExceptionHelper.getSqlState(e).orElse(null);
+		if ("HY008".equals(sqlState)) {
+			return true;
+		}
+		return false;
 	}
 
 	/*

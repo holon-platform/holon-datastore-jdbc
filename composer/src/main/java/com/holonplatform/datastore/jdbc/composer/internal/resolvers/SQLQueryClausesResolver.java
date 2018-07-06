@@ -69,6 +69,13 @@ public enum SQLQueryClausesResolver implements SQLExpressionResolver<SQLQueryDef
 		query.append(" FROM ");
 		query.append(expression.getFrom());
 
+		expression.getLockMode().ifPresent(lockMode -> {
+			context.getDialect().getLockHint(lockMode, expression.getLockTimeout().orElse(-1L)).ifPresent(lock -> {
+				query.append(" ");
+				query.append(lock.trim());
+			});
+		});
+
 		expression.getWhere().ifPresent(c -> {
 			query.append(" WHERE ");
 			query.append(c);
@@ -82,6 +89,14 @@ public enum SQLQueryClausesResolver implements SQLExpressionResolver<SQLQueryDef
 		expression.getOrderBy().ifPresent(c -> {
 			query.append(" ORDER BY ");
 			query.append(c);
+		});
+
+		// lock
+		expression.getLockMode().ifPresent(lockMode -> {
+			context.getDialect().getLockClause(lockMode, expression.getLockTimeout().orElse(-1L)).ifPresent(lock -> {
+				query.append(" ");
+				query.append(lock.trim());
+			});
 		});
 
 		return Optional.of(SQLExpression.create(query.toString()));

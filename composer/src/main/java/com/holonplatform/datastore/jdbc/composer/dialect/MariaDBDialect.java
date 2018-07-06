@@ -19,9 +19,11 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 
 /**
  * MariaDB {@link SQLDialect}.
@@ -37,6 +39,9 @@ public class MariaDBDialect implements SQLDialect {
 	private boolean supportsGeneratedKeys;
 	private boolean generatedKeyAlwaysReturned;
 	private boolean supportsLikeEscapeClause;
+
+	private int majorVersion;
+	private int minorVersion;
 
 	public MariaDBDialect() {
 		super();
@@ -54,6 +59,9 @@ public class MariaDBDialect implements SQLDialect {
 			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
 			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
+
+			majorVersion = databaseMetaData.getDatabaseMajorVersion();
+			minorVersion = databaseMetaData.getDatabaseMinorVersion();
 		}
 	}
 
@@ -100,6 +108,42 @@ public class MariaDBDialect implements SQLDialect {
 	@Override
 	public boolean useOuterInJoins() {
 		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#getLockClause(com.holonplatform.core.query.lock.LockMode,
+	 * long)
+	 */
+	@Override
+	public Optional<String> getLockClause(LockMode mode, long timeout) {
+		if (majorVersion > 10 || (majorVersion == 10 && minorVersion >= 3)) {
+			if (timeout == 0) {
+				return Optional.of("FOR UPDATE NOWAIT");
+			}
+			if (timeout > 0) {
+				return Optional.of("FOR UPDATE WAIT " + ((timeout < 1000) ? 1 : Math.round(timeout / 1000)));
+			}
+		}
+		return Optional.of("FOR UPDATE");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#isLockFailedException(java.sql.SQLException)
+	 */
+	@Override
+	public boolean isLockFailedException(SQLException e) {
+		final int errorCode = SQLExceptionHelper.getErrorCode(e);
+		if (errorCode == 1205 || errorCode == 1206 || errorCode == 1207 || errorCode == 3572) {
+			return true;
+		}
+		final String sqlState = SQLExceptionHelper.getSqlState(e).orElse(null);
+		if ("41000".equals(sqlState) || "40001".equals(sqlState)) {
+			return true;
+		}
+		return false;
 	}
 
 	/*

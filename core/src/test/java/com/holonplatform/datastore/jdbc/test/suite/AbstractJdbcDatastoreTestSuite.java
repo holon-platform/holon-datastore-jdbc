@@ -21,6 +21,7 @@ import org.junit.runners.Suite;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.test.suite.database.DerbyTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.H2Test;
+import com.holonplatform.datastore.jdbc.test.suite.database.OracleTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.HSQLTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.MariaDBTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.MySQLTest;
@@ -35,8 +36,9 @@ import com.holonplatform.datastore.jdbc.test.suite.database.SQLiteTest;
 		BulkUpdateTest.class, BulkDeleteTest.class, BulkUpdateAliasTest.class, BulkDeleteAliasTest.class,
 		AggregationFunctionsTest.class, StringFunctionsTest.class, TemporalFunctionsTest.class,
 		DataTargetResolverTest.class, DataMappingTest.class, CustomExpressionsTest.class, BeanDatastoreTest.class,
-		BeanDatastoreJpaTest.class, DistinctTest.class, H2Test.class, HSQLTest.class, DerbyTest.class, MySQLTest.class,
-		MariaDBTest.class, PostgreSQLTest.class, SQLServerTest.class, SQLiteTest.class })
+		BeanDatastoreJpaTest.class, DistinctTest.class, LockTest.class, H2Test.class, HSQLTest.class, DerbyTest.class,
+		MySQLTest.class, MariaDBTest.class, PostgreSQLTest.class, SQLServerTest.class, SQLiteTest.class,
+		OracleTest.class })
 public abstract class AbstractJdbcDatastoreTestSuite {
 
 	public static Datastore datastore;
@@ -44,5 +46,7 @@ public abstract class AbstractJdbcDatastoreTestSuite {
 	public static boolean rightJoinTest = true;
 
 	public static boolean updateAliasTest = true;
+	
+	public static boolean lockTest = true;
 
 }

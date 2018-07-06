@@ -18,6 +18,7 @@ package com.holonplatform.datastore.jdbc.composer.expression;
 import java.util.Optional;
 
 import com.holonplatform.core.Expression;
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 
 /**
@@ -62,6 +63,18 @@ public interface SQLQueryDefinition extends Expression {
 	 * @return Optional group by SQL clause
 	 */
 	Optional<String> getGroupBy();
+
+	/**
+	 * Get the lock mode.
+	 * @return Optional lock mode
+	 */
+	Optional<LockMode> getLockMode();
+
+	/**
+	 * Get the lock timeout.
+	 * @return Optional lock timeout
+	 */
+	Optional<Long> getLockTimeout();
 
 	/**
 	 * Get the optional {@link SQLResultConverter}.

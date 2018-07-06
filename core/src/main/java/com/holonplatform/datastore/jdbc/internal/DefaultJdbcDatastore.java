@@ -176,6 +176,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		registerCommodity(JdbcBulkUpdate.FACTORY);
 		registerCommodity(JdbcBulkDelete.FACTORY);
 		registerCommodity(JdbcQuery.FACTORY);
+		registerCommodity(JdbcQuery.LOCK_FACTORY);
 	}
 
 	/*

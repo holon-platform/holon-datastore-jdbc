@@ -22,6 +22,7 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
+import com.holonplatform.core.internal.query.lock.LockQueryAdapterQuery;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
@@ -113,8 +114,14 @@ public enum QueryOperationClausesResolver implements SQLContextExpressionResolve
 			clauses.setOrderBy(queryContext.resolveOrFail(s, SQLExpression.class).getValue());
 		});
 
-		// select
+		// distinct
 		clauses.setDistinct(configuration.isDistinct());
+
+		// lock
+		configuration.getParameter(LockQueryAdapterQuery.LOCK_MODE).ifPresent(lockMode -> {
+			clauses.setLockMode(lockMode);
+			clauses.setLockTimeout(configuration.getParameter(LockQueryAdapterQuery.LOCK_TIMEOUT).orElse(null));
+		});
 
 		final SQLProjection<?> projection = queryContext.resolveOrFail(expression.getProjection(), SQLProjection.class);
 		// add clause

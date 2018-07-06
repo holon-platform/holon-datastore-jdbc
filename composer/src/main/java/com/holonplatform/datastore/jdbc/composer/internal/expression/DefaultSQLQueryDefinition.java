@@ -17,6 +17,7 @@ package com.holonplatform.datastore.jdbc.composer.internal.expression;
 
 import java.util.Optional;
 
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 
@@ -56,6 +57,13 @@ public class DefaultSQLQueryDefinition implements SQLQueryDefinition {
 	 * GROUP BY clause
 	 */
 	private String groupBy;
+
+	/**
+	 * Locks
+	 */
+	private LockMode lockMode;
+
+	private Long lockTimeout;
 
 	/**
 	 * Result converter
@@ -120,6 +128,24 @@ public class DefaultSQLQueryDefinition implements SQLQueryDefinition {
 		return Optional.ofNullable(groupBy);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition#getLockMode()
+	 */
+	@Override
+	public Optional<LockMode> getLockMode() {
+		return Optional.ofNullable(lockMode);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition#getLockTimeout()
+	 */
+	@Override
+	public Optional<Long> getLockTimeout() {
+		return Optional.ofNullable(lockTimeout);
+	}
+
 	/**
 	 * Set the SELECT query part
 	 * @param select The part to set
@@ -166,6 +192,22 @@ public class DefaultSQLQueryDefinition implements SQLQueryDefinition {
 	 */
 	public void setGroupBy(String groupBy) {
 		this.groupBy = groupBy;
+	}
+
+	/**
+	 * Set the lock mode.
+	 * @param lockMode the lock mode to set
+	 */
+	public void setLockMode(LockMode lockMode) {
+		this.lockMode = lockMode;
+	}
+
+	/**
+	 * Set the lock timeout.
+	 * @param lockTimeout the lock timeout to set
+	 */
+	public void setLockTimeout(Long lockTimeout) {
+		this.lockTimeout = lockTimeout;
 	}
 
 	/**

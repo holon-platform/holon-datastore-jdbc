@@ -17,6 +17,7 @@ package com.holonplatform.datastore.jdbc.internal.operations;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -26,11 +27,15 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.query.QueryAdapterQuery;
 import com.holonplatform.core.internal.query.QueryDefinition;
+import com.holonplatform.core.internal.query.lock.LockQueryAdapterQuery;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.core.query.QueryAdapter;
 import com.holonplatform.core.query.QueryConfiguration;
 import com.holonplatform.core.query.QueryOperation;
+import com.holonplatform.core.query.SelectAllProjection;
+import com.holonplatform.core.query.lock.LockQuery;
+import com.holonplatform.core.query.lock.LockQueryAdapter;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLResultConverter;
@@ -44,7 +49,7 @@ import com.holonplatform.datastore.jdbc.internal.support.ResultSetSQLResult;
  *
  * @since 5.0.0
  */
-public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
+public class JdbcQuery implements LockQueryAdapter<QueryConfiguration> {
 
 	// Commodity factory
 	@SuppressWarnings("serial")
@@ -58,6 +63,21 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 		@Override
 		public Query createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
 			return new QueryAdapterQuery<>(new JdbcQuery(context), QueryDefinition.create());
+		}
+	};
+
+	// LockQuery Commodity factory
+	@SuppressWarnings("serial")
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, LockQuery> LOCK_FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, LockQuery>() {
+
+		@Override
+		public Class<? extends LockQuery> getCommodityType() {
+			return LockQuery.class;
+		}
+
+		@Override
+		public LockQuery createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
+			return new LockQueryAdapterQuery<>(new JdbcQuery(context), QueryDefinition.create());
 		}
 	};
 
@@ -76,7 +96,7 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 	@Override
 	public <R> Stream<R> stream(QueryOperation<QueryConfiguration, R> queryOperation) throws DataAccessException {
 
-		/// composition context
+		// composition context
 		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
 		context.addExpressionResolvers(queryOperation.getConfiguration().getExpressionResolvers());
 
@@ -111,6 +131,43 @@ public class JdbcQuery implements QueryAdapter<QueryConfiguration> {
 
 		});
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.query.lock.LockQueryAdapter#tryLock(com.holonplatform.core.query.QueryConfiguration)
+	 */
+	@Override
+	public boolean tryLock(QueryConfiguration queryConfiguration) {
+
+		// composition context
+		final SQLCompositionContext context = SQLCompositionContext.create(operationContext);
+		context.addExpressionResolvers(queryConfiguration.getExpressionResolvers());
+
+		final QueryOperation<?, ?> queryOperation = QueryOperation.create(queryConfiguration,
+				SelectAllProjection.create());
+
+		// resolve to SQLQuery
+		final SQLQuery query = context.resolveOrFail(queryOperation, SQLQuery.class);
+
+		// trace
+		operationContext.trace(query.getSql());
+
+		// execute
+		return operationContext.withConnection(c -> {
+
+			try (PreparedStatement stmt = operationContext.prepareStatement(query, c)) {
+				stmt.executeQuery();
+			} catch (SQLException e) {
+				if (context.getDialect().isLockFailedException(e)) {
+					return false;
+				}
+				throw e;
+			}
+
+			return true;
+
+		});
 	}
 
 }

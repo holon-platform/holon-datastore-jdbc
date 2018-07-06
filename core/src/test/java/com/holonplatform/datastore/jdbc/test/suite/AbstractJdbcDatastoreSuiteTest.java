@@ -15,6 +15,8 @@
  */
 package com.holonplatform.datastore.jdbc.test.suite;
 
+import java.util.concurrent.Callable;
+
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
@@ -22,7 +24,7 @@ import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 public abstract class AbstractJdbcDatastoreSuiteTest {
 
 	protected final static Logger LOGGER = JdbcDatastoreLogger.create();
-	
+
 	protected Datastore getDatastore() {
 		return AbstractJdbcDatastoreTestSuite.datastore;
 	}
@@ -31,6 +33,13 @@ public abstract class AbstractJdbcDatastoreSuiteTest {
 		getDatastore().requireTransactional().withTransaction(tx -> {
 			tx.setRollbackOnly();
 			operation.run();
+		});
+	}
+
+	protected <T> T inTransaction(Callable<T> operation) {
+		return getDatastore().requireTransactional().withTransaction(tx -> {
+			tx.setRollbackOnly();
+			return operation.call();
 		});
 	}
 
