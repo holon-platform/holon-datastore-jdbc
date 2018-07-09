@@ -20,6 +20,8 @@ import java.util.concurrent.Callable;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
+import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
+import com.holonplatform.jdbc.DatabasePlatform;
 
 public abstract class AbstractJdbcDatastoreSuiteTest {
 
@@ -41,6 +43,11 @@ public abstract class AbstractJdbcDatastoreSuiteTest {
 			tx.setRollbackOnly();
 			return operation.call();
 		});
+	}
+	
+	protected DatabasePlatform getDatabasePlatform() {
+		return getDatastore().create(DatabasePlatformCommodity.class).getDatabase()
+				.orElseThrow(() -> new IllegalStateException("Database platform not available"));
 	}
 
 }

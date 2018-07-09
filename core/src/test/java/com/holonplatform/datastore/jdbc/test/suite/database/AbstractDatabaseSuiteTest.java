@@ -23,7 +23,7 @@ import com.holonplatform.jdbc.DatabasePlatform;
 
 public abstract class AbstractDatabaseSuiteTest extends AbstractJdbcDatastoreSuiteTest {
 
-	protected abstract DatabasePlatform getDatabasePlatform();
+	protected abstract DatabasePlatform forDatabasePlatform();
 	
 	protected boolean isDatabase(DatabasePlatform platform) {
 		ObjectUtils.argumentNotNull(platform, "DatabasePlatform must be not null");
@@ -32,7 +32,7 @@ public abstract class AbstractDatabaseSuiteTest extends AbstractJdbcDatastoreSui
 	}
 	
 	protected void test(TestOperation operation) {
-		final DatabasePlatform platform = getDatabasePlatform();
+		final DatabasePlatform platform = forDatabasePlatform();
 		if (isDatabase(platform)) {
 			try {
 				LOGGER.info("> Execute test operation for database: " + platform);

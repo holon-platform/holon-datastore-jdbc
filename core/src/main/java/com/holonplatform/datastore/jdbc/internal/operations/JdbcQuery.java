@@ -27,6 +27,7 @@ import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.query.QueryAdapterQuery;
 import com.holonplatform.core.internal.query.QueryDefinition;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.internal.query.lock.LockQueryAdapterQuery;
 import com.holonplatform.core.internal.utils.TypeUtils;
 import com.holonplatform.core.query.Query;
@@ -126,6 +127,9 @@ public class JdbcQuery implements LockQueryAdapter<QueryConfiguration> {
 						rows.add(converter.convert(ctx, ResultSetSQLResult.of(resultSet)));
 					}
 					return rows.stream();
+				} catch (SQLException e) {
+					// translate SQLException using dialect
+					throw operationContext.getDialect().translateException(e);
 				}
 			}
 
@@ -159,7 +163,10 @@ public class JdbcQuery implements LockQueryAdapter<QueryConfiguration> {
 			try (PreparedStatement stmt = operationContext.prepareStatement(query, c)) {
 				stmt.executeQuery();
 			} catch (SQLException e) {
-				if (context.getDialect().isLockFailedException(e)) {
+				// translate SQLException using dialect
+				DataAccessException dae = operationContext.getDialect().translateException(e);
+				// check lock acquistion exception
+				if (LockAcquisitionException.class.isAssignableFrom(dae.getClass())) {
 					return false;
 				}
 				throw e;

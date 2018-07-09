@@ -66,8 +66,6 @@ public class HSQLDialect implements SQLDialect {
 			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
 			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
-			
-			System.err.println(databaseMetaData.getDatabaseMajorVersion());
 		}
 	}
 

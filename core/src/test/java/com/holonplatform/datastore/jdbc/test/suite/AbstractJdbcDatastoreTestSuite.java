@@ -21,10 +21,10 @@ import org.junit.runners.Suite;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.test.suite.database.DerbyTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.H2Test;
-import com.holonplatform.datastore.jdbc.test.suite.database.OracleTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.HSQLTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.MariaDBTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.MySQLTest;
+import com.holonplatform.datastore.jdbc.test.suite.database.OracleTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.PostgreSQLTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.SQLServerTest;
 import com.holonplatform.datastore.jdbc.test.suite.database.SQLiteTest;
@@ -46,7 +46,5 @@ public abstract class AbstractJdbcDatastoreTestSuite {
 	public static boolean rightJoinTest = true;
 
 	public static boolean updateAliasTest = true;
-	
-	public static boolean lockTest = true;
 
 }

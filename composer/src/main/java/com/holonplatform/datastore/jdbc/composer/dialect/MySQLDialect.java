@@ -19,6 +19,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
@@ -135,19 +137,20 @@ public class MySQLDialect implements SQLDialect {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#isLockFailedException(java.sql.SQLException)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#translateException(java.sql.SQLException)
 	 */
 	@Override
-	public boolean isLockFailedException(SQLException e) {
-		final int errorCode = SQLExceptionHelper.getErrorCode(e);
+	public DataAccessException translateException(SQLException exception) {
+		// check lock acquisition exception
+		final int errorCode = SQLExceptionHelper.getErrorCode(exception);
 		if (errorCode == 1205 || errorCode == 1206 || errorCode == 1207 || errorCode == 3572) {
-			return true;
+			return new LockAcquisitionException("Failed to acquire lock", exception);
 		}
-		final String sqlState = SQLExceptionHelper.getSqlState(e).orElse(null);
+		final String sqlState = SQLExceptionHelper.getSqlState(exception).orElse(null);
 		if ("41000".equals(sqlState) || "40001".equals(sqlState)) {
-			return true;
+			return new LockAcquisitionException("Failed to acquire lock", exception);
 		}
-		return false;
+		return SQLDialect.super.translateException(exception);
 	}
 
 	/*

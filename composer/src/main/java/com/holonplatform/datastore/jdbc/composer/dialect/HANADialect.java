@@ -19,6 +19,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
@@ -112,7 +114,7 @@ public class HANADialect implements SQLDialect {
 	@Override
 	public Optional<String> getLockClause(LockMode mode, long timeout) {
 		if (timeout == 0) {
-				return Optional.of("FOR UPDATE NOWAIT");
+			return Optional.of("FOR UPDATE NOWAIT");
 		}
 		if (timeout > 0) {
 			return Optional.of("FOR UPDATE WAIT " + ((timeout < 1000) ? 1 : Math.round(timeout / 1000)));
@@ -122,15 +124,16 @@ public class HANADialect implements SQLDialect {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#isLockFailedException(java.sql.SQLException)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#translateException(java.sql.SQLException)
 	 */
 	@Override
-	public boolean isLockFailedException(SQLException e) {
-		final int errorCode = SQLExceptionHelper.getErrorCode(e);
+	public DataAccessException translateException(SQLException exception) {
+		// check lock acquisition exception
+		final int errorCode = SQLExceptionHelper.getErrorCode(exception);
 		if (errorCode == 131 || errorCode == 132 || errorCode == 133 || errorCode == 146) {
-			return true;
+			return new LockAcquisitionException("Failed to acquire lock", exception);
 		}
-		return false;
+		return SQLDialect.super.translateException(exception);
 	}
 
 	/*

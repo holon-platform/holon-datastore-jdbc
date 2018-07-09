@@ -32,15 +32,21 @@ import org.junit.Test;
 
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.lock.LockQuery;
+import com.holonplatform.jdbc.DatabasePlatform;
 
 public class LockTest extends AbstractJdbcDatastoreSuiteTest {
+
+	private static boolean executeLockTest(DatabasePlatform platform) {
+		return platform != DatabasePlatform.DERBY && platform != DatabasePlatform.HSQL
+				&& platform != DatabasePlatform.SQLITE;
+	}
 
 	@Test
 	public void testLockMode() {
 
 		assertTrue(getDatastore().hasCommodity(LockQuery.class));
 
-		if (AbstractJdbcDatastoreTestSuite.lockTest) {
+		if (executeLockTest(getDatabasePlatform())) {
 
 			inTransaction(() -> {
 				PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
@@ -59,7 +65,7 @@ public class LockTest extends AbstractJdbcDatastoreSuiteTest {
 	@Test
 	public void testLockFail() {
 
-		if (AbstractJdbcDatastoreTestSuite.lockTest) {
+		if (executeLockTest(getDatabasePlatform())) {
 
 			assertTrue(getDatastore().hasCommodity(LockQuery.class));
 

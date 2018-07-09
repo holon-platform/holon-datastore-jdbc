@@ -31,7 +31,7 @@ import com.holonplatform.jdbc.DatabasePlatform;
 public class MariaDBTest extends AbstractDatabaseSuiteTest {
 
 	@Override
-	protected DatabasePlatform getDatabasePlatform() {
+	protected DatabasePlatform forDatabasePlatform() {
 		return DatabasePlatform.MARIADB;
 	}
 

@@ -37,7 +37,6 @@ public class JdbcDatastoreSQLiteIT extends AbstractJdbcDatastoreTestSuiteIT {
 
 		rightJoinTest = false;
 		updateAliasTest = false;
-		lockTest = false;
 
 	}
 

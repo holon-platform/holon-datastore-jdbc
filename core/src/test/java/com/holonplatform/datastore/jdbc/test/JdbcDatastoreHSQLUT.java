@@ -35,8 +35,6 @@ public class JdbcDatastoreHSQLUT extends AbstractJdbcDatastoreTestSuite {
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).withCommodity(DatabasePlatformCommodity.FACTORY)
 				.withExpressionResolver(KeyIsFilter.RESOLVER).traceEnabled(true).build();
-		
-		lockTest = false;
 
 	}
 

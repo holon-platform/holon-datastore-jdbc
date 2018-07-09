@@ -34,7 +34,7 @@ import com.holonplatform.jdbc.DatabasePlatform;
 public class SQLServerTest extends AbstractDatabaseSuiteTest {
 
 	@Override
-	protected DatabasePlatform getDatabasePlatform() {
+	protected DatabasePlatform forDatabasePlatform() {
 		return DatabasePlatform.SQL_SERVER;
 	}
 

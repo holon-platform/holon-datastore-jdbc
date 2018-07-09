@@ -27,7 +27,7 @@ import com.holonplatform.jdbc.DatabasePlatform;
 public class OracleTest extends AbstractDatabaseSuiteTest {
 
 	@Override
-	protected DatabasePlatform getDatabasePlatform() {
+	protected DatabasePlatform forDatabasePlatform() {
 		return DatabasePlatform.ORACLE;
 	}
 

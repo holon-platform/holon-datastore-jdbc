@@ -20,7 +20,10 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 import com.holonplatform.core.TypedExpression;
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.lock.LockMode;
+import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer.ValueProcessor;
@@ -138,15 +141,16 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#isLockFailedException(java.sql.SQLException)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#translateException(java.sql.SQLException)
 	 */
 	@Override
-	public boolean isLockFailedException(SQLException e) {
-		final int errorCode = SQLExceptionHelper.getErrorCode(e);
+	public DataAccessException translateException(SQLException exception) {
+		// check lock acquisition exception
+		final int errorCode = SQLExceptionHelper.getErrorCode(exception);
 		if (errorCode == 54 || errorCode == 60 || errorCode == 4020 || errorCode == 4021 || errorCode == 30006) {
-			return true;
+			return new LockAcquisitionException("Failed to acquire lock", exception);
 		}
-		return false;
+		return SQLDialect.super.translateException(exception);
 	}
 
 	/*
