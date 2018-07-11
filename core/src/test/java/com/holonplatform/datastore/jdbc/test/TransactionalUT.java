@@ -20,11 +20,12 @@ import java.sql.ResultSet;
 import javax.sql.DataSource;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+import com.holonplatform.core.datastore.transaction.Transaction;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.utils.TestUtils;
@@ -43,10 +44,10 @@ public class TransactionalUT {
 
 	private final static DataTarget<String> TARGET = DataTarget.named("testtx");
 
-	private JdbcDatastore datastore;
+	private static JdbcDatastore datastore;
 
-	@Before
-	public void initDatastore() {
+	@BeforeClass
+	public static void initDatastore() {
 
 		DataSource dataSource = DataSourceBuilder.builder().url("jdbc:h2:mem:txdb").username("sa")
 				.withInitScript(INIT_SQL).build();
@@ -176,6 +177,27 @@ public class TransactionalUT {
 
 		txtv = datastore.query().target(TARGET).filter(CODE.eq(2L)).findOne(TEXT).orElse(null);
 		Assert.assertEquals("Two", txtv);
+
+	}
+
+	@Test
+	public void testManageableTransaction() {
+
+		long count = datastore.query().target(TARGET).count();
+		Assert.assertEquals(1L, count);
+
+		final Transaction tx = datastore.getTransaction();
+		
+		PropertyBox box = PropertyBox.builder(CODE, TEXT).set(CODE, 2L).set(TEXT, "Two").build();
+		datastore.insert(TARGET, box);
+
+		long cnt = datastore.query().target(TARGET).count();
+		Assert.assertEquals(2L, cnt);
+
+		tx.rollback();
+
+		count = datastore.query().target(TARGET).count();
+		Assert.assertEquals(1L, count);
 
 	}
 

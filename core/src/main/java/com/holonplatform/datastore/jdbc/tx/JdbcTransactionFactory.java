@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal.transaction;
+package com.holonplatform.datastore.jdbc.tx;
 
 import java.sql.Connection;
 
@@ -21,29 +21,33 @@ import com.holonplatform.core.datastore.transaction.Transaction.TransactionExcep
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 
 /**
- * {@link JdbcTransaction} implementation provider.
+ * Factory to create and configure new {@link JdbcTransaction} implementation using a {@link Connection} and a
+ * {@link TransactionConfiguration} definition.
  *
  * @since 5.1.0
  */
 @FunctionalInterface
-public interface JdbcTransactionProvider {
+public interface JdbcTransactionFactory {
 
 	/**
 	 * Build a new {@link JdbcTransaction}.
-	 * @param connection The connection to use (not null)
-	 * @param configuration Configuration (not null)
+	 * @param connection Transaction {@link Connection} (not null)
+	 * @param configuration Transaction configuration (not null)
+	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
+	 *        transaction is committed or rollbacked)
 	 * @return A new {@link JdbcTransaction} (not null)
 	 * @throws TransactionException If an error occurred
 	 */
-	JdbcTransaction createTransaction(Connection connection, TransactionConfiguration configuration)
-			throws TransactionException;
+	JdbcTransaction createTransaction(Connection connection, TransactionConfiguration configuration,
+			boolean endTransactionWhenCompleted) throws TransactionException;
 
 	/**
-	 * Get the default {@link JdbcTransactionProvider}.
-	 * @return the default {@link JdbcTransactionProvider}
+	 * Get the default {@link JdbcTransactionFactory}.
+	 * @return the default {@link JdbcTransactionFactory}
 	 */
-	static JdbcTransactionProvider getDefault() {
-		return DefaultJdbcTransactionProvider.INSTANCE;
+	static JdbcTransactionFactory getDefault() {
+		return (connection, configuration, endTransactionWhenCompleted) -> JdbcTransaction.create(connection,
+				configuration, endTransactionWhenCompleted);
 	}
 
 }

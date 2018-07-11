@@ -30,6 +30,7 @@ import com.holonplatform.core.Expression;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
+import com.holonplatform.core.datastore.transaction.Transaction;
 import com.holonplatform.core.datastore.transaction.Transaction.TransactionException;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.core.datastore.transaction.TransactionalOperation;
@@ -65,8 +66,9 @@ import com.holonplatform.datastore.jdbc.internal.operations.JdbcUpdate;
 import com.holonplatform.datastore.jdbc.internal.resolvers.OperationIdentifierResolver;
 import com.holonplatform.datastore.jdbc.internal.resolvers.PrimaryKeyResolver;
 import com.holonplatform.datastore.jdbc.internal.support.JdbcOperationUtils;
-import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransaction;
-import com.holonplatform.datastore.jdbc.internal.transaction.JdbcTransactionProvider;
+import com.holonplatform.datastore.jdbc.tx.JdbcTransaction;
+import com.holonplatform.datastore.jdbc.tx.JdbcTransactionFactory;
+import com.holonplatform.datastore.jdbc.tx.JdbcTransactionLifecycleHandler;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
@@ -79,7 +81,7 @@ import com.holonplatform.jdbc.JdbcConnectionHandler.ConnectionType;
  * @since 5.0.0
  */
 public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodityContext>
-		implements JdbcDatastore, JdbcDatastoreCommodityContext {
+		implements JdbcDatastore, JdbcDatastoreCommodityContext, JdbcTransactionLifecycleHandler {
 
 	private static final long serialVersionUID = -1701596812043351551L;
 
@@ -115,9 +117,9 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	private JdbcConnectionHandler connectionHandler = JdbcConnectionHandler.create();
 
 	/**
-	 * Transaction provider
+	 * Transaction factory
 	 */
-	private JdbcTransactionProvider transactionProvider = JdbcTransactionProvider.getDefault();
+	private JdbcTransactionFactory transactionFactory = JdbcTransactionFactory.getDefault();
 
 	/**
 	 * Database
@@ -202,10 +204,9 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	public void initialize(ClassLoader classLoader) {
 		if (!initialized) {
-
-			DatabaseMetadataPlatform initData = null;
-
+			
 			// auto detect platform if not setted
+			DatabaseMetadataPlatform initData = null;
 			if (getDatabase().orElse(DatabasePlatform.NONE) == DatabasePlatform.NONE) {
 				try {
 					initData = withConnection(ConnectionType.INIT, c -> {
@@ -254,20 +255,20 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * Get the {@link JdbcTransactionProvider} to use to create a new JDBC transaction.
-	 * @return the transaction provider
+	 * Get the {@link JdbcTransactionFactory} to use to create a new JDBC transaction.
+	 * @return the transaction factory
 	 */
-	protected JdbcTransactionProvider getTransactionProvider() {
-		return transactionProvider;
+	protected JdbcTransactionFactory getTransactionFactory() {
+		return transactionFactory;
 	}
 
 	/**
-	 * Set the {@link JdbcTransactionProvider} to use to create a new JDBC transaction.
-	 * @param transactionProvider the transaction provider to set (not null)
+	 * Set the {@link JdbcTransactionFactory} to use to create a new JDBC transaction.
+	 * @param transactionProvider the transaction factory to set (not null)
 	 */
-	public void setTransactionProvider(JdbcTransactionProvider transactionProvider) {
-		ObjectUtils.argumentNotNull(transactionProvider, "JdbcTransactionProvider must be not null");
-		this.transactionProvider = transactionProvider;
+	public void setTransactionFactory(JdbcTransactionFactory transactionFactory) {
+		ObjectUtils.argumentNotNull(transactionFactory, "JdbcTransactionFactory must be not null");
+		this.transactionFactory = transactionFactory;
 	}
 
 	/**
@@ -434,9 +435,9 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			}
 
 			// if a transaction is active, use current transaction connection
-			JdbcTransaction tx = getCurrentTransaction().orElse(null);
-			if (tx != null) {
-				return operation.execute(tx.getConnection());
+			Connection txc = getCurrentTransactionConnection().orElse(null);
+			if (txc != null) {
+				return operation.execute(txc);
 			}
 
 			// get a connection from connection handler
@@ -484,10 +485,10 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * Obtain a new {@link Connection} using current {@link JdbcConnectionHandler}.
+	 * Obtain a new {@link Connection} using the configured {@link DataSource} and {@link JdbcConnectionHandler}.
 	 * @param connectionType Connection type
-	 * @return The connection
-	 * @throws SQLException If an error occurred
+	 * @return A new {@link Connection}
+	 * @throws SQLException If a {@link DataSource} is not available or an error occurred obtaining a connection
 	 */
 	private Connection obtainConnection(ConnectionType connectionType) throws SQLException {
 		// check DataSource
@@ -537,7 +538,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			TransactionConfiguration transactionConfiguration) {
 		ObjectUtils.argumentNotNull(operation, "TransactionalOperation must be not null");
 
-		final JdbcTransaction tx = beginTransaction(transactionConfiguration);
+		final JdbcTransaction tx = beginTransaction(transactionConfiguration, false);
 
 		try {
 			// execute operation
@@ -553,12 +554,30 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 			throw new DataAccessException("Failed to execute operation", e);
 		} finally {
 			try {
-				finalizeTransaction();
+				endTransaction(tx);
 			} catch (Exception e) {
 				throw new DataAccessException("Failed to finalize transaction", e);
 			}
 		}
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.datastore.transaction.Transactional#getTransaction(com.holonplatform.core.datastore.
+	 * transaction.TransactionConfiguration)
+	 */
+	@Override
+	public Transaction getTransaction(TransactionConfiguration transactionConfiguration) {
+		return beginTransaction(transactionConfiguration, true);
+	}
+
+	/**
+	 * Get the {@link Connection} bound to the current transaction, if available.
+	 * @return Optional {@link Connection} bound to the current transaction
+	 */
+	private static Optional<Connection> getCurrentTransactionConnection() {
+		return getCurrentTransaction().map(tx -> tx.getConnection());
 	}
 
 	/**
@@ -570,67 +589,111 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * If a transaction is active, remove the transaction from current trasactions stack and return the transaction
-	 * itself.
+	 * Remove given transaction from current trasactions stack.
+	 * @param tx Transaction to remove
 	 * @return The removed current transaction, if it was present
 	 */
-	private static Optional<JdbcTransaction> removeCurrentTransaction() {
-		return (CURRENT_TRANSACTION.get().isEmpty()) ? Optional.empty() : Optional.of(CURRENT_TRANSACTION.get().pop());
+	private static Optional<JdbcTransaction> removeTransaction(JdbcTransaction tx) {
+		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");
+		final Stack<JdbcTransaction> stack = CURRENT_TRANSACTION.get();
+		if (!stack.isEmpty()) {
+			if (stack.remove(tx)) {
+				return Optional.of(tx);
+			}
+		}
+		return Optional.empty();
 	}
 
 	/**
 	 * Start a new transaction.
 	 * @param configuration Transaction configuration
+	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
+	 *        transaction is committed or rollbacked)
 	 * @return The current transaction or a new one if no transaction is active
 	 * @throws TransactionException Error starting a new transaction
 	 */
-	private JdbcTransaction beginTransaction(TransactionConfiguration configuration) throws TransactionException {
+	@SuppressWarnings("resource")
+	private JdbcTransaction beginTransaction(TransactionConfiguration configuration,
+			boolean endTransactionWhenCompleted) throws TransactionException {
+		// configuration
+		final TransactionConfiguration cfg = (configuration != null) ? configuration
+				: TransactionConfiguration.getDefault();
+		// obtain a connection
+		final Connection connection;
 		try {
-			// create a new transaction
-			JdbcTransaction tx = createTransaction(obtainConnection(ConnectionType.DEFAULT),
-					(configuration != null) ? configuration : TransactionConfiguration.getDefault());
-			// start transaction
+			connection = obtainConnection(ConnectionType.DEFAULT);
+		} catch (SQLException e) {
+			throw new TransactionException("Failed to obtain a connection to start a transaction", e);
+		}
+		// create a new transaction
+		final JdbcTransaction tx = getTransactionFactory().createTransaction(connection, cfg,
+				endTransactionWhenCompleted);
+		// lifecycle handler
+		tx.addLifecycleHandler(this);
+		// start transaction
+		try {
 			tx.start();
-			// stack transaction
-			return CURRENT_TRANSACTION.get().push(tx);
-		} catch (Exception e) {
-			throw new TransactionException("Failed to start a transaction", e);
+		} catch (TransactionException e) {
+			// ensure connection finalization
+			try {
+				releaseConnection(connection, ConnectionType.DEFAULT);
+			} catch (SQLException re) {
+				LOGGER.warn("Transaction failed to start but the transaction connection cannot be released", re);
+			}
+			// propagate
+			throw e;
+		}
+		// return the transaction
+		return tx;
+	}
+
+	/**
+	 * Finalize the given transaction.
+	 * @param tx Transaction to finalize
+	 * @throws TransactionException
+	 */
+	protected void endTransaction(JdbcTransaction tx) throws TransactionException {
+		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");
+		try {
+			if (tx.isActive()) {
+				tx.end();
+			}
+		} finally {
+			// release connection
+			try {
+				releaseConnection(tx.getConnection(), ConnectionType.DEFAULT);
+			} catch (SQLException e) {
+				throw new TransactionException("Failed to release transaction connection [" + tx.getConnection() + "]",
+						e);
+			}
 		}
 	}
 
-	/**
-	 * Build a new {@link JdbcTransaction} using current {@link JdbcTransactionProvider}.
-	 * @param connection The connection to use (not null)
-	 * @param configuration Configuration (not null)
-	 * @return A new {@link JdbcTransaction}
-	 * @throws TransactionException If an error occurred
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.tx.JdbcTransactionLifecycleHandler#transactionStarted(com.holonplatform.
+	 * datastore.jdbc.tx.JdbcTransaction)
 	 */
-	protected JdbcTransaction createTransaction(Connection connection, TransactionConfiguration configuration) {
-		return getTransactionProvider().createTransaction(connection, configuration);
+	@Override
+	public void transactionStarted(JdbcTransaction transaction) {
+		if (transaction != null) {
+			// stack
+			CURRENT_TRANSACTION.get().push(transaction);
+		}
 	}
 
-	/**
-	 * Finalize current transaction, if present.
-	 * @return <code>true</code> if a transaction was active and has been finalized
-	 * @throws TransactionException Error during transaction finalization
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.tx.JdbcTransactionLifecycleHandler#transactionEnded(com.holonplatform.datastore.
+	 * jdbc.tx.JdbcTransaction)
 	 */
-	private boolean finalizeTransaction() throws TransactionException {
-		return removeCurrentTransaction().map(tx -> {
-			try {
-				// finalize transaction
-				tx.end();
-				return true;
-			} catch (Exception e) {
-				throw new TransactionException("Failed to finalize transaction", e);
-			} finally {
-				// close connection
-				try {
-					releaseConnection(tx.getConnection(), ConnectionType.DEFAULT);
-				} catch (SQLException e) {
-					throw new TransactionException("Failed to release the connection", e);
-				}
-			}
-		}).orElse(false);
+	@Override
+	public void transactionEnded(JdbcTransaction transaction) {
+		if (transaction != null) {
+			// remove from stack
+			removeTransaction(transaction);
+		}
 	}
 
 	/*
@@ -932,6 +995,18 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		@Override
 		public JdbcDatastore.Builder<D> connectionHandler(JdbcConnectionHandler connectionHandler) {
 			datastore.setConnectionHandler(connectionHandler);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#transactionFactory(com.holonplatform.datastore.jdbc.tx
+		 * .JdbcTransactionFactory)
+		 */
+		@Override
+		public Builder<D> transactionFactory(JdbcTransactionFactory transactionFactory) {
+			datastore.setTransactionFactory(transactionFactory);
 			return this;
 		}
 
