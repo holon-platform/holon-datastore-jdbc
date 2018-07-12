@@ -34,6 +34,7 @@ import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.spring.internal.JdbcDatastoreRegistrar;
 import com.holonplatform.jdbc.DatabasePlatform;
+import com.holonplatform.spring.EnableDatastoreConfiguration;
 import com.holonplatform.spring.PrimaryMode;
 
 /**
@@ -48,6 +49,7 @@ import com.holonplatform.spring.PrimaryMode;
 @Documented
 @Inherited
 @Import(JdbcDatastoreRegistrar.class)
+@EnableDatastoreConfiguration
 public @interface EnableJdbcDatastore {
 
 	/**

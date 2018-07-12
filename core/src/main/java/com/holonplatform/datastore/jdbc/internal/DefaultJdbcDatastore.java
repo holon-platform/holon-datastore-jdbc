@@ -36,8 +36,7 @@ import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.core.datastore.transaction.TransactionalOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.Logger;
-import com.holonplatform.core.internal.datastore.AbstractDatastore;
-import com.holonplatform.core.internal.utils.ClassUtils;
+import com.holonplatform.core.internal.datastore.AbstractInitializableDatastore;
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.composer.ConnectionHandler;
@@ -77,10 +76,13 @@ import com.holonplatform.jdbc.JdbcConnectionHandler.ConnectionType;
 
 /**
  * Default {@link JdbcDatastore} implementation.
+ * <p>
+ * The Datastore instance must be initialized using the {@link #initialize()} method before using it.
+ * </p>
  *
  * @since 5.0.0
  */
-public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodityContext>
+public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDatastoreCommodityContext>
 		implements JdbcDatastore, JdbcDatastoreCommodityContext, JdbcTransactionLifecycleHandler {
 
 	private static final long serialVersionUID = -1701596812043351551L;
@@ -137,29 +139,10 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	private IdentifierResolutionStrategy identifierResolutionStrategy = IdentifierResolutionStrategy.AUTO;
 
 	/**
-	 * Whether to auto-initialize the Datastore at DataSource/Dialect setup
-	 */
-	private final boolean autoInitialize;
-
-	/**
-	 * Whether the datastore was initialized
-	 */
-	private boolean initialized = false;
-
-	/**
-	 * Constructor with auto initialization.
+	 * Constructor.
 	 */
 	public DefaultJdbcDatastore() {
-		this(true);
-	}
-
-	/**
-	 * Constructor.
-	 * @param autoInitialize Whether to initialize the Datastore at DataSource/Dialect setup
-	 */
-	public DefaultJdbcDatastore(boolean autoInitialize) {
 		super(JdbcDatastoreCommodityFactory.class, JdbcDatastoreExpressionResolver.class);
-		this.autoInitialize = autoInitialize;
 
 		// operation identifiers and primary key resolvers
 		addExpressionResolver(new OperationIdentifierResolver(this));
@@ -190,68 +173,55 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		return this;
 	}
 
-	/**
-	 * Whether to initialize the Datastore at DataSource/dialect setup.
-	 * @return the autoInitialize <code>true</code> if auto-initialize is enabled
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.internal.datastore.AbstractInitializableDatastore#initialize(java.lang.ClassLoader)
 	 */
-	protected boolean isAutoInitialize() {
-		return autoInitialize;
-	}
+	@Override
+	protected boolean initialize(ClassLoader classLoader) {
 
-	/**
-	 * Initialize the datastore if it is not already initialized.
-	 * @param classLoader ClassLoader to use to load default factories and resolvers
-	 */
-	public void initialize(ClassLoader classLoader) {
-		if (!initialized) {
-			
-			// auto detect platform if not setted
-			DatabaseMetadataPlatform initData = null;
-			if (getDatabase().orElse(DatabasePlatform.NONE) == DatabasePlatform.NONE) {
-				try {
-					initData = withConnection(ConnectionType.INIT, c -> {
-						final DatabaseMetaData databaseMetaData = c.getMetaData();
-						DatabaseMetadataPlatform dmp = new DatabaseMetadataPlatform();
-						dmp.metadata = databaseMetaData;
-						dmp.platform = DatabasePlatform.fromUrl(databaseMetaData.getURL());
-						return dmp;
-					});
-				} catch (Exception e) {
-					LOGGER.warn("Failed to inspect database metadata", e);
-				}
-
-				if (initData != null && initData.platform != null && initData.platform != DatabasePlatform.NONE) {
-					// set database platform if detected
-					setDatabase(initData.platform);
-				}
-			}
-
-			// init dialect
-			final SQLDialect dialect = getDialect(false);
-			LOGGER.debug(() -> "Datastore JDBC dialect: [" + ((dialect != null) ? dialect.getClass().getName() : null)
-					+ "]");
+		// auto detect platform if not setted
+		DatabaseMetadataPlatform initData = null;
+		if (getDatabase().orElse(DatabasePlatform.NONE) == DatabasePlatform.NONE) {
 			try {
-				dialect.init(new JdbcDatastoreDialectContext((initData != null) ? initData.metadata : null));
-			} catch (SQLException e) {
-				throw new IllegalStateException("Cannot initialize dialect [" + dialect.getClass().getName() + "]", e);
+				initData = withConnection(ConnectionType.INIT, c -> {
+					final DatabaseMetaData databaseMetaData = c.getMetaData();
+					DatabaseMetadataPlatform dmp = new DatabaseMetadataPlatform();
+					dmp.metadata = databaseMetaData;
+					dmp.platform = DatabasePlatform.fromUrl(databaseMetaData.getURL());
+					return dmp;
+				});
+			} catch (Exception e) {
+				LOGGER.warn("Failed to inspect database metadata", e);
 			}
 
-			// default factories and resolvers
-			loadExpressionResolvers(classLoader);
-			loadCommodityFactories(classLoader);
-
-			initialized = true;
+			if (initData != null && initData.platform != null && initData.platform != DatabasePlatform.NONE) {
+				// set database platform if detected
+				setDatabase(initData.platform);
+			}
 		}
-	}
 
-	/**
-	 * Checks whether to auto-initialize the Datastore, if {@link #isAutoInitialize()} is <code>true</code> and the
-	 * Datastore wasn't already initialized.
-	 */
-	protected void checkInitialize() {
-		if (isAutoInitialize()) {
-			initialize(ClassUtils.getDefaultClassLoader());
+		// check dialect
+		if (getDialect() == null) {
+			// use the default dialect
+			setDialect(new DefaultDialect());
 		}
+
+		final SQLDialect dialect = getDialect();
+		// init dialect
+		try {
+			dialect.init(new JdbcDatastoreDialectContext((initData != null) ? initData.metadata : null));
+		} catch (SQLException e) {
+			throw new IllegalStateException("Cannot initialize dialect [" + dialect.getClass().getName() + "]", e);
+		}
+
+		// default factories and resolvers
+		loadExpressionResolvers(classLoader);
+		loadCommodityFactories(classLoader);
+
+		LOGGER.info("JdbcDatastore initialized - Using dialect [" + dialect.getClass().getName() + "]");
+
+		return true;
 	}
 
 	/**
@@ -302,8 +272,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	public void setDataSource(DataSource dataSource) {
 		ObjectUtils.argumentNotNull(dataSource, "DataSource must be not null");
 		this.dataSource = dataSource;
-		// initialization
-		checkInitialize();
 	}
 
 	/*
@@ -361,7 +329,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	@Override
 	public SQLDialect getDialect() {
-		return getDialect(true);
+		return dialect;
 	}
 
 	/**
@@ -370,15 +338,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	public void setDialect(SQLDialect dialect) {
 		this.dialect = dialect;
-
-		if (dialect != null) {
-			LOGGER.debug(() -> "Set dialect [" + dialect.getClass().getName() + "]");
-		}
-
-		// check init
-		if (dataSource != null) {
-			checkInitialize();
-		}
 	}
 
 	/*
@@ -400,23 +359,6 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	}
 
 	/**
-	 * Get the JDBC dialect of the datastore.
-	 * @param checkInitialize <code>true</code> to check if datastore is initialized
-	 * @return Datastore dialect
-	 */
-	protected SQLDialect getDialect(boolean checkInitialize) {
-		if (dialect == null) {
-			dialect = new DefaultDialect();
-		}
-
-		if (checkInitialize) {
-			checkInitialize();
-		}
-
-		return dialect;
-	}
-
-	/**
 	 * Execute given <code>operation</code> with a JDBC {@link Connection} handled by current
 	 * {@link JdbcConnectionHandler} and return the operation result.
 	 * @param connectionType The connection type (not null)
@@ -425,6 +367,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	 */
 	@SuppressWarnings("resource")
 	protected <R> R withConnection(ConnectionType connectionType, ConnectionOperation<R> operation) {
+		checkInitialized();
 		ObjectUtils.argumentNotNull(operation, "Operation must be not null");
 
 		Connection connection = null;
@@ -536,6 +479,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 	@Override
 	public <R> R withTransaction(TransactionalOperation<R> operation,
 			TransactionConfiguration transactionConfiguration) {
+		checkInitialized();
 		ObjectUtils.argumentNotNull(operation, "TransactionalOperation must be not null");
 
 		final JdbcTransaction tx = beginTransaction(transactionConfiguration, false);
@@ -1062,7 +1006,7 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		 * Constructor
 		 */
 		public DefaultBuilder() {
-			super(new DefaultJdbcDatastore(false));
+			super(new DefaultJdbcDatastore());
 		}
 
 		/*
@@ -1071,7 +1015,8 @@ public class DefaultJdbcDatastore extends AbstractDatastore<JdbcDatastoreCommodi
 		 */
 		@Override
 		public JdbcDatastore build() {
-			datastore.initialize(ClassUtils.getDefaultClassLoader());
+			// init
+			datastore.initialize();
 			return datastore;
 		}
 
