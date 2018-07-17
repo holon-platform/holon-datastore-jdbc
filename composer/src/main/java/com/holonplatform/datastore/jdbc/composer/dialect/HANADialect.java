@@ -117,7 +117,7 @@ public class HANADialect implements SQLDialect {
 			return Optional.of("FOR UPDATE NOWAIT");
 		}
 		if (timeout > 0) {
-			return Optional.of("FOR UPDATE WAIT " + ((timeout < 1000) ? 1 : Math.round(timeout / 1000)));
+			return Optional.of("FOR UPDATE WAIT " + ((timeout < 1000) ? 1 : Math.round((float)timeout / 1000)));
 		}
 		return Optional.of("FOR UPDATE");
 	}
