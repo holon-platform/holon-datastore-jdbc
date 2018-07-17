@@ -533,6 +533,40 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 <3> Obtain the `Transactional` API to execute the Datastore operation within a transaction and return a value
 <4> The transaction is configured with the _auto commit_ mode, this way the transaction is automatically committed at the transactional operation end if no error occurred
 
+[[LockSupport]]
+=== Lock support
+
+The JDBC `Datastore` implementation supports base query-level _locks_ through the core link:{coreapidir}/com/holonplatform/core/query/lock/LockQuery.html[LockQuery^] extension.
+
+The `LockQuery` API extends the standard `Query` API and provides the following additional methods to configure the query results _row locks_:
+
+* `lock(LockMode lockMode, long timeout)`: Configures the *lock mode* to use for query execution and allows to specify an optional lock _timeout_.
+* `tryLock(LockMode lockMode, long timeout)`: Try to perform the query operation using given lock mode and optional timeout, returning `true` if the lock was successfully acquired or `false` otherwise.
+
+IMPORTANT: The query-level lock timeout configuration may not be supported by the concrete RDBMS. When the query lock timeout is not supported, if will be simply ignored and the default RDBMS lock timeout will be used.
+
+The `LockQuery` API is a _Datastore commodity_, automatically registered in the JDBC `Datastore` implementation. So a `LockQuery` type implementation can be otained as follows:
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreLock.java[tag=lockcommodity,indent=0]
+----
+<1> Obtain a new `LockQuery` implementation as a _Datastore commodity_
+
+NOTE: See the link:holon-core.html#DatastoreCommodities[Datastore commodities definition and registration^] documentation section to learn how the _Datastore commodity_ architecture can be used to provide extensions to the default `Datastore` API.
+
+The `LockQuery` implementation, even when used as a standard `Query` API, provides builtin *lock exceptions translation* support, using the `LockAcquisitionException` type to notify any RDBMS lock acquisition error.
+
+[source, java]
+----
+include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcDatastoreLock.java[tag=execution,indent=0]
+----
+<1> Obtain a new `LockQuery`
+<2> Configure the query _lock_, using default mode and timeout
+<3> Execute query: if the lock cannot be acquired, a `LockAcquisitionException` is thrown
+<4> Configure the query _lock_ setting 3 seconds (3000 milliseconds) as lock timeout
+<5> Try to acquire a lock on the rows returned by the query, setting 0 as lock timeout (no wait)
+
 [[JdbcDatastoreAPI]]
 === `JdbcDatastore` API
 
