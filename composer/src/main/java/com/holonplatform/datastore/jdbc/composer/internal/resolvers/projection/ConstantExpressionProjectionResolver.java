@@ -20,7 +20,7 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.query.ConstantExpressionProjection;
+import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLLiteral;
@@ -30,14 +30,14 @@ import com.holonplatform.datastore.jdbc.composer.internal.converters.TypedExpres
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
 /**
- * {@link ConstantExpressionProjection} resolver.
+ * {@link ConstantExpression} projection resolver.
  *
  * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 1000)
 public enum ConstantExpressionProjectionResolver
-		implements SQLContextExpressionResolver<ConstantExpressionProjection, SQLProjection> {
+		implements SQLContextExpressionResolver<ConstantExpression, SQLProjection> {
 
 	/**
 	 * Singleton instance
@@ -49,8 +49,8 @@ public enum ConstantExpressionProjectionResolver
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends ConstantExpressionProjection> getExpressionType() {
-		return ConstantExpressionProjection.class;
+	public Class<? extends ConstantExpression> getExpressionType() {
+		return ConstantExpression.class;
 	}
 
 	/*
@@ -70,17 +70,15 @@ public enum ConstantExpressionProjectionResolver
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Optional<SQLProjection> resolve(ConstantExpressionProjection expression, SQLCompositionContext context)
+	public Optional<SQLProjection> resolve(ConstantExpression expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
 		expression.validate();
 
 		// resolve as literal
-		final String sql = context.resolveOrFail(
-				SQLLiteral.create(expression.getValue(),
-						((ConstantExpressionProjection<?>) expression).getTemporalType().orElse(null)),
-				SQLExpression.class).getValue();
+		final String sql = context.resolveOrFail(SQLLiteral.create(expression.getValue(),
+				((ConstantExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class).getValue();
 
 		// build projection
 		MutableSQLProjection<?> projection = SQLProjection.create((Class<?>) expression.getType(), context);

@@ -19,21 +19,21 @@ import java.util.Optional;
 
 import javax.annotation.Priority;
 
+import com.holonplatform.core.CollectionConstantExpression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.query.CollectionExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLLiteral;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLExpressionResolver;
 
 /**
- * {@link CollectionExpression} resolver.
+ * {@link CollectionConstantExpression} resolver.
  *
  * @since 5.1.0
  */
 @SuppressWarnings("rawtypes")
 @Priority(Integer.MAX_VALUE - 100)
-public enum CollectionExpressionResolver implements SQLExpressionResolver<CollectionExpression> {
+public enum CollectionExpressionResolver implements SQLExpressionResolver<CollectionConstantExpression> {
 
 	/**
 	 * Singleton instance.
@@ -45,8 +45,8 @@ public enum CollectionExpressionResolver implements SQLExpressionResolver<Collec
 	 * @see com.holonplatform.core.ExpressionResolver#getExpressionType()
 	 */
 	@Override
-	public Class<? extends CollectionExpression> getExpressionType() {
-		return CollectionExpression.class;
+	public Class<? extends CollectionConstantExpression> getExpressionType() {
+		return CollectionConstantExpression.class;
 	}
 
 	/*
@@ -56,7 +56,7 @@ public enum CollectionExpressionResolver implements SQLExpressionResolver<Collec
 	 * Expression, com.holonplatform.datastore.jdbc.composer.SQLCompositionContext)
 	 */
 	@Override
-	public Optional<SQLExpression> resolve(CollectionExpression expression, SQLCompositionContext context)
+	public Optional<SQLExpression> resolve(CollectionConstantExpression expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
 
 		// validate
@@ -64,6 +64,6 @@ public enum CollectionExpressionResolver implements SQLExpressionResolver<Collec
 
 		// resolve as Literal
 		return context.resolve(SQLLiteral.create(expression.getModelValue(),
-				((CollectionExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class);
+				((CollectionConstantExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class);
 	}
 }

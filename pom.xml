@@ -1,15 +1,18 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.holon-platform</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.0.11</version>
+		<version>1.0.12</version>
 	</parent>
 
 	<groupId>com.holon-platform.jdbc</groupId>
 	<artifactId>holon-datastore-jdbc-root</artifactId>
-	<version>5.1.4-SNAPSHOT</version>
+	<version>5.2.0-SNAPSHOT</version>
+
 	<packaging>pom</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -58,18 +61,18 @@
 		<bintray.package>holon-datastore-jdbc</bintray.package>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.1.2</holon.core.version>
+		<holon.core.version>5.2.0-SNAPSHOT</holon.core.version>
+
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.1.4</holon.jdbc.version>
+		<holon.jdbc.version>5.2.0-SNAPSHOT</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
 		<bytebuddy.version>1.8.12</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
 		<hikaricp.version>3.2.0</hikaricp.version>
-		
+
 		<!-- Test JPA bean processors -->
-		
 		<holon.jpa.version>5.1.1</holon.jpa.version>
 
 		<!-- Test/dialects databases -->

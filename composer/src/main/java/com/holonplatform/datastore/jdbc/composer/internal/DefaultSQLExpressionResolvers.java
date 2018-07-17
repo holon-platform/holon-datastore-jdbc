@@ -36,11 +36,11 @@ import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLParameter
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLParameterizableExpressionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLQueryClausesResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLQueryResolver;
+import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLTokenResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLWhereFilterResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SubQueryResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.VisitableQueryFilterResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.VisitableQuerySortResolver;
-import com.holonplatform.datastore.jdbc.composer.internal.resolvers.SQLTokenResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DataTargetResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DefaultQueryFunctionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.intermediate.DeleteOperationConfigurationResolver;
@@ -54,6 +54,7 @@ import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.C
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.CountAllProjectionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.PropertySetProjectionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.QueryProjectionResolver;
+import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.SelectAllProjectionResolver;
 import com.holonplatform.datastore.jdbc.composer.internal.resolvers.projection.TypedExpressionProjectionResolver;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
@@ -107,6 +108,7 @@ public class DefaultSQLExpressionResolvers {
 		expressionResolvers.add(PropertySetProjectionResolver.INSTANCE);
 		expressionResolvers.add(BeanProjectionResolver.INSTANCE);
 		expressionResolvers.add(CountAllProjectionResolver.INSTANCE);
+		expressionResolvers.add(SelectAllProjectionResolver.INSTANCE);
 	}
 
 	/**

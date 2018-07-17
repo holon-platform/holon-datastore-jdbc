@@ -60,9 +60,21 @@ public enum SQLQueryClausesResolver implements SQLExpressionResolver<SQLQueryDef
 		final StringBuilder query = new StringBuilder();
 
 		query.append("SELECT ");
+
+		if (expression.isDistinct()) {
+			query.append("DISTINCT ");
+		}
+
 		query.append(expression.getSelect());
 		query.append(" FROM ");
 		query.append(expression.getFrom());
+
+		expression.getLockMode().ifPresent(lockMode -> {
+			context.getDialect().getLockHint(lockMode, expression.getLockTimeout().orElse(-1L)).ifPresent(lock -> {
+				query.append(" ");
+				query.append(lock.trim());
+			});
+		});
 
 		expression.getWhere().ifPresent(c -> {
 			query.append(" WHERE ");
@@ -77,6 +89,14 @@ public enum SQLQueryClausesResolver implements SQLExpressionResolver<SQLQueryDef
 		expression.getOrderBy().ifPresent(c -> {
 			query.append(" ORDER BY ");
 			query.append(c);
+		});
+
+		// lock
+		expression.getLockMode().ifPresent(lockMode -> {
+			context.getDialect().getLockClause(lockMode, expression.getLockTimeout().orElse(-1L)).ifPresent(lock -> {
+				query.append(" ");
+				query.append(lock.trim());
+			});
 		});
 
 		return Optional.of(SQLExpression.create(query.toString()));

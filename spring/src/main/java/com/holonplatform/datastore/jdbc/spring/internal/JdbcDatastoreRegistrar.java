@@ -35,6 +35,7 @@ import com.holonplatform.core.internal.Logger;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
+import com.holonplatform.datastore.jdbc.internal.DefaultJdbcDatastore;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.spring.EnableJdbcDatastore;
 import com.holonplatform.datastore.jdbc.spring.JdbcDatastoreConfigProperties;
@@ -191,8 +192,8 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 		definition.setDataContextId(dataContextId);
 
 		final Class<?> datastoreClass = transactional
-				? addTransactionalAnnotations(DefaultSpringJdbcDatastore.class, dataContextId, beanClassLoader)
-				: DefaultSpringJdbcDatastore.class;
+				? addTransactionalAnnotations(DefaultJdbcDatastore.class, dataContextId, beanClassLoader)
+				: DefaultJdbcDatastore.class;
 
 		definition.setBeanClass(datastoreClass);
 
@@ -208,6 +209,7 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 				EnableJdbcDatastore.DEFAULT_DATASTORE_BEAN_NAME);
 
 		MutablePropertyValues pvs = new MutablePropertyValues();
+		pvs.add("initializationClassLoader", beanClassLoader);
 		pvs.add("dataSource", new RuntimeBeanReference(datasourceBeanName));
 		pvs.add("identifierResolutionStrategy", identifierResolutionStrategy);
 		pvs.add("connectionHandler", SpringJdbcConnectionHandler.create());
@@ -239,6 +241,9 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 		}
 
 		definition.setPropertyValues(pvs);
+
+		// init method
+		definition.setInitMethodName("initialize");
 
 		registry.registerBeanDefinition(beanName, definition);
 

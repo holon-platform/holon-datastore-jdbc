@@ -24,12 +24,16 @@ import java.util.Optional;
 import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLParameter;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.ReaderToStringParameterResolver;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
 
@@ -103,6 +107,34 @@ public class PostgreSQLDialect implements SQLDialect {
 	@Override
 	public boolean generatedKeyAlwaysReturned() {
 		return generatedKeyAlwaysReturned;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#getLockClause(com.holonplatform.core.query.lock.LockMode,
+	 * long)
+	 */
+	@Override
+	public Optional<String> getLockClause(LockMode mode, long timeout) {
+		if (timeout == 0) {
+			return Optional.of("FOR UPDATE NOWAIT");
+		}
+		return Optional.of("FOR UPDATE");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#translateException(java.sql.SQLException)
+	 */
+	@Override
+	public DataAccessException translateException(SQLException exception) {
+		// check lock acquisition exception
+		final String sqlState = SQLExceptionHelper.getSqlState(exception).orElse(null);
+		if ("40P01".equals(sqlState) || "55P03".equals(sqlState)) {
+			return new LockAcquisitionException("Failed to acquire lock", exception);
+		}
+		return SQLDialect.super.translateException(exception);
 	}
 
 	/*

@@ -18,9 +18,8 @@ package com.holonplatform.datastore.jdbc.test.expression;
 import java.util.Arrays;
 import java.util.List;
 
+import com.holonplatform.core.ConstantConverterExpression;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.query.ConstantExpression;
-import com.holonplatform.core.query.QueryExpression;
 import com.holonplatform.core.query.QueryFunction;
 
 public class IfNullFunction<T> implements QueryFunction<T, T> {
@@ -34,8 +33,8 @@ public class IfNullFunction<T> implements QueryFunction<T, T> {
 		this.fallbackValue = fallbackValue;
 	}
 
-	public IfNullFunction(QueryExpression<T> nullableValue, T fallbackValue) {
-		this(nullableValue, ConstantExpression.create(fallbackValue));
+	public IfNullFunction(TypedExpression<T> nullableValue, T fallbackValue) {
+		this(nullableValue, ConstantConverterExpression.create(fallbackValue, nullableValue.getType()));
 	}
 
 	@Override

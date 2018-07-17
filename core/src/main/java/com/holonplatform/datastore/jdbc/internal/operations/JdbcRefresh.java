@@ -17,9 +17,9 @@ package com.holonplatform.datastore.jdbc.internal.operations;
 
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.RefreshOperation;
+import com.holonplatform.core.datastore.operation.Refresh;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.datastore.operation.AbstractRefreshOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractRefresh;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.Query;
@@ -31,25 +31,25 @@ import com.holonplatform.datastore.jdbc.internal.support.DialectPathMatcher;
 import com.holonplatform.datastore.jdbc.internal.support.JdbcOperationUtils;
 
 /**
- * JDBC {@link RefreshOperation}.
+ * JDBC {@link Refresh}.
  *
  * @since 5.1.0
  */
-public class JdbcRefresh extends AbstractRefreshOperation {
+public class JdbcRefresh extends AbstractRefresh {
 
 	private static final long serialVersionUID = 1202760170834449222L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, RefreshOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, RefreshOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Refresh> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Refresh>() {
 
 		@Override
-		public Class<? extends RefreshOperation> getCommodityType() {
-			return RefreshOperation.class;
+		public Class<? extends Refresh> getCommodityType() {
+			return Refresh.class;
 		}
 
 		@Override
-		public RefreshOperation createCommodity(JdbcDatastoreCommodityContext context)
+		public Refresh createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new JdbcRefresh(context);
 		}

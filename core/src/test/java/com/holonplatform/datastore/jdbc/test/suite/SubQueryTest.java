@@ -43,7 +43,7 @@ public class SubQueryTest extends AbstractJdbcDatastoreSuiteTest {
 				.filter(KEY.nin(SubQuery.create(TEST3_CODE).target(TEST3).filter(TEST3_CODE.isNotNull()))).count();
 		assertEquals(1, count);
 
-		final PathProperty<Long> T_KEY = KEY.clone().parent(NAMED_TARGET);
+		final PathProperty<Long> T_KEY = KEY.clone(b -> b.parent(NAMED_TARGET));
 
 		count = getDatastore().query().target(NAMED_TARGET)
 				.filter(SubQuery.create().target(TEST3).filter(TEST3_CODE.eq(T_KEY)).exists()).count();

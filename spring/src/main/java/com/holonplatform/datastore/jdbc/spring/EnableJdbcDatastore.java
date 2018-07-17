@@ -34,6 +34,7 @@ import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.spring.internal.JdbcDatastoreRegistrar;
 import com.holonplatform.jdbc.DatabasePlatform;
+import com.holonplatform.spring.EnableDatastoreConfiguration;
 import com.holonplatform.spring.PrimaryMode;
 
 /**
@@ -48,6 +49,7 @@ import com.holonplatform.spring.PrimaryMode;
 @Documented
 @Inherited
 @Import(JdbcDatastoreRegistrar.class)
+@EnableDatastoreConfiguration
 public @interface EnableJdbcDatastore {
 
 	/**
@@ -57,7 +59,7 @@ public @interface EnableJdbcDatastore {
 
 	/**
 	 * Optional data context id to use to discriminate Datastores when more than one persistence source is configured,
-	 * i.e. when multiple DataSources and JPA persistence units are configured in context.
+	 * i.e. when multiple DataSources are configured in context.
 	 * <p>
 	 * The configured data context id will be returned by the {@link DataContextBound#getDataContextId()} method of the
 	 * registered {@link Datastore}.

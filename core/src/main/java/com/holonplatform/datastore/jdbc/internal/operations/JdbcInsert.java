@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import com.holonplatform.core.ConstantConverterExpression;
 import com.holonplatform.core.Path;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
@@ -27,12 +28,10 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.DefaultWriteOption;
-import com.holonplatform.core.datastore.operation.InsertOperation;
-import com.holonplatform.core.datastore.operation.InsertOperationConfiguration;
-import com.holonplatform.core.internal.datastore.operation.AbstractInsertOperation;
+import com.holonplatform.core.datastore.operation.Insert;
+import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
+import com.holonplatform.core.internal.datastore.operation.common.InsertOperationConfiguration;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
-import com.holonplatform.core.property.Property;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
@@ -42,25 +41,25 @@ import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 import com.holonplatform.datastore.jdbc.internal.support.DialectPathMatcher;
 
 /**
- * JDBC {@link InsertOperation}.
+ * JDBC {@link Insert}.
  *
  * @since 5.1.0
  */
-public class JdbcInsert extends AbstractInsertOperation {
+public class JdbcInsert extends AbstractInsert {
 
 	private static final long serialVersionUID = -3547948214277724242L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, InsertOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, InsertOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Insert> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Insert>() {
 
 		@Override
-		public Class<? extends InsertOperation> getCommodityType() {
-			return InsertOperation.class;
+		public Class<? extends Insert> getCommodityType() {
+			return Insert.class;
 		}
 
 		@Override
-		public InsertOperation createCommodity(JdbcDatastoreCommodityContext context)
+		public Insert createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new JdbcInsert(context);
 		}
@@ -155,17 +154,14 @@ public class JdbcInsert extends AbstractInsertOperation {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void setBackGeneratedKey(SQLExecutionContext context, PathPropertyBoxAdapter adapter, Path keyPath,
+	private void setBackGeneratedKey(SQLExecutionContext context, PathPropertyBoxAdapter adapter, Path<?> keyPath,
 			Object keyValue) throws SQLException {
-		if (keyValue != null) {
-			Optional<Property> property = adapter.getProperty(keyPath);
-			if (property.isPresent()) {
-				final TypedExpression valueExpression = (property.get() instanceof TypedExpression)
-						? (TypedExpression) property.get()
-						: ConstantExpression.create(keyValue);
-				adapter.setValue(keyPath,
-						operationContext.getValueDeserializer().deserialize(context, valueExpression, keyValue));
-			}
+		if (keyValue != null && adapter.contains(keyPath)) {
+			final TypedExpression valueExpression = adapter.getProperty(keyPath).map(p -> (TypedExpression) p)
+					.orElse(ConstantConverterExpression.create(keyValue));
+			adapter.setValue((Path) keyPath,
+					operationContext.getValueDeserializer().deserialize(context, valueExpression, keyValue));
+
 		}
 	}
 

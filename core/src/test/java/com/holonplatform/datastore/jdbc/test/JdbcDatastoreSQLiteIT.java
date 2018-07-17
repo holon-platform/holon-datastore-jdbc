@@ -34,7 +34,7 @@ public class JdbcDatastoreSQLiteIT extends AbstractJdbcDatastoreTestSuiteIT {
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).withCommodity(DatabasePlatformCommodity.FACTORY)
 				.withExpressionResolver(KeyIsFilter.RESOLVER).traceEnabled(true).build();
-		
+
 		rightJoinTest = false;
 		updateAliasTest = false;
 

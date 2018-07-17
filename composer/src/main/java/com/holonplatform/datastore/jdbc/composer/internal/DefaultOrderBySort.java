@@ -13,9 +13,9 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.holonplatform.datastore.jdbc.internal;
+package com.holonplatform.datastore.jdbc.composer.internal;
 
-import com.holonplatform.datastore.jdbc.OrderBySort;
+import com.holonplatform.datastore.jdbc.composer.OrderBySort;
 
 /**
  * Default {@link OrderBySort} implementation.

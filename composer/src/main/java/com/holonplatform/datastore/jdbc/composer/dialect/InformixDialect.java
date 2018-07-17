@@ -20,9 +20,12 @@ import java.sql.SQLException;
 import java.util.Locale;
 import java.util.Optional;
 
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 
 /**
  * Informix {@link SQLDialect}.
@@ -101,6 +104,20 @@ public class InformixDialect implements SQLDialect {
 	@Override
 	public String getColumnName(String columnName) {
 		return (columnName != null) ? columnName.toUpperCase() : null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#translateException(java.sql.SQLException)
+	 */
+	@Override
+	public DataAccessException translateException(SQLException exception) {
+		// check lock acquisition exception
+		final int errorCode = SQLExceptionHelper.getErrorCode(exception);
+		if (errorCode == -143 || errorCode == -154) {
+			return new LockAcquisitionException("Failed to acquire lock", exception);
+		}
+		return SQLDialect.super.translateException(exception);
 	}
 
 	/*

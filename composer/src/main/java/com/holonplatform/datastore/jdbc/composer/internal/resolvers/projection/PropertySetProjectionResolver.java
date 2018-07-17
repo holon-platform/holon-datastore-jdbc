@@ -26,6 +26,7 @@ import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.property.Property;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.PropertySetProjection;
+import com.holonplatform.core.query.QueryProjection;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLExpression;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLProjection;
@@ -87,12 +88,11 @@ public enum PropertySetProjectionResolver
 		final Map<String, TypedExpression<?>> selectionExpressions = new LinkedHashMap<>();
 
 		for (Property<?> property : expression.getPropertySet()) {
-			if (TypedExpression.class.isAssignableFrom(property.getClass())) {
-				final TypedExpression<?> propertyExpression = (TypedExpression<?>) property;
+			if (QueryProjection.class.isAssignableFrom(property.getClass())) {
 				final String alias = projection
-						.addSelection(context.resolveOrFail(propertyExpression, SQLExpression.class).getValue());
+						.addSelection(context.resolveOrFail(property, SQLExpression.class).getValue());
 				selectionProperties.put(alias, property);
-				selectionExpressions.put(alias, propertyExpression);
+				selectionExpressions.put(alias, property);
 			}
 		}
 

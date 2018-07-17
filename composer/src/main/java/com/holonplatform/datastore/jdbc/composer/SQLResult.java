@@ -18,8 +18,8 @@ package com.holonplatform.datastore.jdbc.composer;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import com.holonplatform.core.ConstantConverterExpression;
 import com.holonplatform.core.TypedExpression;
-import com.holonplatform.core.query.ConstantExpression;
 
 /**
  * Represents the result of a SQL operation, with methods to provide the result values.
@@ -102,7 +102,7 @@ public interface SQLResult {
 	@SuppressWarnings("unchecked")
 	default <T> T getValue(SQLExecutionContext context, String name) throws SQLException {
 		final Object value = getValue(name);
-		return (T) context.getValueDeserializer().deserialize(context, ConstantExpression.create(value), value);
+		return (T) context.getValueDeserializer().deserialize(context, ConstantConverterExpression.create(value), value);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public interface SQLResult {
 	@SuppressWarnings("unchecked")
 	default <T> T getValue(SQLExecutionContext context, int index) throws SQLException {
 		final Object value = getValue(index);
-		return (T) context.getValueDeserializer().deserialize(context, ConstantExpression.create(value), value);
+		return (T) context.getValueDeserializer().deserialize(context, ConstantConverterExpression.create(value), value);
 	}
 
 }

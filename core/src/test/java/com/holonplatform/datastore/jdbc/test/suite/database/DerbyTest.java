@@ -33,7 +33,7 @@ import com.holonplatform.jdbc.DatabasePlatform;
 public class DerbyTest extends AbstractDatabaseSuiteTest {
 
 	@Override
-	protected DatabasePlatform getDatabasePlatform() {
+	protected DatabasePlatform forDatabasePlatform() {
 		return DatabasePlatform.DERBY;
 	}
 

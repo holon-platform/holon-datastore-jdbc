@@ -24,6 +24,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -34,8 +39,10 @@ import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.beans.BeanDatastore;
 import com.holonplatform.core.datastore.beans.BeanDatastore.BeanOperationResult;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.query.lock.LockQuery;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunction;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionExpression;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionResolver;
@@ -50,7 +57,7 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
 
 	@Override
-	protected DatabasePlatform getDatabasePlatform() {
+	protected DatabasePlatform forDatabasePlatform() {
 		return DatabasePlatform.H2;
 	}
 
@@ -145,13 +152,50 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 			});
 		});
 	}
-	
+
 	@Test
 	public void testExpressionContext() {
-		List<Long> res = getDatastore().query().withExpressionResolver(new MyEqualPredicateResolver()).target(NAMED_TARGET)
-				.filter(new MyEqualPredicate<>(STR, "Two")).list(KEY);
+		List<Long> res = getDatastore().query().withExpressionResolver(new MyEqualPredicateResolver())
+				.target(NAMED_TARGET).filter(new MyEqualPredicate<>(STR, "Two")).list(KEY);
 		assertEquals(1, res.size());
 		assertEquals(Long.valueOf(2L), res.get(0));
+	}
+
+	@Test
+	public void testLockException() {
+		test(datastore -> {
+			inTransaction(() -> {
+				// try lock
+				Long key = datastore.create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L)).lock()
+						.findOne(KEY).orElse(null);
+				assertNotNull(key);
+
+				// try lock different thread
+				ExecutorService es = Executors.newSingleThreadExecutor();
+
+				final Future<Long> locked = es.submit(() -> {
+					return inTransaction(() -> {
+						return datastore.create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L)).lock()
+								.findOne(KEY).orElse(null);
+					});
+				});
+
+				try {
+					locked.get();
+				} catch (InterruptedException | ExecutionException fe) {
+					assertNotNull(fe.getCause());
+					assertTrue(fe.getCause() instanceof LockAcquisitionException);
+				}
+
+				es.shutdown();
+				try {
+					es.awaitTermination(30, TimeUnit.SECONDS);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+
+			});
+		});
 	}
 
 	public static final class Test2 {

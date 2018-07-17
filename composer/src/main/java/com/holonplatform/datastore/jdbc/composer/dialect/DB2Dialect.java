@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
@@ -31,6 +33,7 @@ import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.SQLType;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.ReaderToStringParameterResolver;
 
@@ -154,6 +157,24 @@ public class DB2Dialect implements SQLDialect {
 	@Override
 	public String getColumnName(String columnName) {
 		return (columnName != null) ? columnName.toUpperCase() : null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#translateException(java.sql.SQLException)
+	 */
+	@Override
+	public DataAccessException translateException(SQLException exception) {
+		// check lock acquisition exception
+		final int errorCode = SQLExceptionHelper.getErrorCode(exception);
+		if (errorCode == -952) {
+			return new LockAcquisitionException("Failed to acquire lock", exception);
+		}
+		final String sqlState = SQLExceptionHelper.getSqlState(exception).orElse(null);
+		if ("57014".equals(sqlState)) {
+			return new LockAcquisitionException("Failed to acquire lock", exception);
+		}
+		return SQLDialect.super.translateException(exception);
 	}
 
 	/*

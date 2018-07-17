@@ -20,12 +20,15 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.exceptions.DataAccessException;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 
 /**
@@ -127,6 +130,20 @@ public class H2Dialect implements SQLDialect {
 	@Override
 	public String getColumnName(String columnName) {
 		return (columnName != null) ? columnName.toUpperCase() : null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#translateException(java.sql.SQLException)
+	 */
+	@Override
+	public DataAccessException translateException(SQLException exception) {
+		// check lock acquisition exception
+		int errorCode = SQLExceptionHelper.getErrorCode(exception);
+		if (errorCode == 40001 || errorCode == 50200) {
+			return new LockAcquisitionException("Failed to acquire lock", exception);
+		}
+		return SQLDialect.super.translateException(exception);
 	}
 
 	// -------

@@ -21,10 +21,10 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
-import com.holonplatform.core.datastore.operation.UpdateOperation;
-import com.holonplatform.core.datastore.operation.UpdateOperationConfiguration;
+import com.holonplatform.core.datastore.operation.Update;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.datastore.operation.AbstractUpdateOperation;
+import com.holonplatform.core.internal.datastore.operation.AbstractUpdate;
+import com.holonplatform.core.internal.datastore.operation.common.UpdateOperationConfiguration;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLStatement;
@@ -33,25 +33,25 @@ import com.holonplatform.datastore.jdbc.context.JdbcOperationContext;
 import com.holonplatform.datastore.jdbc.internal.support.JdbcOperationUtils;
 
 /**
- * JDBC {@link UpdateOperation}.
+ * JDBC {@link Update}.
  *
  * @since 5.1.0
  */
-public class JdbcUpdate extends AbstractUpdateOperation {
+public class JdbcUpdate extends AbstractUpdate {
 
 	private static final long serialVersionUID = 7143507117624707335L;
 
 	// Commodity factory
 	@SuppressWarnings("serial")
-	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, UpdateOperation> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, UpdateOperation>() {
+	public static final DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Update> FACTORY = new DatastoreCommodityFactory<JdbcDatastoreCommodityContext, Update>() {
 
 		@Override
-		public Class<? extends UpdateOperation> getCommodityType() {
-			return UpdateOperation.class;
+		public Class<? extends Update> getCommodityType() {
+			return Update.class;
 		}
 
 		@Override
-		public UpdateOperation createCommodity(JdbcDatastoreCommodityContext context)
+		public Update createCommodity(JdbcDatastoreCommodityContext context)
 				throws CommodityConfigurationException {
 			return new JdbcUpdate(context);
 		}

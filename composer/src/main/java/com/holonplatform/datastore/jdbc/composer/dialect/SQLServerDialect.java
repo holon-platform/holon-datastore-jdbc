@@ -20,7 +20,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.Logger;
+import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.core.query.TemporalFunction.CurrentDate;
@@ -29,11 +31,13 @@ import com.holonplatform.core.query.TemporalFunction.Day;
 import com.holonplatform.core.query.TemporalFunction.Hour;
 import com.holonplatform.core.query.TemporalFunction.Month;
 import com.holonplatform.core.query.TemporalFunction.Year;
+import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.SQLComposerLogger;
+import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 
 /**
@@ -149,6 +153,48 @@ public class SQLServerDialect implements SQLDialect {
 	@Override
 	public boolean deleteStatementTargetRequired() {
 		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#getLockClause(com.holonplatform.core.query.lock.LockMode,
+	 * long)
+	 */
+	@Override
+	public Optional<String> getLockClause(LockMode mode, long timeout) {
+		return Optional.empty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#getLockHint(com.holonplatform.core.query.lock.LockMode,
+	 * long)
+	 */
+	@Override
+	public Optional<String> getLockHint(LockMode mode, long timeout) {
+		if (timeout == 0) {
+			return Optional.of("WITH (UPDLOCK, HOLDLOCK, ROWLOCK, NOWAIT)");
+		}
+		return Optional.of("WITH (UPDLOCK, HOLDLOCK, ROWLOCK)");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#translateException(java.sql.SQLException)
+	 */
+	@Override
+	public DataAccessException translateException(SQLException exception) {
+		// check lock acquisition exception
+		final int errorCode = SQLExceptionHelper.getErrorCode(exception);
+		if (errorCode == 1222) {
+			return new LockAcquisitionException("Failed to acquire lock", exception);
+		}
+		final String sqlState = SQLExceptionHelper.getSqlState(exception).orElse(null);
+		if ("HY008".equals(sqlState)) {
+			return new LockAcquisitionException("Failed to acquire lock", exception);
+		}
+		return SQLDialect.super.translateException(exception);
 	}
 
 	/*

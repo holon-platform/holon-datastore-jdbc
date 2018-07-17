@@ -1,4 +1,4 @@
-create table test1 (
+create table if not exists test1 (
 	 keycode bigint primary key 
 	,strv varchar(100) 
 	,decv double 
@@ -16,23 +16,23 @@ create table test1 (
 	,blb blob
 );
 
-create table test2 (
+create table if not exists test2 (
 	 code bigint primary key auto_increment
 	,text varchar(100) not null
 );
 
-create table test3 (
+create table if not exists test3 (
 	 code bigint not null primary key
 	,text varchar(100) not null
 );
 
-create table test_recur (
+create table if not exists test_recur (
 	 code bigint primary key auto_increment
 	,name varchar(100) not null
 	,parent varchar(100)
 );
 
-create table test_nopk (
+create table if not exists test_nopk (
 	nmb numeric(10),
 	txt varchar(10)
 )

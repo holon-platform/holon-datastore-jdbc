@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Priority;
 
+import com.holonplatform.core.ConstantConverterExpression;
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.TypedExpression;
@@ -41,7 +42,6 @@ import com.holonplatform.core.internal.query.filter.NullFilter;
 import com.holonplatform.core.internal.query.filter.OperationQueryFilter;
 import com.holonplatform.core.internal.query.filter.OrFilter;
 import com.holonplatform.core.internal.query.filter.StringMatchFilter;
-import com.holonplatform.core.query.ConstantExpression;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.core.query.StringFunction.Lower;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
@@ -211,10 +211,10 @@ public enum VisitableQueryFilterResolver implements SQLExpressionResolver<Visita
 		StringBuilder sb = new StringBuilder();
 		sb.append(serialize(filter.getLeftOperand(), context));
 		sb.append(" BETWEEN ");
-		sb.append(serialize(SQLParameterizableExpression.create(ConstantExpression.create(filter.getFromValue())),
+		sb.append(serialize(SQLParameterizableExpression.create(ConstantConverterExpression.create(filter.getFromValue())),
 				context));
 		sb.append(" AND ");
-		sb.append(serialize(SQLParameterizableExpression.create(ConstantExpression.create(filter.getToValue())),
+		sb.append(serialize(SQLParameterizableExpression.create(ConstantConverterExpression.create(filter.getToValue())),
 				context));
 		return SQLExpression.create(sb.toString());
 	}
@@ -268,7 +268,7 @@ public enum VisitableQueryFilterResolver implements SQLExpressionResolver<Visita
 
 		sb.append(" LIKE ");
 		sb.append(context
-				.resolveOrFail(SQLParameterizableExpression.create(ConstantExpression.create(value, String.class)),
+				.resolveOrFail(SQLParameterizableExpression.create(ConstantConverterExpression.create(value, String.class)),
 						SQLExpression.class)
 				.getValue());
 
