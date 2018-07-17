@@ -38,7 +38,7 @@ import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
-import com.holonplatform.datastore.jdbc.spring.test.config.TestCommodity;
+import com.holonplatform.datastore.jdbc.spring.boot.test.config.TestCommodity;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest

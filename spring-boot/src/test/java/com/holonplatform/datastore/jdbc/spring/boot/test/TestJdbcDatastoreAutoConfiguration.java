@@ -28,7 +28,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.holonplatform.core.datastore.Datastore;
-import com.holonplatform.datastore.jdbc.spring.test.init.KeyIsResolver;
+import com.holonplatform.datastore.jdbc.spring.boot.test.config.KeyIsResolver;
 import com.holonplatform.datastore.jdbc.test.config.DatabasePlatformCommodity;
 import com.holonplatform.datastore.jdbc.test.suite.AbstractJdbcDatastoreTestSuite;
 

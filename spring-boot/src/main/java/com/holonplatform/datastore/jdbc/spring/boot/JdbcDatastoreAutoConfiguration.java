@@ -26,6 +26,7 @@ import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
 import com.holonplatform.datastore.jdbc.spring.boot.internal.JdbcDatastoreAutoConfigurationRegistrar;
 import com.holonplatform.jdbc.spring.boot.DataSourcesAutoConfiguration;
+import com.holonplatform.spring.EnableDatastoreConfiguration;
 
 /**
  * Spring boot auto-configuration to enable JDBC {@link Datastore} beans.
@@ -42,6 +43,7 @@ public class JdbcDatastoreAutoConfiguration {
 	 */
 	@Configuration
 	@ConditionalOnMissingBean(JdbcDatastore.class)
+	@EnableDatastoreConfiguration
 	@Import(JdbcDatastoreAutoConfigurationRegistrar.class)
 	static class JdbcDatastoreConfiguration {
 
