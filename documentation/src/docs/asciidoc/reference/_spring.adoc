@@ -22,7 +22,7 @@ This way, the JDBC `Datastore` API can be seamlessly used along with the Spring 
 [[EnableJdbcDatastore]]
 === JDBC Datastore configuration
 
-The link:{apidir}/com/holonplatform/datastore/jdbc/spring/EnableDataSource.html[EnableJdbcDatastore^] 
+The link:{apidir}/com/holonplatform/datastore/jdbc/spring/EnableJdbcDatastore.html[EnableJdbcDatastore^] 
 annotation can be used on Spring configuration classes to enable automatic JDBC Datastore beans configuration.
 
 NOTE: By default, the JDBC Datastore bean name configured with the `@EnableJdbcDatastore` annotation will be `jdbcDatastore`.
@@ -188,7 +188,7 @@ The configuration property prefix is `holon.datastore` and the following propert
 |The fully qualified class name of the _SQL Dialect_ to use. See <<Dialect>>.
 |===
 
-*2. An additional set of properties*, provided by the link:{apidir}/com/holonplatform/jdbc/spring/JdbcDatastoreConfigProperties.html[JdbcDatastoreConfigProperties^] property set, which can be used as an alternative for the `@EnableJdbcDatastore` annotation attributes described in the previous sections.
+*2. An additional set of properties*, provided by the link:{apidir}/com/holonplatform/datastore/jdbc/spring/JdbcDatastoreConfigProperties.html[JdbcDatastoreConfigProperties^] property set, which can be used as an alternative for the `@EnableJdbcDatastore` annotation attributes described in the previous sections.
 
 .JDBC Datastore configuration properties
 |===

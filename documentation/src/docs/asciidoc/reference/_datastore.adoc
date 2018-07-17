@@ -16,7 +16,7 @@ The link:{apidir}/com/holonplatform/datastore/jdbc/JdbcDatastore.html[JdbcDatast
 The `JdbcDatastore` API, besides the standard `Datastore` API operations, provides methods to:
 
 * Create and configure a `JdbcDatastore` API instance, using the provided _builder_.
-* Directly working with `JdbcDatastore` managed _connections_, represented by the standard JDBC connection interface (`java.sql.Connection`). See <<JdbcDatastoreAPI>>.
+* Directly working with `JdbcDatastore` managed _connections_, represented by the standard JDBC connection interface (`java.sql.Connection`). See <<JdbcDatastoreAPI,JdbcDatastore API>>.
 
 IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core `Datastore` API interface should be used instead of the specific `JdbcDatastore` API by your application code. This way, the concrete `Datastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
 
@@ -52,7 +52,7 @@ The JDBC Datastore builder API extends the core `Datastore` builder API, which p
 
 |`dataContextId`
 |The _data context id_ `String` value
-|Set the _data context id_ to which the Datastore is bound. Can be used, for example, to declare configuration properties for multiple Datastore instances. See the link:holon-core#DatastoreDataContextId[Multiple Datastores configuration^] documentation section.
+|Set the _data context id_ to which the Datastore is bound. Can be used, for example, to declare configuration properties for multiple Datastore instances.
 
 |`traceEnabled`
 |`true` or `false`
@@ -60,7 +60,7 @@ The JDBC Datastore builder API extends the core `Datastore` builder API, which p
 
 |`configuration`
 |A `DatastoreConfigProperties` instance
-|Set the `DatastoreConfigProperties` type configuration property set instance to use in order to read the Datastore configuration properties. See the link:holon-core#DatastoreConfiguration[Datastore configuration^] documentation section for details. This configuration properties can be used as an alternative for the programmatic configuration performed with the previous builder methods. 
+|Set the `DatastoreConfigProperties` type configuration property set instance to use in order to read the Datastore configuration properties. See the link:holon-core.html#DatastoreConfiguration[Datastore configuration^] documentation section for details. This configuration properties can be used as an alternative for the programmatic configuration performed with the previous builder methods. 
 |===
 
 Example of base JDBC Datastore configuration:
@@ -89,6 +89,7 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 ----
 <1> Use the `datastore.properties` file as configuration property source
 
+[[DataSourceConfiguration]]
 ==== `DataSource` configuration
 
 The JDBC Datastore implementation relies on the `javax.sql.DataSource` API to access the concrete data store using JDBC, and the `DataSource` instance to be used must be provided at JDBC Datastore configuration time.
@@ -107,7 +108,7 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 
 *2. Indirect:*
 
-A `DataSource` instance can be otained using the link:holon-jdbc.html[Holon Platform JDBC module] `DataSource` configuration facilities through a set of configuration properties, represented by the link:{jdbcapidir}/com/holonplatform/jdbc/DataSourceConfigProperties.html[DataSourceConfigProperties^] property set.
+A `DataSource` instance can be otained using the link:holon-jdbc.html[Holon Platform JDBC module^] `DataSource` configuration facilities through a set of configuration properties, represented by the link:{jdbcapidir}/com/holonplatform/jdbc/DataSourceConfigProperties.html[DataSourceConfigProperties^] property set.
 
 NOTE: See the link:holon-jdbc.html#DataSourceConfigProperties[JDBC module DataSource configuration properties^] documentation to learn about the available `DataSource` configuration properties.
 
@@ -289,6 +290,7 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 ----
 <1> Set the identifier resolution strategy to `TABLE_PRIMARY_KEY`
 
+[[JDBCConnectionHandler]]
 ==== JDBC connection handler
 
 The JDBC Datastore builder allows to configure the JDBC connection lifecycle through the link:{jdbcapidir}/com/holonplatform/jdbc/JdbcConnectionHandler.html[JdbcConnectionHandler^] API. 
@@ -437,13 +439,13 @@ As link:holon-core.html#RelationalDatastores[relational Datastore^], the JDBC `D
 
 *1. Sub-query:*
 
-The link:{apidir}/com/holonplatform/core/datastore/relational/SubQuery.html[SubQuery^] interface can be used to represent a _sub-query_,  which can be used in a query definition to express query restrictions (filters) that involve a sub-query as filter operand.
+The link:{coreapidir}/com/holonplatform/core/datastore/relational/SubQuery.html[SubQuery^] interface can be used to represent a _sub-query_,  which can be used in a query definition to express query restrictions (filters) that involve a sub-query as filter operand.
 
 See the core link:holon-core.html#subquery[sub query expression documentation^] for further information on sub query expressions.
 
 *2. Alias and Joins:*
 
-The link:{apidir}/com/holonplatform/core/datastore/relational/RelationalTarget.html[RelationalTarget^] interface can be used to declare *alias* and *joins* for a `DataTarget` expression.
+The link:{coreapidir}/com/holonplatform/core/datastore/relational/RelationalTarget.html[RelationalTarget^] interface can be used to declare *alias* and *joins* for a `DataTarget` expression.
 
 See the core link:holon-core.html#joins[alias and joins documentation^] for further information on alias and join expressions.
 
@@ -720,7 +722,7 @@ include::{examplesdir}/com/holonplatform/datastore/jdbc/examples/ExampleJdbcData
 
 The JDBC `Datastore` API supports _Datastore commodities_ registration using the link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityFactory.html[JdbcDatastoreCommodityFactory^] type.
 
-NOTE: See the link:holon-core.html#DatastoreCommodities[Datastore commodities definition and registration] documentation section to learn how the _Datastore commodity_ architecture can be used to provide extensions to the default `Datastore` API.
+NOTE: See the link:holon-core.html#DatastoreCommodities[Datastore commodities definition and registration^] documentation section to learn how the _Datastore commodity_ architecture can be used to provide extensions to the default `Datastore` API.
 
 The `JdbcDatastoreCommodityFactory` type provides a specialized  link:{apidir}/com/holonplatform/datastore/jdbc/config/JdbcDatastoreCommodityContext.html[JdbcDatastoreCommodityContext^] API as Datastore commodity context, to make available a set of JDBC `Datastore` specific configuration attributes and references, for example:
 

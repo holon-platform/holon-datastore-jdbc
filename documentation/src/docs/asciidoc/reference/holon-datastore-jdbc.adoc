@@ -17,9 +17,9 @@ _Copies of this document may be made for your own use and for distribution to ot
 
 == Introduction
 
-The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:../../api/holon-core/com/holonplatform/core/datastore/Datastore.html[Datastore^] API. 
+The Holon *JDBC Datastore* is the _Java DataBase Connectivity_ reference implementation of the link:{coreapidir}/com/holonplatform/core/datastore/Datastore.html[Datastore^] API. 
 
-TIP: See the link:holon-core.html#Datastore[Datastore] documentation for further information about the Datastore `API`.
+TIP: See the link:holon-core.html#Datastore[Datastore^] documentation for further information about the Datastore `API`.
 
 The JDBC `Datastore` implementation uses the Java `javax.sql.DataSource` API to access the the physical data source and the _SQL_ language to perform data access and management operations.
 
@@ -127,7 +127,7 @@ The logger name for the *JDBC Datastore* module is `com.holonplatform.datastore.
 
 === Java
 
-The Holon Platform JDBC Datastore module requires https://www.java.com[Java] *8* or higher.
+The Holon Platform JDBC Datastore module requires https://www.java.com[Java^] *8* or higher.
 
 === JDBC Drivers
 
