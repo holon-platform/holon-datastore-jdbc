@@ -104,7 +104,8 @@ public enum InsertOperationConfigurationResolver
 
 		pathValues.forEach((path, pathExpression) -> {
 			paths.add(operationContext.resolveOrFail(path, SQLExpression.class).getValue());
-			values.add(operationContext.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
+			values.add(operationContext
+					.resolveOrFail(SQLParameterizableExpression.create(pathExpression), SQLExpression.class)
 					.getValue());
 		});
 

@@ -79,7 +79,7 @@ public enum TypedExpressionProjectionResolver implements SQLContextExpressionRes
 
 		// build projection
 		MutableSQLProjection<?> projection = SQLProjection.create((Class<?>) expression.getType(), context);
-		
+
 		// set selection and converter
 		projection.setConverter(new TypedExpressionSQLResultConverter<>(expression, projection.addSelection(sql)));
 

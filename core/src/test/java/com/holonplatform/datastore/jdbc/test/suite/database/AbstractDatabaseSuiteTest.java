@@ -24,13 +24,13 @@ import com.holonplatform.jdbc.DatabasePlatform;
 public abstract class AbstractDatabaseSuiteTest extends AbstractJdbcDatastoreSuiteTest {
 
 	protected abstract DatabasePlatform forDatabasePlatform();
-	
+
 	protected boolean isDatabase(DatabasePlatform platform) {
 		ObjectUtils.argumentNotNull(platform, "DatabasePlatform must be not null");
 		return getDatastore().create(DatabasePlatformCommodity.class).getDatabase()
 				.orElseThrow(() -> new IllegalStateException("Database platform not available")) == platform;
 	}
-	
+
 	protected void test(TestOperation operation) {
 		final DatabasePlatform platform = forDatabasePlatform();
 		if (isDatabase(platform)) {
@@ -44,7 +44,7 @@ public abstract class AbstractDatabaseSuiteTest extends AbstractJdbcDatastoreSui
 			LOGGER.info("< Skip test operation for database: " + platform);
 		}
 	}
-	
+
 	@FunctionalInterface
 	protected interface TestOperation {
 

@@ -27,14 +27,14 @@ public class TestSampleData {
 
 	public static final Date DATE1;
 	public static final LocalDate LDATE1 = LocalDate.of(2018, Month.FEBRUARY, 7);
-	
+
 	public static final Date DATETIME1;
 	public static final LocalDateTime LDATETIME1 = LocalDateTime.of(2018, Month.FEBRUARY, 7, 16, 30, 15);
-	
+
 	public static final LocalTime LTIME1 = LocalTime.of(18, 45, 30);
-	
+
 	public static final BigDecimal BD1 = BigDecimal.valueOf(145678.7632d);
-	
+
 	static {
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.YEAR, 2018);
@@ -45,7 +45,7 @@ public class TestSampleData {
 		c.set(Calendar.SECOND, 0);
 		c.set(Calendar.MILLISECOND, 0);
 		DATE1 = c.getTime();
-		
+
 		c = Calendar.getInstance();
 		c.set(Calendar.YEAR, 2018);
 		c.set(Calendar.MONTH, 1);
@@ -56,5 +56,5 @@ public class TestSampleData {
 		c.set(Calendar.MILLISECOND, 0);
 		DATETIME1 = c.getTime();
 	}
-	
+
 }

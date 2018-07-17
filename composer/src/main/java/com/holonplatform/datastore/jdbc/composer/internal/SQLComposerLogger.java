@@ -37,5 +37,5 @@ public interface SQLComposerLogger {
 	static Logger create() {
 		return Logger.create(NAME);
 	}
-	
+
 }

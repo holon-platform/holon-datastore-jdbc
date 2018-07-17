@@ -36,5 +36,4 @@ public class TestDatastoreDialectCommodityFactory implements JdbcDatastoreCommod
 		return DatabasePlatformCommodity.class;
 	}
 
-
 }

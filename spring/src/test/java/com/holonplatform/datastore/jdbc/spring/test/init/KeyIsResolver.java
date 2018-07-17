@@ -28,7 +28,7 @@ import com.holonplatform.spring.DatastoreResolver;
 public class KeyIsResolver implements QueryFilterResolver<KeyIsFilter> {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
 
 	@Override

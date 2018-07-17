@@ -33,8 +33,9 @@ public class StrKeySort implements QuerySort {
 
 	public static final ExpressionResolver<QuerySort, QuerySort> RESOLVER = ExpressionResolver.create(StrKeySort.class,
 			QuerySort.class, (sort, ctx) -> Optional.of(STR.desc().and(KEY.asc())));
-	
-	public static final ExpressionResolver<QuerySort, SQLExpression> SQL_RESOLVER = ExpressionResolver.create(StrKeySort.class,
-			SQLExpression.class, (sort, ctx) -> Optional.of(SQLExpression.create("strv desc, keycode asc")));
+
+	public static final ExpressionResolver<QuerySort, SQLExpression> SQL_RESOLVER = ExpressionResolver.create(
+			StrKeySort.class, SQLExpression.class,
+			(sort, ctx) -> Optional.of(SQLExpression.create("strv desc, keycode asc")));
 
 }

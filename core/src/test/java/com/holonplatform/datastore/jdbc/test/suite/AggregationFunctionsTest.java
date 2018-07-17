@@ -32,15 +32,15 @@ public class AggregationFunctionsTest extends AbstractJdbcDatastoreSuiteTest {
 
 	@Test
 	public void testCount() {
-		
+
 		long result = getDatastore().query().target(NAMED_TARGET).findOne(Count.create(STR)).orElse(-1L);
 		assertEquals(2, result);
-		
+
 		result = getDatastore().query().target(NAMED_TARGET).findOne(KEY.count()).orElse(-1L);
 		assertEquals(2, result);
-		
+
 	}
-	
+
 	@Test
 	public void testMinMax() {
 		Optional<Long> key = getDatastore().query().target(NAMED_TARGET).findOne(KEY.max());
@@ -51,19 +51,19 @@ public class AggregationFunctionsTest extends AbstractJdbcDatastoreSuiteTest {
 		assertTrue(key.isPresent());
 		assertEquals(new Long(1), key.get());
 	}
-	
+
 	@Test
 	public void testSum() {
 		Optional<Long> sum = getDatastore().query().target(NAMED_TARGET).findOne(QueryFunction.sum(KEY));
 		assertTrue(sum.isPresent());
 		assertEquals(new Long(3), sum.get());
 	}
-	
+
 	@Test
 	public void testAvg() {
 		Optional<Double> avg = getDatastore().query().target(NAMED_TARGET).findOne(KEY.avg());
 		assertTrue(avg.isPresent());
 		assertEquals(new Double(1.5), avg.get());
 	}
-	
+
 }

@@ -44,7 +44,7 @@ public abstract class AbstractJdbcDatastoreSuiteTest {
 			return operation.call();
 		});
 	}
-	
+
 	protected DatabasePlatform getDatabasePlatform() {
 		return getDatastore().create(DatabasePlatformCommodity.class).getDatabase()
 				.orElseThrow(() -> new IllegalStateException("Database platform not available"));

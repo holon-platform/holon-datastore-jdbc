@@ -166,8 +166,8 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 		test(datastore -> {
 			inTransaction(() -> {
 				// try lock
-				Long key = datastore.create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L)).lock()
-						.findOne(KEY).orElse(null);
+				Long key = datastore.create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L)).lock().findOne(KEY)
+						.orElse(null);
 				assertNotNull(key);
 
 				// try lock different thread

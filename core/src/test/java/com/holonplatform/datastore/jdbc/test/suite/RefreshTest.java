@@ -44,7 +44,7 @@ public class RefreshTest extends AbstractJdbcDatastoreSuiteTest {
 		assertNotNull(refreshed);
 		assertEquals(Long.valueOf(1), refreshed.getValue(KEY));
 	}
-	
+
 	@Test
 	public void testRefreshVirtual() {
 		PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES_V)

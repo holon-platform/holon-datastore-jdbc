@@ -60,8 +60,7 @@ public class JdbcSave extends AbstractSave {
 		}
 
 		@Override
-		public Save createCommodity(JdbcDatastoreCommodityContext context)
-				throws CommodityConfigurationException {
+		public Save createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
 			return new JdbcSave(context);
 		}
 	};
@@ -145,8 +144,8 @@ public class JdbcSave extends AbstractSave {
 	 * @return Operation result
 	 */
 	private OperationResult insert(PropertyBoxOperationConfiguration configuration) {
-		return operationContext.create(Insert.class).target(configuration.getTarget())
-				.value(configuration.getValue()).withWriteOptions(configuration.getWriteOptions()).execute();
+		return operationContext.create(Insert.class).target(configuration.getTarget()).value(configuration.getValue())
+				.withWriteOptions(configuration.getWriteOptions()).execute();
 	}
 
 	/**
@@ -155,8 +154,8 @@ public class JdbcSave extends AbstractSave {
 	 * @return Operation result
 	 */
 	private OperationResult update(PropertyBoxOperationConfiguration configuration) {
-		return operationContext.create(Update.class).target(configuration.getTarget())
-				.value(configuration.getValue()).withWriteOptions(configuration.getWriteOptions()).execute();
+		return operationContext.create(Update.class).target(configuration.getTarget()).value(configuration.getValue())
+				.withWriteOptions(configuration.getWriteOptions()).execute();
 	}
 
 }

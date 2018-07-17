@@ -102,7 +102,8 @@ public interface SQLResult {
 	@SuppressWarnings("unchecked")
 	default <T> T getValue(SQLExecutionContext context, String name) throws SQLException {
 		final Object value = getValue(name);
-		return (T) context.getValueDeserializer().deserialize(context, ConstantConverterExpression.create(value), value);
+		return (T) context.getValueDeserializer().deserialize(context, ConstantConverterExpression.create(value),
+				value);
 	}
 
 	/**
@@ -117,7 +118,8 @@ public interface SQLResult {
 	@SuppressWarnings("unchecked")
 	default <T> T getValue(SQLExecutionContext context, int index) throws SQLException {
 		final Object value = getValue(index);
-		return (T) context.getValueDeserializer().deserialize(context, ConstantConverterExpression.create(value), value);
+		return (T) context.getValueDeserializer().deserialize(context, ConstantConverterExpression.create(value),
+				value);
 	}
 
 }

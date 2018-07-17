@@ -22,7 +22,7 @@ import com.holonplatform.core.query.QuerySort;
 public class MySort implements QuerySort {
 
 	private final PathProperty<String> property;
-	
+
 	public MySort(PathProperty<String> property) {
 		super();
 		this.property = property;
@@ -33,6 +33,7 @@ public class MySort implements QuerySort {
 	}
 
 	@Override
-	public void validate() throws InvalidExpressionException {}
+	public void validate() throws InvalidExpressionException {
+	}
 
 }

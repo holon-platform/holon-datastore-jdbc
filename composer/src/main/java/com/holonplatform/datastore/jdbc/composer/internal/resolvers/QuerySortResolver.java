@@ -56,7 +56,7 @@ public enum QuerySortResolver implements SQLExpressionResolver<QuerySort> {
 	@Override
 	public Optional<SQLExpression> resolve(QuerySort expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
-		
+
 		// validate
 		expression.validate();
 
@@ -65,7 +65,7 @@ public enum QuerySortResolver implements SQLExpressionResolver<QuerySort> {
 			// resolve as SQLExpression
 			return context.resolve(filter, SQLExpression.class);
 		});
-		
+
 	}
 
 }

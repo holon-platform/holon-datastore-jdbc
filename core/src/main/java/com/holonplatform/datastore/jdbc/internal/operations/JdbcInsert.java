@@ -59,8 +59,7 @@ public class JdbcInsert extends AbstractInsert {
 		}
 
 		@Override
-		public Insert createCommodity(JdbcDatastoreCommodityContext context)
-				throws CommodityConfigurationException {
+		public Insert createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
 			return new JdbcInsert(context);
 		}
 	};

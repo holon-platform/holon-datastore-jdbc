@@ -211,11 +211,12 @@ public enum VisitableQueryFilterResolver implements SQLExpressionResolver<Visita
 		StringBuilder sb = new StringBuilder();
 		sb.append(serialize(filter.getLeftOperand(), context));
 		sb.append(" BETWEEN ");
-		sb.append(serialize(SQLParameterizableExpression.create(ConstantConverterExpression.create(filter.getFromValue())),
+		sb.append(serialize(
+				SQLParameterizableExpression.create(ConstantConverterExpression.create(filter.getFromValue())),
 				context));
 		sb.append(" AND ");
-		sb.append(serialize(SQLParameterizableExpression.create(ConstantConverterExpression.create(filter.getToValue())),
-				context));
+		sb.append(serialize(
+				SQLParameterizableExpression.create(ConstantConverterExpression.create(filter.getToValue())), context));
 		return SQLExpression.create(sb.toString());
 	}
 
@@ -267,10 +268,9 @@ public enum VisitableQueryFilterResolver implements SQLExpressionResolver<Visita
 		sb.append(path);
 
 		sb.append(" LIKE ");
-		sb.append(context
-				.resolveOrFail(SQLParameterizableExpression.create(ConstantConverterExpression.create(value, String.class)),
-						SQLExpression.class)
-				.getValue());
+		sb.append(context.resolveOrFail(
+				SQLParameterizableExpression.create(ConstantConverterExpression.create(value, String.class)),
+				SQLExpression.class).getValue());
 
 		if (escape) {
 			sb.append(" ESCAPE '!'");

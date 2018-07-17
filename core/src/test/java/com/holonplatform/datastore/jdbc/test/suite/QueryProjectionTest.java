@@ -238,15 +238,15 @@ public class QueryProjectionTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testSelectAll() {
 		Map<String, Object> result = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L))
 				.findOne(SelectAllProjection.create()).orElse(null);
-		
+
 		assertNotNull(result);
-		
+
 		assertEquals(15, result.size());
-		
+
 		final Set<String> keys = result.keySet().stream().map(v -> v.toLowerCase()).collect(Collectors.toSet());
 		assertTrue(keys.contains("keycode"));
 		assertTrue(keys.contains("strv"));
-		
+
 		Object value = result.get("strv");
 		if (value == null) {
 			value = result.get("strv".toUpperCase());

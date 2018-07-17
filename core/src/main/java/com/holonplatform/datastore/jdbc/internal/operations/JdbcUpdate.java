@@ -51,8 +51,7 @@ public class JdbcUpdate extends AbstractUpdate {
 		}
 
 		@Override
-		public Update createCommodity(JdbcDatastoreCommodityContext context)
-				throws CommodityConfigurationException {
+		public Update createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
 			return new JdbcUpdate(context);
 		}
 	};

@@ -39,7 +39,7 @@ public class HSQLTest extends AbstractDatabaseSuiteTest {
 	private final static PathProperty<String> TEXT = PathProperty.create("text", String.class);
 
 	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
- 
+
 	@Test
 	public void testAutoIncrement() {
 		test(datastore -> {

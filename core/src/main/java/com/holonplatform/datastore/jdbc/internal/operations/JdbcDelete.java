@@ -51,8 +51,7 @@ public class JdbcDelete extends AbstractDelete {
 		}
 
 		@Override
-		public Delete createCommodity(JdbcDatastoreCommodityContext context)
-				throws CommodityConfigurationException {
+		public Delete createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
 			return new JdbcDelete(context);
 		}
 	};

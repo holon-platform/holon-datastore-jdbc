@@ -30,8 +30,8 @@ public interface ConnectionOperation<R> {
 	/**
 	 * Execute an operation using a managed JDBC {@link Connection} and returns a result.
 	 * <p>
-	 * The {@link Connection} lifecycle should be managed by the connection provider, so the connection
-	 * should not be closed from whithin the connection operation method.
+	 * The {@link Connection} lifecycle should be managed by the connection provider, so the connection should not be
+	 * closed from whithin the connection operation method.
 	 * </p>
 	 * @param connection The JDBC Connection
 	 * @return Operation result

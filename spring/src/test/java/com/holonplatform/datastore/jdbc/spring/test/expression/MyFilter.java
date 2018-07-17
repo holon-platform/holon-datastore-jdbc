@@ -22,7 +22,7 @@ import com.holonplatform.core.query.QueryFilter;
 public class MyFilter implements QueryFilter {
 
 	private final PathProperty<String> property;
-	
+
 	public MyFilter(PathProperty<String> property) {
 		super();
 		this.property = property;
@@ -33,6 +33,7 @@ public class MyFilter implements QueryFilter {
 	}
 
 	@Override
-	public void validate() throws InvalidExpressionException {}
+	public void validate() throws InvalidExpressionException {
+	}
 
 }

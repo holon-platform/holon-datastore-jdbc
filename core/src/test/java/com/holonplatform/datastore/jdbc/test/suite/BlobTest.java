@@ -146,7 +146,7 @@ public class BlobTest extends AbstractJdbcDatastoreSuiteTest {
 		inTransaction(() -> {
 
 			final File file = new File(getClass().getClassLoader().getResource("testfile.txt").getFile());
-			
+
 			try (FileInputStream fis = new FileInputStream(file)) {
 
 				PropertyBox value = PropertyBox.builder(BLOB_SET_IST).set(KEY, 77L).set(STR, "Test clob")

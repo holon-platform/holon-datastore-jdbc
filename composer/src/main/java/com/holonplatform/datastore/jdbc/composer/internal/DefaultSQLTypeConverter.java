@@ -188,7 +188,7 @@ public enum DefaultSQLTypeConverter implements SQLTypeConverter {
 		if (javaType == byte[].class) {
 			return Optional.of(SQLType.create(Types.BINARY));
 		}
-		
+
 		if (InputStream.class.isAssignableFrom(javaType)) {
 			return Optional.of(SQLType.create(Types.BINARY));
 		}
@@ -212,7 +212,7 @@ public enum DefaultSQLTypeConverter implements SQLTypeConverter {
 		if (java.sql.Timestamp.class.isAssignableFrom(javaType)) {
 			return Optional.of(SQLType.create(Types.TIMESTAMP));
 		}
-		
+
 		if (java.sql.Clob.class.isAssignableFrom(javaType)) {
 			return Optional.of(SQLType.create(Types.CLOB));
 		}

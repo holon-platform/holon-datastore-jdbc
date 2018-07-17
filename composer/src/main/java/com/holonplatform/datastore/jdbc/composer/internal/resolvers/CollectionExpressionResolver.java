@@ -63,7 +63,9 @@ public enum CollectionExpressionResolver implements SQLExpressionResolver<Collec
 		expression.validate();
 
 		// resolve as Literal
-		return context.resolve(SQLLiteral.create(expression.getModelValue(),
-				((CollectionConstantExpression<?>) expression).getTemporalType().orElse(null)), SQLExpression.class);
+		return context.resolve(
+				SQLLiteral.create(expression.getModelValue(),
+						((CollectionConstantExpression<?>) expression).getTemporalType().orElse(null)),
+				SQLExpression.class);
 	}
 }

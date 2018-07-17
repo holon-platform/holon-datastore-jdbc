@@ -24,7 +24,7 @@ public class TestProjectionBean implements Serializable {
 	private static final long serialVersionUID = 7323766007354763956L;
 
 	private long keycode;
-	
+
 	@DataPath("strv")
 	private String text;
 

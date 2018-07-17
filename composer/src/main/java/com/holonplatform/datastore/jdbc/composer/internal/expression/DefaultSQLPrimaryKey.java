@@ -58,7 +58,8 @@ public class DefaultSQLPrimaryKey implements SQLPrimaryKey {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

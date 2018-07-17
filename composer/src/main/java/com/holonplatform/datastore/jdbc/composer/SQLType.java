@@ -34,13 +34,13 @@ public interface SQLType extends Serializable {
 	 * @see Types
 	 */
 	int getType();
-	
+
 	/**
 	 * Get the optional type name.
 	 * @return optional type name
 	 */
 	Optional<String> getName();
-	
+
 	/**
 	 * Create a new {@link SQLType}.
 	 * @param type Type id
@@ -49,7 +49,7 @@ public interface SQLType extends Serializable {
 	static SQLType create(int type) {
 		return new DefaultSQLType(type, null);
 	}
-	
+
 	/**
 	 * Create a new {@link SQLType}.
 	 * @param type Type id
@@ -59,5 +59,5 @@ public interface SQLType extends Serializable {
 	static SQLType create(int type, String name) {
 		return new DefaultSQLType(type, name);
 	}
-	
+
 }

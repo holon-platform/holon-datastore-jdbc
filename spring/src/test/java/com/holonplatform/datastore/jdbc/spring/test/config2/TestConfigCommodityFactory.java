@@ -25,15 +25,19 @@ public class TestConfigCommodityFactory implements JdbcDatastoreCommodityFactory
 
 	private static final long serialVersionUID = 1L;
 
-	/* (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.DatastoreCommodityFactory#createCommodity(com.holonplatform.core.datastore.DatastoreCommodityContext)
+	/*
+	 * (non-Javadoc)
+	 * @see com.holonplatform.core.datastore.DatastoreCommodityFactory#createCommodity(com.holonplatform.core.datastore.
+	 * DatastoreCommodityContext)
 	 */
 	@Override
-	public TestConfigCommodity createCommodity(JdbcDatastoreCommodityContext ctx) throws CommodityConfigurationException {
+	public TestConfigCommodity createCommodity(JdbcDatastoreCommodityContext ctx)
+			throws CommodityConfigurationException {
 		return new TestConfigCommodity(ctx.getDatabase().orElse(null));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.DatastoreCommodityFactory#getCommodityType()
 	 */
 	@Override

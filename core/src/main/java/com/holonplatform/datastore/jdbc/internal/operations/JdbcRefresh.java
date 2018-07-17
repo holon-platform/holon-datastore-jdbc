@@ -49,8 +49,7 @@ public class JdbcRefresh extends AbstractRefresh {
 		}
 
 		@Override
-		public Refresh createCommodity(JdbcDatastoreCommodityContext context)
-				throws CommodityConfigurationException {
+		public Refresh createCommodity(JdbcDatastoreCommodityContext context) throws CommodityConfigurationException {
 			return new JdbcRefresh(context);
 		}
 	};

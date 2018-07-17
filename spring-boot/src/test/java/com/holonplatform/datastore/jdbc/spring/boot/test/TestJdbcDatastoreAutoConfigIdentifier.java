@@ -46,7 +46,7 @@ import com.holonplatform.datastore.jdbc.spring.test.config.TestCommodity;
 public class TestJdbcDatastoreAutoConfigIdentifier {
 
 	@Configuration
-	@ComponentScan(basePackageClasses=TestCommodity.class)
+	@ComponentScan(basePackageClasses = TestCommodity.class)
 	@EnableAutoConfiguration
 	protected static class Config {
 

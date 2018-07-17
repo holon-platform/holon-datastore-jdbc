@@ -38,9 +38,8 @@ public class OracleTest extends AbstractDatabaseSuiteTest {
 			boolean succeded = getDatastore().create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L))
 					.tryLock(2500);
 			assertTrue(succeded);
-			
-			succeded = getDatastore().create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L))
-					.tryLock(700);
+
+			succeded = getDatastore().create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L)).tryLock(700);
 			assertTrue(succeded);
 		});
 

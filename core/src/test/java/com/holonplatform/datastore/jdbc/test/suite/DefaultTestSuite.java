@@ -17,11 +17,11 @@ package com.holonplatform.datastore.jdbc.test.suite;
 
 public final class DefaultTestSuite {
 
-	public static final Class<?>[] DEFAULT_SUITE = { QueryProjectionTest.class, QueryFilterTest.class, QuerySortTest.class, QueryAggregationTest.class,
-			QueryRestrictionsTest.class, QueryJoinsTest.class, SubQueryTest.class, RefreshTest.class, InsertTest.class,
-			UpdateTest.class, SaveTest.class, DeleteTest.class, ClobTest.class, BlobTest.class, BulkInsertTest.class,
-			BulkUpdateTest.class, BulkDeleteTest.class, BulkUpdateAliasTest.class, BulkDeleteAliasTest.class,
-			AggregationFunctionsTest.class, StringFunctionsTest.class, TemporalFunctionsTest.class,
-			DataTargetResolverTest.class };
-	
+	public static final Class<?>[] DEFAULT_SUITE = { QueryProjectionTest.class, QueryFilterTest.class,
+			QuerySortTest.class, QueryAggregationTest.class, QueryRestrictionsTest.class, QueryJoinsTest.class,
+			SubQueryTest.class, RefreshTest.class, InsertTest.class, UpdateTest.class, SaveTest.class, DeleteTest.class,
+			ClobTest.class, BlobTest.class, BulkInsertTest.class, BulkUpdateTest.class, BulkDeleteTest.class,
+			BulkUpdateAliasTest.class, BulkDeleteAliasTest.class, AggregationFunctionsTest.class,
+			StringFunctionsTest.class, TemporalFunctionsTest.class, DataTargetResolverTest.class };
+
 }

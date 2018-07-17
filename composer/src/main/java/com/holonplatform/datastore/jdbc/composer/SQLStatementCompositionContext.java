@@ -96,10 +96,11 @@ public interface SQLStatementCompositionContext extends SQLCompositionContext {
 	 * @param aliasMode Alias handling mode (not null)
 	 * @return A new {@link SQLStatementCompositionContext}
 	 */
-	static SQLStatementCompositionContext create(SQLContext context, RelationalTarget<?> rootTarget, AliasMode aliasMode) {
+	static SQLStatementCompositionContext create(SQLContext context, RelationalTarget<?> rootTarget,
+			AliasMode aliasMode) {
 		return new DefaultSQLStatementCompositionContext(context, rootTarget, aliasMode);
 	}
-	
+
 	/**
 	 * Create a new {@link SQLStatementCompositionContext} as a child of given {@link SQLCompositionContext}.
 	 * @param parent Parent context (not null)
@@ -107,7 +108,8 @@ public interface SQLStatementCompositionContext extends SQLCompositionContext {
 	 * @param aliasMode Alias handling mode (not null)
 	 * @return A new {@link SQLStatementCompositionContext}
 	 */
-	static SQLStatementCompositionContext asChild(SQLCompositionContext parent, RelationalTarget<?> rootTarget, AliasMode aliasMode) {
+	static SQLStatementCompositionContext asChild(SQLCompositionContext parent, RelationalTarget<?> rootTarget,
+			AliasMode aliasMode) {
 		return new DefaultSQLStatementCompositionContext(parent, rootTarget, aliasMode);
 	}
 

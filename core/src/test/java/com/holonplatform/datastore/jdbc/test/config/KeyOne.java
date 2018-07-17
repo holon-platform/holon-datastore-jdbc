@@ -21,6 +21,7 @@ import com.holonplatform.core.query.QueryFilter;
 public class KeyOne implements QueryFilter {
 
 	@Override
-	public void validate() throws InvalidExpressionException {}
+	public void validate() throws InvalidExpressionException {
+	}
 
 }

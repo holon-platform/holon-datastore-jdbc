@@ -112,7 +112,8 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 
 		// check converter
 		final ExpressionValueConverter<?, ?> converter = (expression instanceof ConverterExpression)
-				? ((ConverterExpression<?>) expression).getExpressionValueConverter().orElse(null) : null;
+				? ((ConverterExpression<?>) expression).getExpressionValueConverter().orElse(null)
+				: null;
 
 		// actual type to deserialize
 		Class<?> targetType = (converter != null) ? converter.getModelType() : expression.getType();

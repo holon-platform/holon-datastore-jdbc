@@ -50,12 +50,12 @@ public class TestTransactional {
 
 	@Configuration
 	@PropertySource("testtx.properties")
-	@EnableDataSource(enableTransactionManager = true, dataContextId="tx")
-	@EnableJdbcDatastore(dataContextId="tx")
+	@EnableDataSource(enableTransactionManager = true, dataContextId = "tx")
+	@EnableJdbcDatastore(dataContextId = "tx")
 	protected static class Config {
 
 	}
-	
+
 	@Autowired
 	private JdbcDatastore datastore;
 

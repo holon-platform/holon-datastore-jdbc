@@ -187,7 +187,7 @@ public class TransactionalUT {
 		Assert.assertEquals(1L, count);
 
 		final Transaction tx = datastore.getTransaction();
-		
+
 		PropertyBox box = PropertyBox.builder(CODE, TEXT).set(CODE, 2L).set(TEXT, "Two").build();
 		datastore.insert(TARGET, box);
 

@@ -22,7 +22,7 @@ import com.holonplatform.jdbc.DatabasePlatform;
 public class TestConfigCommodity implements DatastoreCommodity {
 
 	private final DatabasePlatform platform;
-	
+
 	public TestConfigCommodity(DatabasePlatform platform) {
 		super();
 		this.platform = platform;
@@ -31,5 +31,5 @@ public class TestConfigCommodity implements DatastoreCommodity {
 	public DatabasePlatform getPlatform() {
 		return platform;
 	}
-	
+
 }

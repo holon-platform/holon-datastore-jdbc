@@ -21,7 +21,7 @@ import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 public interface TestCommodity extends DatastoreCommodity {
 
 	IdentifierResolutionStrategy getIdentifierResolutionStrategy();
-	
+
 	void test();
 
 }

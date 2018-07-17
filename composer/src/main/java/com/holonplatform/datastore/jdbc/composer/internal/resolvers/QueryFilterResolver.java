@@ -56,16 +56,16 @@ public enum QueryFilterResolver implements SQLExpressionResolver<QueryFilter> {
 	@Override
 	public Optional<SQLExpression> resolve(QueryFilter expression, SQLCompositionContext context)
 			throws InvalidExpressionException {
-		
+
 		// validate
 		expression.validate();
-		
+
 		// intermediate resolution
 		return context.resolve(expression, QueryFilter.class).flatMap(filter -> {
 			// resolve as SQLExpression
 			return context.resolve(filter, SQLExpression.class);
 		});
-		
+
 	}
 
 }
