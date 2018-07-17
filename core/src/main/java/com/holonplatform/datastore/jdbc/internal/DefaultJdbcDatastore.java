@@ -234,7 +234,7 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 	/**
 	 * Set the {@link JdbcTransactionFactory} to use to create a new JDBC transaction.
-	 * @param transactionProvider the transaction factory to set (not null)
+	 * @param transactionFactory the transaction factory to set (not null)
 	 */
 	public void setTransactionFactory(JdbcTransactionFactory transactionFactory) {
 		ObjectUtils.argumentNotNull(transactionFactory, "JdbcTransactionFactory must be not null");
@@ -361,6 +361,7 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	/**
 	 * Execute given <code>operation</code> with a JDBC {@link Connection} handled by current
 	 * {@link JdbcConnectionHandler} and return the operation result.
+	 * @param <R> Result type
 	 * @param connectionType The connection type (not null)
 	 * @param operation The operation to execute (not null)
 	 * @return Operation result
@@ -594,7 +595,7 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	/**
 	 * Finalize the given transaction.
 	 * @param tx Transaction to finalize
-	 * @throws TransactionException
+	 * @throws TransactionException Error finalizing transaction
 	 */
 	protected void endTransaction(JdbcTransaction tx) throws TransactionException {
 		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");

@@ -71,6 +71,7 @@ public interface JdbcTransaction extends Transaction {
 	 * @param configuration Transaction configuration (not null)
 	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
 	 *        transaction is committed or rollbacked)
+	 * @return A new {@link JdbcTransaction} implementation
 	 */
 	static JdbcTransaction create(Connection connection, TransactionConfiguration configuration,
 			boolean endTransactionWhenCompleted) {
