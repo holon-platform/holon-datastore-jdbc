@@ -11,4 +11,6 @@ INSERT INTO test_recur (name, parent) VALUES ('test3', 'test2');
 INSERT INTO test_nopk (nmb, txt) VALUES (1, 'First');
 INSERT INTO test_nopk (nmb, txt) VALUES (2, 'Second');
 
+INSERT INTO test_alias (code, zip) VALUES (1, 'Test1');
+
 commit;

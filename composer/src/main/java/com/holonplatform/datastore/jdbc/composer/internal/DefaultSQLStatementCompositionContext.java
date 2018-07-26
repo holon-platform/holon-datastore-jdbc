@@ -42,7 +42,7 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 	/**
 	 * Legal alias characters
 	 */
-	private static final String ALIAS_CHARS = "abcdefghijklmnopqrstuvwxyw0123456789_";
+	private static final String ALIAS_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_";
 
 	/**
 	 * Statement context sequence
@@ -215,7 +215,7 @@ public class DefaultSQLStatementCompositionContext extends DefaultSQLComposition
 		// sanitize prefix chars
 		char[] sanitized = new char[pa.length];
 		for (int i = 0; i < pa.length; i++) {
-			sanitized[i] = (ALIAS_CHARS.indexOf(pa[i]) > -1) ? pa[i] : '_';
+			sanitized[i] = (ALIAS_CHARS.indexOf(pa[i]) > -1) ? pa[i] : ((i == 0) ? 'x' : '_');
 		}
 
 		sb.append(sanitized);

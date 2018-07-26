@@ -35,5 +35,10 @@ create table test_recur (
 create table test_nopk (
 	nmb numeric(10),
 	txt varchar(10)
-)
+);
+
+create table test_alias (
+	 code bigint not null primary key
+	,zip varchar(100) not null
+);
 

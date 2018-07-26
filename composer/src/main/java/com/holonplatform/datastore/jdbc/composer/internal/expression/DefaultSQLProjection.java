@@ -44,7 +44,7 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 	/**
 	 * Allowed SQL-safe alias characters
 	 */
-	private static final String ALIAS_CHARS = "abcdefghijklmnopqrstuvwxyw0123456789_";
+	private static final String ALIAS_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_";
 
 	/**
 	 * Projection type
@@ -229,7 +229,8 @@ public class DefaultSQLProjection<R> implements MutableSQLProjection<R> {
 		char[] pa = prefix.toCharArray();
 		char[] sanitized = new char[pa.length];
 		for (int i = 0; i < pa.length; i++) {
-			sanitized[i] = (ALIAS_CHARS.indexOf(pa[i]) > -1) ? pa[i] : '_';
+			// Underscore as first character is not supported by all RDBMS
+			sanitized[i] = (ALIAS_CHARS.indexOf(pa[i]) > -1) ? pa[i] : ((i == 0) ? 'x' : '_');
 		}
 
 		sb.append(sanitized);

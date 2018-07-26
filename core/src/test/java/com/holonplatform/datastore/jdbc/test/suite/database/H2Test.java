@@ -42,6 +42,7 @@ import com.holonplatform.core.datastore.beans.BeanDatastore.BeanOperationResult;
 import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.core.query.lock.LockQuery;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunction;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionExpression;
@@ -55,6 +56,11 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 	private final static PathProperty<Long> CODE = PathProperty.create("code", long.class);
 	private final static PathProperty<String> TEXT = PathProperty.create("text", String.class);
 	private final static DataTarget<String> TEST2 = DataTarget.named("test2");
+
+	private final static PathProperty<Long> A_CODE = PathProperty.create("code", long.class);
+	private final static PathProperty<String> A_ZIP = PathProperty.create("zip", String.class);
+	private final static PropertySet<?> A_SET = PropertySet.of(A_CODE, A_ZIP);
+	private final static DataTarget<?> A_TARGET = DataTarget.named("test_alias");
 
 	@Override
 	protected DatabasePlatform forDatabasePlatform() {
@@ -196,6 +202,13 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 
 			});
 		});
+	}
+
+	@Test
+	public void testAlias() {
+		PropertyBox value = getDatastore().query(A_TARGET).filter(A_CODE.eq(1L)).findOne(A_SET).orElse(null);
+		assertNotNull(value);
+		assertEquals("Test1", value.getValue(A_ZIP));
 	}
 
 	public static final class Test2 {
