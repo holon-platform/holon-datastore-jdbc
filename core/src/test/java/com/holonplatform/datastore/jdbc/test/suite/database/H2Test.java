@@ -161,10 +161,12 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 
 	@Test
 	public void testExpressionContext() {
-		List<Long> res = getDatastore().query().withExpressionResolver(new MyEqualPredicateResolver())
-				.target(NAMED_TARGET).filter(new MyEqualPredicate<>(STR, "Two")).list(KEY);
-		assertEquals(1, res.size());
-		assertEquals(Long.valueOf(2L), res.get(0));
+		test(datastore -> {
+			List<Long> res = getDatastore().query().withExpressionResolver(new MyEqualPredicateResolver())
+					.target(NAMED_TARGET).filter(new MyEqualPredicate<>(STR, "Two")).list(KEY);
+			assertEquals(1, res.size());
+			assertEquals(Long.valueOf(2L), res.get(0));
+		});
 	}
 
 	@Test
@@ -206,9 +208,11 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 
 	@Test
 	public void testAlias() {
-		PropertyBox value = getDatastore().query(A_TARGET).filter(A_CODE.eq(1L)).findOne(A_SET).orElse(null);
-		assertNotNull(value);
-		assertEquals("Test1", value.getValue(A_ZIP));
+		test(datastore -> {
+			PropertyBox value = getDatastore().query(A_TARGET).filter(A_CODE.eq(1L)).findOne(A_SET).orElse(null);
+			assertNotNull(value);
+			assertEquals("Test1", value.getValue(A_ZIP));
+		});
 	}
 
 	public static final class Test2 {
