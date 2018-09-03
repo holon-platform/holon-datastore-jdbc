@@ -57,7 +57,7 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 	 * @param connection Transaction {@link Connection} (not null)
 	 * @param configuration Transaction configuration (not null)
 	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
-	 *        transaction is committed or rollbacked)
+	 *        transaction is committed or rolled back)
 	 */
 	public DefaultJdbcTransaction(Connection connection, TransactionConfiguration configuration,
 			boolean endTransactionWhenCompleted) {
@@ -70,8 +70,8 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 	}
 
 	/**
-	 * Get whether the transaction should be finalized when completed (i.e. when the transaction is committed or
-	 * rollbacked).
+	 * Get whether the transaction should be finalized when completed (i.e. when the transaction is committed or rolled
+	 * back).
 	 * @return whether the transaction should be finalized when completed
 	 */
 	protected boolean isEndTransactionWhenCompleted() {

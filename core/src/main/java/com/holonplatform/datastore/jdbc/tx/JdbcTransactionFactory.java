@@ -34,7 +34,7 @@ public interface JdbcTransactionFactory {
 	 * @param connection Transaction {@link Connection} (not null)
 	 * @param configuration Transaction configuration (not null)
 	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
-	 *        transaction is committed or rollbacked)
+	 *        transaction is committed or rolled back)
 	 * @return A new {@link JdbcTransaction} (not null)
 	 * @throws TransactionException If an error occurred
 	 */
