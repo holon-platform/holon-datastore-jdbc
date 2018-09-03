@@ -20,7 +20,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.ConfigurableDatastore;
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.query.QueryFilter;
@@ -77,7 +77,7 @@ public class ExampleJdbcDatastoreSpring9 {
 	class MyDatastorePostProcessor implements DatastorePostProcessor { // <2>
 
 		@Override
-		public void postProcessDatastore(Datastore datastore, String datastoreBeanName) {
+		public void postProcessDatastore(ConfigurableDatastore datastore, String datastoreBeanName) {
 			// configure Datastore
 		}
 

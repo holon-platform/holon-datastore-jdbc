@@ -20,7 +20,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
-import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.ConfigurableDatastore;
 import com.holonplatform.core.query.QuerySort;
 import com.holonplatform.core.query.QuerySort.QuerySortResolver;
 import com.holonplatform.datastore.jdbc.spring.test.expression.MySort;
@@ -30,7 +30,7 @@ import com.holonplatform.spring.DatastorePostProcessor;
 public class TestDatastorePostProcessor implements DatastorePostProcessor {
 
 	@Override
-	public void postProcessDatastore(Datastore datastore, String beanName) {
+	public void postProcessDatastore(ConfigurableDatastore datastore, String beanName) {
 		datastore.addExpressionResolver(new MySortExpressionResolver());
 	}
 

@@ -28,6 +28,8 @@ import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.tx.JdbcTransaction;
 import com.holonplatform.datastore.jdbc.tx.JdbcTransactionLifecycleHandler;
+import com.holonplatform.jdbc.transaction.JdbcTransactionOptions;
+import com.holonplatform.jdbc.transaction.TransactionIsolation;
 
 /**
  * A JDBC {@link Transaction}.
@@ -150,9 +152,12 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 			throw new TransactionException("Failed to configure transaction connection [" + getConnection() + "]", e);
 		}
 		// configure connection
-		if (getConfiguration().getTransactionIsolation().isPresent()) {
+		final TransactionIsolation transactionIsolation = getConfiguration().getTransactionOptions()
+				.filter(o -> o instanceof JdbcTransactionOptions).map(o -> (JdbcTransactionOptions) o)
+				.flatMap(o -> o.getTransactionIsolation()).orElse(null);
+		if (transactionIsolation != null) {
 			try {
-				getConnection().setTransactionIsolation(getConfiguration().getTransactionIsolation().get().getLevel());
+				getConnection().setTransactionIsolation(transactionIsolation.getLevel());
 			} catch (SQLException e) {
 				throw new TransactionException(
 						"Failed to configure connection transaction isolation level [" + getConnection() + "]", e);
