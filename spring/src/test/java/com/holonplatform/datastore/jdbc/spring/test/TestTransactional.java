@@ -125,7 +125,7 @@ public class TestTransactional {
 		count = datastore.query().target(TARGET).count();
 		Assert.assertEquals(3L, count);
 
-		TestUtils.expectedException(DataAccessException.class, () -> datastore.withTransaction(tx -> {
+		TestUtils.expectedException(RuntimeException.class, () -> datastore.withTransaction(tx -> {
 			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(CODE, 4L).set(TEXT, "ToRollback").build();
 			datastore.insert(TARGET, box);
 
@@ -167,9 +167,10 @@ public class TestTransactional {
 			datastore.withTransaction(tx2 -> {
 
 				String txt = datastore.query().target(TARGET).filter(CODE.eq(2L)).findOne(TEXT).orElse(null);
-				Assert.assertEquals("Two", txt);
+				Assert.assertEquals("Two_tx1", txt);
 
-				tx2.commit();
+				Assert.assertFalse(tx2.isNew());
+
 			});
 
 			String txt = datastore.query().target(TARGET).filter(CODE.eq(2L)).findOne(TEXT).orElse(null);

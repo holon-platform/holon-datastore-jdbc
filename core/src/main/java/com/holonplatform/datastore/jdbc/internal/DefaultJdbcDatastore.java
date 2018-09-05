@@ -21,7 +21,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Optional;
-import java.util.Stack;
 import java.util.function.Supplier;
 
 import javax.sql.DataSource;
@@ -30,9 +29,8 @@ import com.holonplatform.core.Expression;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.DatastoreCommodity;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
-import com.holonplatform.core.datastore.transaction.Transaction;
-import com.holonplatform.core.datastore.transaction.Transaction.TransactionException;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
+import com.holonplatform.core.datastore.transaction.TransactionStatus.TransactionException;
 import com.holonplatform.core.datastore.transaction.TransactionalOperation;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.Logger;
@@ -67,7 +65,6 @@ import com.holonplatform.datastore.jdbc.internal.resolvers.PrimaryKeyResolver;
 import com.holonplatform.datastore.jdbc.internal.support.JdbcOperationUtils;
 import com.holonplatform.datastore.jdbc.tx.JdbcTransaction;
 import com.holonplatform.datastore.jdbc.tx.JdbcTransactionFactory;
-import com.holonplatform.datastore.jdbc.tx.JdbcTransactionLifecycleHandler;
 import com.holonplatform.jdbc.DataSourceBuilder;
 import com.holonplatform.jdbc.DataSourceConfigProperties;
 import com.holonplatform.jdbc.DatabasePlatform;
@@ -83,7 +80,7 @@ import com.holonplatform.jdbc.JdbcConnectionHandler.ConnectionType;
  * @since 5.0.0
  */
 public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDatastoreCommodityContext>
-		implements JdbcDatastore, JdbcDatastoreCommodityContext, JdbcTransactionLifecycleHandler {
+		implements JdbcDatastore, JdbcDatastoreCommodityContext {
 
 	private static final long serialVersionUID = -1701596812043351551L;
 
@@ -93,10 +90,9 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	protected static final Logger LOGGER = JdbcDatastoreLogger.create();
 
 	/**
-	 * Current local {@link JdbcTransaction}
+	 * Current local transaction
 	 */
-	private static final ThreadLocal<Stack<JdbcTransaction>> CURRENT_TRANSACTION = ThreadLocal
-			.withInitial(() -> new Stack<>());
+	private static final ThreadLocal<JdbcTransaction> CURRENT_TRANSACTION = new ThreadLocal<>();
 
 	/**
 	 * Shared connection
@@ -483,38 +479,27 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 		checkInitialized();
 		ObjectUtils.argumentNotNull(operation, "TransactionalOperation must be not null");
 
-		final JdbcTransaction tx = beginTransaction(transactionConfiguration, false);
+		// check active transaction or create a new one
+		final JdbcTransaction tx = getCurrentTransaction().map(t -> JdbcTransaction.delegate(t))
+				.orElseGet(() -> startTransaction(transactionConfiguration));
 
 		try {
 			// execute operation
 			return operation.execute(tx);
 		} catch (Exception e) {
-			// check rollback transaction
-			if (tx.getConfiguration().isRollbackOnError()) {
+			// check rollback on error
+			if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) {
 				tx.setRollbackOnly();
 			}
-			if (e instanceof DataAccessException) {
-				throw (DataAccessException) e;
-			}
-			throw new DataAccessException("Failed to execute operation", e);
+			throw e;
 		} finally {
 			try {
 				endTransaction(tx);
 			} catch (Exception e) {
-				throw new DataAccessException("Failed to finalize transaction", e);
+				throw new TransactionException("Failed to finalize transaction", e);
 			}
 		}
 
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.core.datastore.transaction.Transactional#getTransaction(com.holonplatform.core.datastore.
-	 * transaction.TransactionConfiguration)
-	 */
-	@Override
-	public Transaction getTransaction(TransactionConfiguration transactionConfiguration) {
-		return beginTransaction(transactionConfiguration, true);
 	}
 
 	/**
@@ -530,39 +515,32 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	 * @return Optional current transaction
 	 */
 	private static Optional<JdbcTransaction> getCurrentTransaction() {
-		return (CURRENT_TRANSACTION.get().isEmpty()) ? Optional.empty() : Optional.of(CURRENT_TRANSACTION.get().peek());
+		return Optional.ofNullable(CURRENT_TRANSACTION.get());
 	}
 
 	/**
-	 * Remove given transaction from current trasactions stack.
-	 * @param tx Transaction to remove
-	 * @return The removed current transaction, if it was present
-	 */
-	private static Optional<JdbcTransaction> removeTransaction(JdbcTransaction tx) {
-		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");
-		final Stack<JdbcTransaction> stack = CURRENT_TRANSACTION.get();
-		if (!stack.isEmpty()) {
-			if (stack.remove(tx)) {
-				return Optional.of(tx);
-			}
-		}
-		return Optional.empty();
-	}
-
-	/**
-	 * Start a new transaction.
-	 * @param configuration Transaction configuration
-	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
-	 *        transaction is committed or rollbacked)
-	 * @return The current transaction or a new one if no transaction is active
-	 * @throws TransactionException Error starting a new transaction
+	 * Starts a {@link JdbcTransaction}. If a local transaction is active, it will be forcedly finalized.
+	 * @param configuration Transaction configuration. If <code>null</code>, a default configuration will be used
+	 * @return A new transaction
 	 */
 	@SuppressWarnings("resource")
-	private JdbcTransaction beginTransaction(TransactionConfiguration configuration,
-			boolean endTransactionWhenCompleted) throws TransactionException {
+	private JdbcTransaction startTransaction(TransactionConfiguration configuration) throws TransactionException {
+
+		// check if a current transaction is present
+		getCurrentTransaction().ifPresent(tx -> {
+			LOGGER.warn("A thread bound transaction was already present [" + tx
+					+ "] - The current transaction will be finalized");
+			try {
+				endTransaction(tx);
+			} catch (Exception e) {
+				LOGGER.warn("Failed to force current transaction finalization", e);
+			}
+		});
+
 		// configuration
 		final TransactionConfiguration cfg = (configuration != null) ? configuration
 				: TransactionConfiguration.getDefault();
+
 		// obtain a connection
 		final Connection connection;
 		try {
@@ -570,16 +548,15 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 		} catch (SQLException e) {
 			throw new TransactionException("Failed to obtain a connection to start a transaction", e);
 		}
+
 		// create a new transaction
-		final JdbcTransaction tx = getTransactionFactory().createTransaction(connection, cfg,
-				endTransactionWhenCompleted);
-		// lifecycle handler
-		tx.addLifecycleHandler(this);
-		// start transaction
+		final JdbcTransaction tx = getTransactionFactory().createTransaction(connection, cfg);
+
+		// start the transaction
 		try {
 			tx.start();
 		} catch (TransactionException e) {
-			// ensure connection finalization
+			// ensure connection finalization on error
 			try {
 				releaseConnection(connection, ConnectionType.DEFAULT);
 			} catch (SQLException re) {
@@ -588,18 +565,36 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 			// propagate
 			throw e;
 		}
+
+		// set as current transaction
+		CURRENT_TRANSACTION.set(tx);
+
+		LOGGER.debug(() -> "JDBC transaction [" + tx + "] created and setted as current transaction");
+
 		// return the transaction
 		return tx;
 	}
 
 	/**
-	 * Finalize the given transaction.
+	 * Finalize the given transaction, only if the transaction is new.
 	 * @param tx Transaction to finalize
 	 * @throws TransactionException Error finalizing transaction
+	 * @return <code>true</code> if the transaction was actually finalized
 	 */
-	protected void endTransaction(JdbcTransaction tx) throws TransactionException {
+	private boolean endTransaction(JdbcTransaction tx) throws TransactionException {
 		ObjectUtils.argumentNotNull(tx, "Transaction must be not null");
+
+		// check new
+		if (!tx.isNew()) {
+			LOGGER.debug(() -> "JDBC transaction [" + tx + "] was not finalized because it is not new");
+			return false;
+		}
+
+		// remove reference
+		getCurrentTransaction().filter(current -> current == tx).ifPresent(current -> CURRENT_TRANSACTION.remove());
+
 		try {
+			// end the transaction if active
 			if (tx.isActive()) {
 				tx.end();
 			}
@@ -612,33 +607,10 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 						e);
 			}
 		}
-	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.tx.JdbcTransactionLifecycleHandler#transactionStarted(com.holonplatform.
-	 * datastore.jdbc.tx.JdbcTransaction)
-	 */
-	@Override
-	public void transactionStarted(JdbcTransaction transaction) {
-		if (transaction != null) {
-			// stack
-			CURRENT_TRANSACTION.get().push(transaction);
-		}
-	}
+		LOGGER.debug(() -> "JDBC transaction [" + tx + "] finalized");
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.jdbc.tx.JdbcTransactionLifecycleHandler#transactionEnded(com.holonplatform.datastore.
-	 * jdbc.tx.JdbcTransaction)
-	 */
-	@Override
-	public void transactionEnded(JdbcTransaction transaction) {
-		if (transaction != null) {
-			// remove from stack
-			removeTransaction(transaction);
-		}
+		return true;
 	}
 
 	/*

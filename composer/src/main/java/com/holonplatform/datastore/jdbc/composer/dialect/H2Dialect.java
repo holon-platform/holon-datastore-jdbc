@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Optional;
 
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
+import com.holonplatform.core.query.lock.LockAcquisitionException;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;

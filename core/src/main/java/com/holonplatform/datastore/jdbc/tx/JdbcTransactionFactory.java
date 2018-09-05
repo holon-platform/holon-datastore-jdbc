@@ -17,8 +17,8 @@ package com.holonplatform.datastore.jdbc.tx;
 
 import java.sql.Connection;
 
-import com.holonplatform.core.datastore.transaction.Transaction.TransactionException;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
+import com.holonplatform.core.datastore.transaction.TransactionStatus.TransactionException;
 
 /**
  * Factory to create and configure new {@link JdbcTransaction} implementation using a {@link Connection} and a
@@ -33,21 +33,18 @@ public interface JdbcTransactionFactory {
 	 * Build a new {@link JdbcTransaction}.
 	 * @param connection Transaction {@link Connection} (not null)
 	 * @param configuration Transaction configuration (not null)
-	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
-	 *        transaction is committed or rolled back)
 	 * @return A new {@link JdbcTransaction} (not null)
 	 * @throws TransactionException If an error occurred
 	 */
-	JdbcTransaction createTransaction(Connection connection, TransactionConfiguration configuration,
-			boolean endTransactionWhenCompleted) throws TransactionException;
+	JdbcTransaction createTransaction(Connection connection, TransactionConfiguration configuration)
+			throws TransactionException;
 
 	/**
 	 * Get the default {@link JdbcTransactionFactory}.
 	 * @return the default {@link JdbcTransactionFactory}
 	 */
 	static JdbcTransactionFactory getDefault() {
-		return (connection, configuration, endTransactionWhenCompleted) -> JdbcTransaction.create(connection,
-				configuration, endTransactionWhenCompleted);
+		return (connection, configuration) -> JdbcTransaction.create(connection, configuration);
 	}
 
 }

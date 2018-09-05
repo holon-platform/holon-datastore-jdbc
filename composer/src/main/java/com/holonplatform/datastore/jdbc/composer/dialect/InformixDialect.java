@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
+import com.holonplatform.core.query.lock.LockAcquisitionException;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;

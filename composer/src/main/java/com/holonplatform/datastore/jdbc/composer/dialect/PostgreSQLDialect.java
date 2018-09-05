@@ -25,8 +25,8 @@ import javax.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
 import com.holonplatform.core.internal.utils.ConversionUtils;
+import com.holonplatform.core.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLCompositionContext;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;

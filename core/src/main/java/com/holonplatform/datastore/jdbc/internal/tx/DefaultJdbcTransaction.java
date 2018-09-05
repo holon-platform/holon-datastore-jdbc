@@ -17,8 +17,6 @@ package com.holonplatform.datastore.jdbc.internal.tx;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
 
 import com.holonplatform.core.datastore.transaction.Transaction;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
@@ -27,7 +25,6 @@ import com.holonplatform.core.internal.datastore.transaction.AbstractTransaction
 import com.holonplatform.core.internal.utils.ObjectUtils;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
 import com.holonplatform.datastore.jdbc.tx.JdbcTransaction;
-import com.holonplatform.datastore.jdbc.tx.JdbcTransactionLifecycleHandler;
 import com.holonplatform.jdbc.transaction.JdbcTransactionOptions;
 import com.holonplatform.jdbc.transaction.TransactionIsolation;
 
@@ -44,38 +41,21 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 
 	private final TransactionConfiguration configuration;
 
-	private final boolean endTransactionWhenCompleted;
-
 	private boolean wasAutoCommit;
 
 	private boolean active;
-
-	private final List<JdbcTransactionLifecycleHandler> handlers = new LinkedList<>();
 
 	/**
 	 * Constructor.
 	 * @param connection Transaction {@link Connection} (not null)
 	 * @param configuration Transaction configuration (not null)
-	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
-	 *        transaction is committed or rolled back)
 	 */
-	public DefaultJdbcTransaction(Connection connection, TransactionConfiguration configuration,
-			boolean endTransactionWhenCompleted) {
-		super();
+	public DefaultJdbcTransaction(Connection connection, TransactionConfiguration configuration) {
+		super(true);
 		ObjectUtils.argumentNotNull(connection, "Connection must be not null");
 		ObjectUtils.argumentNotNull(configuration, "TransactionConfiguration must be not null");
 		this.connection = connection;
 		this.configuration = configuration;
-		this.endTransactionWhenCompleted = endTransactionWhenCompleted;
-	}
-
-	/**
-	 * Get whether the transaction should be finalized when completed (i.e. when the transaction is committed or rolled
-	 * back).
-	 * @return whether the transaction should be finalized when completed
-	 */
-	protected boolean isEndTransactionWhenCompleted() {
-		return endTransactionWhenCompleted;
 	}
 
 	/*
@@ -103,32 +83,6 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 	@Override
 	public TransactionConfiguration getConfiguration() {
 		return configuration;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.tx.JdbcTransaction#addLifecycleHandler(com.holonplatform.datastore.jdbc.tx.
-	 * JdbcTransactionLifecycleHandler)
-	 */
-	@Override
-	public void addLifecycleHandler(JdbcTransactionLifecycleHandler handler) {
-		ObjectUtils.argumentNotNull(handler, "Transaction lifecycle handler must be not null");
-		if (!handlers.contains(handler)) {
-			handlers.add(handler);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.jdbc.tx.JdbcTransaction#removeLifecycleHandler(com.holonplatform.datastore.jdbc.tx.
-	 * JdbcTransactionLifecycleHandler)
-	 */
-	@Override
-	public void removeLifecycleHandler(JdbcTransactionLifecycleHandler handler) {
-		if (handler != null) {
-			handlers.remove(handler);
-		}
 	}
 
 	/*
@@ -167,9 +121,6 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 		// set as active
 		active = true;
 
-		// fire lifecycle handlers
-		handlers.forEach(handler -> handler.transactionStarted(this));
-
 		LOGGER.debug(() -> "Jdbc transaction started");
 	}
 
@@ -195,6 +146,7 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 				}
 			}
 		}
+
 		// restore auto-commit
 		if (wasAutoCommit) {
 			try {
@@ -207,9 +159,6 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 		// set as not active
 		active = false;
 
-		// fire lifecycle handlers
-		handlers.forEach(handler -> handler.transactionEnded(this));
-
 		LOGGER.debug(() -> "Jdbc transaction finalized");
 
 	}
@@ -219,7 +168,7 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 	 * @see com.holonplatform.core.datastore.transaction.Transaction#commit()
 	 */
 	@Override
-	public synchronized void commit() throws TransactionException {
+	public synchronized boolean commit() throws TransactionException {
 
 		// check active
 		if (!isActive()) {
@@ -231,23 +180,26 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 			throw new IllegalTransactionStatusException(
 					"Cannot commit the transaction: the transaction is already completed");
 		}
+
+		final boolean committed;
 		try {
 			// check rollback only
 			if (isRollbackOnly()) {
 				rollback();
+				committed = false;
 			} else {
 				getConnection().commit();
+				committed = true;
 				LOGGER.debug(() -> "Jdbc transaction committed");
 			}
 		} catch (SQLException e) {
 			throw new TransactionException("Failed to commit the transaction", e);
 		}
+
+		// set as completed
 		setCompleted();
 
-		// check finalize
-		if (isEndTransactionWhenCompleted()) {
-			end();
-		}
+		return committed;
 	}
 
 	/*
@@ -259,7 +211,8 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 
 		// check active
 		if (!isActive()) {
-			throw new IllegalTransactionStatusException("Cannot commit the transaction: the transaction is not active");
+			throw new IllegalTransactionStatusException(
+					"Cannot rollback the transaction: the transaction is not active");
 		}
 
 		// check completed
@@ -267,18 +220,26 @@ public class DefaultJdbcTransaction extends AbstractTransaction implements JdbcT
 			throw new IllegalTransactionStatusException(
 					"Cannot rollback the transaction: the transaction is already completed");
 		}
+
 		try {
 			getConnection().rollback();
 			LOGGER.debug(() -> "Jdbc transaction rolled back");
 		} catch (SQLException e) {
 			throw new TransactionException("Failed to rollback the transaction", e);
 		}
-		setCompleted();
 
-		// check finalize
-		if (isEndTransactionWhenCompleted()) {
-			end();
-		}
+		// set as completed
+		setCompleted();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "JdbcTransaction [" + hashCode() + "] - [connection=" + connection + ", configuration=" + configuration
+				+ "]";
 	}
 
 }

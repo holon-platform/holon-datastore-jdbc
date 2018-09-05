@@ -20,7 +20,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.query.lock.LockAcquisitionException;
+import com.holonplatform.core.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.lock.LockMode;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;

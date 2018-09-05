@@ -19,7 +19,9 @@ import java.sql.Connection;
 
 import com.holonplatform.core.datastore.transaction.Transaction;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
+import com.holonplatform.core.datastore.transaction.TransactionStatus;
 import com.holonplatform.datastore.jdbc.internal.tx.DefaultJdbcTransaction;
+import com.holonplatform.datastore.jdbc.internal.tx.DelegatedJdbcTransaction;
 
 /**
  * JDBC {@link Transaction}.
@@ -54,28 +56,25 @@ public interface JdbcTransaction extends Transaction {
 	TransactionConfiguration getConfiguration();
 
 	/**
-	 * Add a transaction lifecycle handler.
-	 * @param handler The handler to add (not null)
-	 */
-	void addLifecycleHandler(JdbcTransactionLifecycleHandler handler);
-
-	/**
-	 * Remove a transaction lifecycle handler.
-	 * @param handler The handler to remove
-	 */
-	void removeLifecycleHandler(JdbcTransactionLifecycleHandler handler);
-
-	/**
 	 * Create a new {@link JdbcTransaction}.
 	 * @param connection Transaction {@link Connection} (not null)
 	 * @param configuration Transaction configuration (not null)
-	 * @param endTransactionWhenCompleted Whether the transaction should be finalized when completed (i.e. when the
-	 *        transaction is committed or rollbacked)
 	 * @return A new {@link JdbcTransaction} implementation
 	 */
-	static JdbcTransaction create(Connection connection, TransactionConfiguration configuration,
-			boolean endTransactionWhenCompleted) {
-		return new DefaultJdbcTransaction(connection, configuration, endTransactionWhenCompleted);
+	static JdbcTransaction create(Connection connection, TransactionConfiguration configuration) {
+		return new DefaultJdbcTransaction(connection, configuration);
+	}
+
+	/**
+	 * Create a {@link JdbcTransaction} which delegates its operations and status to the given delegated transaction.
+	 * <p>
+	 * The delegated transaction returns <code>false</code> from the {@link TransactionStatus#isNew()} method.
+	 * </p>
+	 * @param delegated Delegated transaction (not null)
+	 * @return A delegated {@link JdbcTransaction} implementation
+	 */
+	static JdbcTransaction delegate(JdbcTransaction delegated) {
+		return new DelegatedJdbcTransaction(delegated);
 	}
 
 }
