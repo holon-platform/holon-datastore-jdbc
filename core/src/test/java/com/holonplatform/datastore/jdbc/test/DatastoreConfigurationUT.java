@@ -15,14 +15,14 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.sql.DataSource;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
@@ -36,7 +36,7 @@ public class DatastoreConfigurationUT {
 
 	private Datastore datastore;
 
-	@Before
+	@BeforeEach
 	public void initDatastore() {
 		DataSource dataSource = DataSourceBuilder.builder().url("jdbc:h2:mem:cfgdb").username("sa").build();
 		datastore = JdbcDatastore.builder().dataSource(dataSource).build();

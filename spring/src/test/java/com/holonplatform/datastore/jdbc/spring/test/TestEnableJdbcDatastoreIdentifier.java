@@ -15,17 +15,18 @@
  */
 package com.holonplatform.datastore.jdbc.spring.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +34,6 @@ import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.utils.TestUtils;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
@@ -44,7 +44,7 @@ import com.holonplatform.datastore.jdbc.spring.test.config.TestCommodityFactory;
 import com.holonplatform.jdbc.spring.EnableDataSource;
 
 @Transactional
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestEnableJdbcDatastoreIdentifier.Config.class)
 public class TestEnableJdbcDatastoreIdentifier {
 
@@ -97,7 +97,7 @@ public class TestEnableJdbcDatastoreIdentifier {
 	public void testIdentifierResolutionStrategyError() {
 		final PropertySet<?> PROPS_NOID = PropertySet.of(KEY, STR);
 
-		TestUtils.expectedException(DataAccessException.class, () -> {
+		Assertions.assertThrows(DataAccessException.class, () -> {
 
 			OperationResult res = datastore.insert(NAMED_TARGET,
 					PropertyBox.builder(KEY, STR).set(KEY, 787L).set(STR, "Test ids").build());

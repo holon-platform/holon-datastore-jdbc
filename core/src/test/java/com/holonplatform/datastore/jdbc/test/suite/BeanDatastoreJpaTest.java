@@ -46,7 +46,6 @@ import com.holonplatform.core.datastore.beans.BeanDatastore;
 import com.holonplatform.core.datastore.beans.BeanDatastore.BeanOperationResult;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.internal.query.filter.NotFilter;
-import com.holonplatform.core.internal.utils.TestUtils;
 import com.holonplatform.core.property.NumericProperty;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.StringProperty;
@@ -111,7 +110,7 @@ public class BeanDatastoreJpaTest extends AbstractJdbcDatastoreSuiteTest {
 		final TestJpaBean valueNoId = new TestJpaBean();
 		valueNoId.setStringValue("NoId");
 
-		TestUtils.expectedException(DataAccessException.class, () -> {
+		expectedException(DataAccessException.class, () -> {
 			getBeanDatastore().refresh(valueNoId);
 		});
 

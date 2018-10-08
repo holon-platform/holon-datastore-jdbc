@@ -15,19 +15,22 @@
  */
 package com.holonplatform.datastore.jdbc.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.sql.ResultSet;
 
 import javax.sql.DataSource;
 
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.transaction.TransactionConfiguration;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.utils.TestUtils;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jdbc.JdbcDatastore;
@@ -45,7 +48,7 @@ public class TransactionalUT {
 
 	private static JdbcDatastore datastore;
 
-	@BeforeClass
+	@BeforeAll
 	public static void initDatastore() {
 
 		DataSource dataSource = DataSourceBuilder.builder().url("jdbc:h2:mem:txdb").username("sa")
@@ -59,33 +62,33 @@ public class TransactionalUT {
 	public void testTransactional() {
 
 		long count = datastore.query().target(TARGET).count();
-		Assert.assertEquals(1L, count);
+		assertEquals(1L, count);
 
 		datastore.withTransaction(tx -> {
 			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(CODE, 2L).set(TEXT, "Two").build();
 			datastore.insert(TARGET, box);
 
 			long cnt = datastore.query().target(TARGET).count();
-			Assert.assertEquals(2L, cnt);
+			assertEquals(2L, cnt);
 
 			tx.rollback();
 		});
 
 		count = datastore.query().target(TARGET).count();
-		Assert.assertEquals(1L, count);
+		assertEquals(1L, count);
 
 		datastore.withTransaction(tx -> {
 			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(CODE, 2L).set(TEXT, "Two").build();
 			datastore.insert(TARGET, box);
 
 			long cnt = datastore.query().target(TARGET).count();
-			Assert.assertEquals(2L, cnt);
+			assertEquals(2L, cnt);
 
 			tx.commit();
 		});
 
 		count = datastore.query().target(TARGET).count();
-		Assert.assertEquals(2L, count);
+		assertEquals(2L, count);
 
 		// test auto commit
 
@@ -95,7 +98,7 @@ public class TransactionalUT {
 		}, TransactionConfiguration.withAutoCommit());
 
 		count = datastore.query().target(TARGET).count();
-		Assert.assertEquals(3L, count);
+		assertEquals(3L, count);
 
 		// rollback
 
@@ -107,11 +110,11 @@ public class TransactionalUT {
 		});
 
 		count = datastore.query().target(TARGET).count();
-		Assert.assertEquals(3L, count);
+		assertEquals(3L, count);
 
 		// rollback on error
 
-		TestUtils.expectedException(DataAccessException.class, () -> datastore.withTransaction(tx -> {
+		Assertions.assertThrows(DataAccessException.class, () -> datastore.withTransaction(tx -> {
 			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(TEXT, "ToRollback").build();
 			datastore.insert(TARGET, box);
 
@@ -119,9 +122,9 @@ public class TransactionalUT {
 		}));
 
 		count = datastore.query().target(TARGET).count();
-		Assert.assertEquals(3L, count);
+		assertEquals(3L, count);
 
-		TestUtils.expectedException(RuntimeException.class, () -> datastore.withTransaction(tx -> {
+		Assertions.assertThrows(RuntimeException.class, () -> datastore.withTransaction(tx -> {
 			PropertyBox box = PropertyBox.builder(CODE, TEXT).set(CODE, 4L).set(TEXT, "ToRollback").build();
 			datastore.insert(TARGET, box);
 
@@ -130,16 +133,16 @@ public class TransactionalUT {
 		}, TransactionConfiguration.withAutoCommit()));
 
 		count = datastore.query().target(TARGET).count();
-		Assert.assertEquals(3L, count);
+		assertEquals(3L, count);
 
 		// test nested
 
 		datastore.withTransaction(tx -> {
 			String txt = datastore.query().target(TARGET).filter(CODE.eq(2L)).findOne(TEXT).orElse(null);
-			Assert.assertEquals("Two", txt);
+			assertEquals("Two", txt);
 
 			OperationResult res = datastore.bulkUpdate(TARGET).set(TEXT, "Two*").filter(CODE.eq(2L)).execute();
-			Assert.assertEquals(1, res.getAffectedCount());
+			assertEquals(1, res.getAffectedCount());
 
 			String val = datastore.withConnection(c -> {
 				try (ResultSet rs = c.createStatement().executeQuery("SELECT text FROM testtx WHERE code=2")) {
@@ -147,38 +150,38 @@ public class TransactionalUT {
 					return rs.getString(1);
 				}
 			});
-			Assert.assertEquals("Two*", val);
+			assertEquals("Two*", val);
 
 			tx.rollback();
 		});
 
 		String txtv = datastore.query().target(TARGET).filter(CODE.eq(2L)).findOne(TEXT).orElse(null);
-		Assert.assertEquals("Two", txtv);
+		assertEquals("Two", txtv);
 
 		datastore.withTransaction(tx -> {
-			
-			Assert.assertTrue(tx.isNew());
+
+			assertTrue(tx.isNew());
 
 			OperationResult res = datastore.bulkUpdate(TARGET).set(TEXT, "Two_tx1").filter(CODE.eq(2L)).execute();
-			Assert.assertEquals(1, res.getAffectedCount());
+			assertEquals(1, res.getAffectedCount());
 
 			datastore.withTransaction(tx2 -> {
 
 				String txt = datastore.query().target(TARGET).filter(CODE.eq(2L)).findOne(TEXT).orElse(null);
-				Assert.assertEquals("Two_tx1", txt);
-				
-				Assert.assertFalse(tx2.isNew());
-				
+				assertEquals("Two_tx1", txt);
+
+				assertFalse(tx2.isNew());
+
 			});
 
 			String txt = datastore.query().target(TARGET).filter(CODE.eq(2L)).findOne(TEXT).orElse(null);
-			Assert.assertEquals("Two_tx1", txt);
+			assertEquals("Two_tx1", txt);
 
 			tx.rollback();
 		});
 
 		txtv = datastore.query().target(TARGET).filter(CODE.eq(2L)).findOne(TEXT).orElse(null);
-		Assert.assertEquals("Two", txtv);
+		assertEquals("Two", txtv);
 
 	}
 

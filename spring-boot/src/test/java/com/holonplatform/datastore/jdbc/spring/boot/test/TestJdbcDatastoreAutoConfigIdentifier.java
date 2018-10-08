@@ -15,32 +15,29 @@
  */
 package com.holonplatform.datastore.jdbc.spring.boot.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.exceptions.DataAccessException;
-import com.holonplatform.core.internal.utils.TestUtils;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.jdbc.config.IdentifierResolutionStrategy;
 import com.holonplatform.datastore.jdbc.spring.boot.test.config.TestCommodity;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @ActiveProfiles("p5")
 public class TestJdbcDatastoreAutoConfigIdentifier {
@@ -91,7 +88,7 @@ public class TestJdbcDatastoreAutoConfigIdentifier {
 	public void testIdentifierResolutionStrategyError() {
 		final PropertySet<?> PROPS_NOID = PropertySet.of(KEY, STR);
 
-		TestUtils.expectedException(DataAccessException.class, () -> {
+		assertThrows(DataAccessException.class, () -> {
 
 			OperationResult res = datastore.insert(NAMED_TARGET,
 					PropertyBox.builder(KEY, STR).set(KEY, 787L).set(STR, "Test ids").build());

@@ -17,6 +17,8 @@ package com.holonplatform.datastore.jdbc.test.suite;
 
 import java.util.function.Supplier;
 
+import org.junit.Assert;
+
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.datastore.jdbc.internal.JdbcDatastoreLogger;
@@ -48,6 +50,20 @@ public abstract class AbstractJdbcDatastoreSuiteTest {
 	protected DatabasePlatform getDatabasePlatform() {
 		return getDatastore().create(DatabasePlatformCommodity.class).getDatabase()
 				.orElseThrow(() -> new IllegalStateException("Database platform not available"));
+	}
+
+	protected void expectedException(Class<? extends Throwable> exceptionClass, Runnable operation) {
+		try {
+			operation.run();
+			Assert.fail("Expected exception was not thrown");
+		} catch (Exception e) {
+			Assert.assertNotNull(e);
+			if (!exceptionClass.isAssignableFrom(e.getClass())) {
+				e.printStackTrace();
+				Assert.fail("Expected exception: " + exceptionClass.getName() + " but was thrown: "
+						+ e.getClass().getName());
+			}
+		}
 	}
 
 }
