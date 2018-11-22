@@ -77,6 +77,13 @@ The Holon Platform provides an *overall Maven BOM (Bill of Materials)* to easily
 
 See link:index.html#obtain-the-platform-artifacts[Obtain the platform artifacts] for details.
 
+[[WhatsNew52x]]
+== What's new in version 5.2.x
+
+* A basic support for database _locks_ is now available. See <<LockSupport>>.
+
+* Support for JDK 9+ module system using `Automatic-Module-Name`.
+
 [[WhatsNew51x]]
 == What's new in version 5.1.x
 
