@@ -65,7 +65,7 @@
 		<holon.jdbc.version>5.2.0-alpha2</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.9.3</bytebuddy.version>
+		<bytebuddy.version>1.9.5</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
 		<hikaricp.version>3.2.0</hikaricp.version>
