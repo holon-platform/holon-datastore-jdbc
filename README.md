@@ -102,7 +102,7 @@ _JDBC Datastore configuration using Spring:_
 class Config {
 
   @Bean
-  public DataSource dataSource() { // <1>
+  public DataSource dataSource() {
     return buildDataSource();
   }
 
