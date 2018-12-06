@@ -95,6 +95,35 @@ Datastore datastore = JdbcDatastore.builder().withExpressionResolver(new IfNullR
 Stream<String> values = datastore.query(TARGET).stream(new IfNull<>(VALUE, "(fallback)"));
 ```
 
+_JDBC Datastore configuration using Spring:_
+```java
+@EnableJdbcDatastore
+@Configuration
+class Config {
+
+  @Bean
+  public DataSource dataSource() { // <1>
+    return buildDataSource();
+  }
+
+}
+
+@Autowired
+Datastore datastore;
+```
+
+_JDBC Datastore auto-configuration using Spring Boot:_
+```yaml
+spring:
+  datasource:
+    url: "jdbc:h2:mem:test"
+    username: "sa"
+    
+holon: 
+  datastore:
+    trace: true
+```
+
 See the [module documentation](https://docs.holon-platform.com/current/reference/holon-datastore-jdbc.html) for the user guide and a full set of examples.
 
 ## Code structure
