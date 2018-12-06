@@ -83,7 +83,7 @@ class IfNull<T> implements QueryFunction<T, T> {
 class IfNullResolver implements ExpressionResolver<IfNull, SQLFunction> {
 
   @Override
-  public Optional<SQLFunction> resolve(IfNull expression, ResolutionContext context) throws InvalidExpressionException {
+  public Optional<SQLFunction> resolve(IfNull expression, ResolutionContext context) {
     return Optional.of(SQLFunction.create(args ->  "IFNULL(" + args.get(0) + "," + args.get(1) + ")"));
   }
 	
