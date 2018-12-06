@@ -36,7 +36,66 @@ See the module [documentation](https://docs.holon-platform.com/current/reference
 
 Just like any other platform module, this artifact is part of the [Holon Platform](https://holon-platform.com) ecosystem, but can be also used as a _stand-alone_ library.
 
-See the [platform documentation](https://docs.holon-platform.com/current/reference) for further details.
+See [Getting started](#getting-started) and the [platform documentation](https://docs.holon-platform.com/current/reference) for further details.
+
+## At-a-glance overview
+
+_JDBC Datastore operations:_
+```java
+Datastore datastore = JdbcDatastore.builder().dataSource(myDataSource).build();
+
+datastore.save(TARGET, PropertyBox.builder(TEST).set(ID, 1L).set(VALUE, "One").build());
+
+Stream<PropertyBox> results = datastore.query().target(TARGET).filter(ID.goe(1L)).stream(TEST);
+
+List<String> values = datastore.query().target(TARGET).sort(ID.asc()).list(VALUE);
+
+Stream<String> values = datastore.query().target(TARGET).filter(VALUE.startsWith("prefix")).restrict(10, 0).stream(VALUE);
+
+long count = datastore.query(TARGET).aggregate(QueryAggregation.builder().path(VALUE).filter(ID.gt(1L)).build()).count();
+
+Stream<Integer> months = datastore.query().target(TARGET).distinct().stream(LOCAL_DATE.month());
+
+datastore.bulkUpdate(TARGET).filter(ID.in(1L, 2L)).set(VALUE, "test").execute();
+
+datastore.bulkDelete(TARGET).filter(ID.gt(0L)).execute();
+```
+
+_Transaction management:_
+```java
+long updatedCount = datastore.withTransaction(tx -> {
+	long updated = datastore.bulkUpdate(TARGET).filter(ID.in(1L, 2L)).set(VALUE, "test").execute().getAffectedCount();
+			
+	tx.commit();
+			
+	return updated;
+});
+```
+
+_JDBC Datastore extension:_
+```java
+// Function definition
+class IfNull<T> implements QueryFunction<T, T> {
+	/* content omitted */		
+}
+
+// Function resolver
+class IfNullResolver implements ExpressionResolver<IfNull, SQLFunction> {
+
+	@Override
+	public Optional<SQLFunction> resolve(IfNull expression, ResolutionContext context) throws InvalidExpressionException {
+	return Optional.of(SQLFunction.create(args ->  "IFNULL(" + args.get(0) + "," + args.get(1) + ")"));
+	}
+	
+}
+
+// Datastore integration
+Datastore datastore = JdbcDatastore.builder().withExpressionResolver(new IfNullResolver()).build();
+
+Stream<String> values = datastore.query(TARGET).stream(new IfNull<>(VALUE, "(fallback)"));
+```
+
+See the [module documentation](https://docs.holon-platform.com/current/reference/holon-datastore-jdbc.html) for the user guide and a full set of examples.
 
 ## Code structure
 
