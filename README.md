@@ -64,7 +64,7 @@ datastore.bulkDelete(TARGET).filter(ID.gt(0L)).execute();
 _Transaction management:_
 ```java
 long updatedCount = datastore.withTransaction(tx -> {
-	long updated = datastore.bulkUpdate(TARGET).filter(ID.in(1L, 2L)).set(VALUE, "test").execute().getAffectedCount();
+	long updated = datastore.bulkUpdate(TARGET).set(VALUE, "test").execute().getAffectedCount();
 			
 	tx.commit();
 			
@@ -76,16 +76,16 @@ _JDBC Datastore extension:_
 ```java
 // Function definition
 class IfNull<T> implements QueryFunction<T, T> {
-	/* content omitted */		
+  /* content omitted */		
 }
 
 // Function resolver
 class IfNullResolver implements ExpressionResolver<IfNull, SQLFunction> {
 
-	@Override
-	public Optional<SQLFunction> resolve(IfNull expression, ResolutionContext context) throws InvalidExpressionException {
-	return Optional.of(SQLFunction.create(args ->  "IFNULL(" + args.get(0) + "," + args.get(1) + ")"));
-	}
+  @Override
+  public Optional<SQLFunction> resolve(IfNull expression, ResolutionContext context) throws InvalidExpressionException {
+  return Optional.of(SQLFunction.create(args ->  "IFNULL(" + args.get(0) + "," + args.get(1) + ")"));
+  }
 	
 }
 
