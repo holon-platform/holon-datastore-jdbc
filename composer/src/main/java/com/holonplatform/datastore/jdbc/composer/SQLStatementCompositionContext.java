@@ -34,20 +34,20 @@ public interface SQLStatementCompositionContext extends SQLCompositionContext {
 	 */
 	public enum AliasMode {
 
-		/**
-		 * Default behaviour: use an alias only if explicitly provided
-		 */
-		DEFAULT,
+	/**
+	 * Default behaviour: use an alias only if explicitly provided
+	 */
+	DEFAULT,
 
-		/**
-		 * Use the explicitly provided alias if available, generate an alias name otherwise
-		 */
-		AUTO,
+	/**
+	 * Use the explicitly provided alias if available, generate an alias name otherwise
+	 */
+	AUTO,
 
-		/**
-		 * Never use an alias name, even if explicitly provided
-		 */
-		UNSUPPORTED;
+	/**
+	 * Never use an alias name, even if explicitly provided
+	 */
+	UNSUPPORTED;
 
 	}
 

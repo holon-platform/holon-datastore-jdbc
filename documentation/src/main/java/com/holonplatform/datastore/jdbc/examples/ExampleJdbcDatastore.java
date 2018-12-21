@@ -199,9 +199,9 @@ public class ExampleJdbcDatastore {
 
 	// tag::naming1[]
 	static final NumericProperty<Long> ID = NumericProperty.longType("code") // <1>
-			.validator(Validator.notNull());
+			.withValidator(Validator.notNull());
 	static final StringProperty VALUE = StringProperty.create("text") // <2>
-			.validator(Validator.max(100));
+			.withValidator(Validator.max(100));
 
 	static final PropertySet<?> TEST = PropertySet.builderOf(ID, VALUE).identifier(ID).build(); // <3>
 
