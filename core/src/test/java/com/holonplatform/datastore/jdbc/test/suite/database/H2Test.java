@@ -24,11 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -42,8 +37,6 @@ import com.holonplatform.core.datastore.beans.BeanDatastore.BeanOperationResult;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
-import com.holonplatform.core.query.lock.LockAcquisitionException;
-import com.holonplatform.core.query.lock.LockQuery;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunction;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionExpression;
 import com.holonplatform.datastore.jdbc.test.expression.IfNullFunctionResolver;
@@ -169,6 +162,7 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 		});
 	}
 
+	/*
 	@Test
 	public void testLockException() {
 		test(datastore -> {
@@ -204,7 +198,7 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 
 			});
 		});
-	}
+	}*/
 
 	@Test
 	public void testAlias() {

@@ -38,7 +38,7 @@ public class LockTest extends AbstractJdbcDatastoreSuiteTest {
 
 	private static boolean executeLockTest(DatabasePlatform platform) {
 		return platform != DatabasePlatform.DERBY && platform != DatabasePlatform.HSQL
-				&& platform != DatabasePlatform.SQLITE;
+				&& platform != DatabasePlatform.SQLITE && platform != DatabasePlatform.H2;
 	}
 
 	@Test

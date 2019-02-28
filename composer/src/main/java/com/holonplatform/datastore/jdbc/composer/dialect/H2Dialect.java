@@ -20,12 +20,18 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import org.h2.api.TimestampWithTimeZone;
+import org.h2.value.ValueTimestampTimeZone;
+
+import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.exceptions.DataAccessException;
 import com.holonplatform.core.query.QueryFunction;
 import com.holonplatform.core.query.QueryFunction.Avg;
 import com.holonplatform.core.query.lock.LockAcquisitionException;
 import com.holonplatform.datastore.jdbc.composer.SQLDialect;
 import com.holonplatform.datastore.jdbc.composer.SQLDialectContext;
+import com.holonplatform.datastore.jdbc.composer.SQLExecutionContext;
+import com.holonplatform.datastore.jdbc.composer.SQLValueDeserializer.ValueProcessor;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLFunction;
 import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.SQLExceptionHelper;
@@ -41,6 +47,8 @@ public class H2Dialect implements SQLDialect {
 	private static final long serialVersionUID = 2386984060916655846L;
 
 	private final DialectFunctionsRegistry functions = new DialectFunctionsRegistry();
+
+	private static final H2ValueDeserializer DESERIALIZER = new H2ValueDeserializer();
 
 	private static final H2LimitHandler LIMIT_HANDLER = new H2LimitHandler();
 
@@ -66,6 +74,7 @@ public class H2Dialect implements SQLDialect {
 			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 		}
+		context.getValueDeserializer().addValueProcessor(DESERIALIZER);
 	}
 
 	/*
@@ -174,6 +183,23 @@ public class H2Dialect implements SQLDialect {
 		@Override
 		public String limitResults(SQLQueryDefinition query, String serializedSql, int limit, int offset) {
 			return serializedSql + ((offset > -1) ? (" limit " + limit + " offset " + offset) : (" limit " + limit));
+		}
+
+	}
+
+	private static final class H2ValueDeserializer implements ValueProcessor {
+
+		@Override
+		public Object processValue(SQLExecutionContext context, TypedExpression<?> expression, Object value)
+				throws SQLException {
+			if (value != null) {
+				// H2 TimestampWithTimeZone
+				if (TimestampWithTimeZone.class.isAssignableFrom(value.getClass())) {
+					final ValueTimestampTimeZone tsv = ValueTimestampTimeZone.get((TimestampWithTimeZone) value);
+					return tsv.getTimestamp();
+				}
+			}
+			return value;
 		}
 
 	}

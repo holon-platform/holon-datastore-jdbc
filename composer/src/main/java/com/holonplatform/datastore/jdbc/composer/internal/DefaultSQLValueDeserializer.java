@@ -138,8 +138,9 @@ public enum DefaultSQLValueDeserializer implements SQLValueDeserializer {
 		if (TypeUtils.isAssignable(deserializedValue.getClass(), expression.getType())) {
 			return (T) deserializedValue;
 		} else {
-			throw new SQLException(
-					"Failed to deserialize value [" + value + "] for required type [" + expression.getType() + "]");
+			throw new SQLException("Failed to deserialize value [" + value + "] for required type ["
+					+ expression.getType() + "]: Expected expression type [" + expression.getType()
+					+ "] but got value type [" + deserializedValue.getClass().getName() + "]");
 		}
 	}
 
