@@ -65,10 +65,10 @@
 		<holon.jdbc.version>5.2.0</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.9.7</bytebuddy.version>
+		<bytebuddy.version>1.9.10</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>3.3.0</hikaricp.version>
+		<hikaricp.version>3.3.1</hikaricp.version>
 
 		<!-- Test JPA bean processors -->
 		<holon.jpa.version>5.2.0</holon.jpa.version>
