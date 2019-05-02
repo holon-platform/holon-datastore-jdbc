@@ -39,7 +39,7 @@ import oracle.sql.TIMESTAMPTZ;
  *
  * @since 5.1.0
  */
-public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.SQLDialect {
+public class OracleDialect implements SQLDialect {
 
 	private static final long serialVersionUID = 7693711472395387628L;
 
@@ -48,8 +48,6 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	private static final OracleLimitHandler LIMIT_HANDLER = new OracleLimitHandler();
 	private static final Oracle12LimitHandler LIMIT_HANDLER_12c = new Oracle12LimitHandler();
 
-	private boolean supportsGeneratedKeys;
-	private boolean generatedKeyAlwaysReturned;
 	private boolean supportsLikeEscapeClause;
 
 	private int oracleVersion;
@@ -67,11 +65,8 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	public void init(SQLDialectContext context) throws SQLException {
 		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
 		if (databaseMetaData != null) {
-			int driverMajorVersion = databaseMetaData.getDriverMajorVersion();
+			// int driverMajorVersion = databaseMetaData.getDriverMajorVersion();
 			oracleVersion = databaseMetaData.getDatabaseMajorVersion();
-			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-			generatedKeyAlwaysReturned = (driverMajorVersion < 12) ? false
-					: databaseMetaData.generatedKeyAlwaysReturned();
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 		}
 		context.getValueDeserializer().addValueProcessor(DESERIALIZER);
@@ -92,7 +87,7 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	 */
 	@Override
 	public boolean supportsGetGeneratedKeys() {
-		return supportsGeneratedKeys;
+		return false;
 	}
 
 	/*
@@ -101,7 +96,7 @@ public class OracleDialect implements com.holonplatform.datastore.jdbc.composer.
 	 */
 	@Override
 	public boolean generatedKeyAlwaysReturned() {
-		return generatedKeyAlwaysReturned;
+		return false;
 	}
 
 	/*
