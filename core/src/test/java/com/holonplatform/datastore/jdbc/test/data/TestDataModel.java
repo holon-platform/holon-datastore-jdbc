@@ -56,7 +56,8 @@ public interface TestDataModel {
 	public final static TemporalProperty<LocalTime> TIME = TemporalProperty.localTime("tm");
 
 	public final static PropertySet<?> PROPERTIES = PropertySet
-			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME).identifier(KEY).build();
+			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME).withIdentifier(KEY)
+			.build();
 
 	public final static PropertySet<?> PROPERTIES_NOID = PropertySet.of(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR,
 			NST_DEC, TMS, LTMS, TIME);
@@ -69,7 +70,7 @@ public interface TestDataModel {
 
 	public final static PropertySet<?> PROPERTIES_V = PropertySet
 			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME, VIRTUAL_STR)
-			.identifier(KEY).build();
+			.withIdentifier(KEY).build();
 
 	// lobs
 
@@ -108,8 +109,8 @@ public interface TestDataModel {
 	public final static PathProperty<Long> TEST3_CODE_P = PathProperty.create("code", long.class).parent(TEST3);
 	public final static PathProperty<String> TEST3_TEXT_P = PathProperty.create("text", String.class).parent(TEST3);
 
-	public final static PropertySet<?> TEST3_SET = PropertySet.builderOf(TEST3_CODE, TEST3_TEXT).identifier(TEST3_CODE)
-			.build();
+	public final static PropertySet<?> TEST3_SET = PropertySet.builderOf(TEST3_CODE, TEST3_TEXT)
+			.withIdentifier(TEST3_CODE).build();
 
 	// utils
 

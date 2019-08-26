@@ -54,7 +54,7 @@ public class TestJdbcDatastoreAutoConfigIdentifier {
 	private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
 	private final static PathProperty<String> STR = PathProperty.create("strv", String.class);
 
-	private final static PropertySet<?> PROPS = PropertySet.builderOf(KEY, STR).identifier(KEY).build();
+	private final static PropertySet<?> PROPS = PropertySet.builderOf(KEY, STR).withIdentifier(KEY).build();
 
 	@Autowired
 	private Datastore datastore;

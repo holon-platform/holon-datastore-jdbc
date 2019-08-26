@@ -203,7 +203,7 @@ public class ExampleJdbcDatastore {
 	static final StringProperty VALUE = StringProperty.create("text") // <2>
 			.withValidator(Validator.max(100));
 
-	static final PropertySet<?> TEST = PropertySet.builderOf(ID, VALUE).identifier(ID).build(); // <3>
+	static final PropertySet<?> TEST = PropertySet.builderOf(ID, VALUE).withIdentifier(ID).build(); // <3>
 
 	static final DataTarget<?> TARGET = DataTarget.named("test"); // <4>
 	// end::naming1[]
