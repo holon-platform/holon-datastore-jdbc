@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -56,19 +58,19 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.2.3</holon.core.version>
+		<holon.core.version>5.3.0</holon.core.version>
 
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.2.4</holon.jdbc.version>
+		<holon.jdbc.version>5.3.0</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.9.12</bytebuddy.version>
+		<bytebuddy.version>1.10.1</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
 		<hikaricp.version>3.3.1</hikaricp.version>
 
 		<!-- Test JPA bean processors -->
-		<holon.jpa.version>5.2.3</holon.jpa.version>
+		<holon.jpa.version>5.3.0</holon.jpa.version>
 
 		<!-- Test/dialects databases -->
 
