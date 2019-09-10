@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
@@ -53,6 +54,7 @@ public class TestJdbcDatastoreTransactional {
 	@Configuration
 	@EnableAutoConfiguration
 	@ComponentScan(basePackageClasses = TestServiceImpl.class)
+	@EnableTransactionManagement(proxyTargetClass = true)
 	protected static class Config {
 
 	}

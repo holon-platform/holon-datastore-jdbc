@@ -35,19 +35,29 @@ public class TestServiceImpl implements TestService {
 	public void testSave(long id) {
 
 		// save test1
+		save1(id);
+
+		// save test2
+		save2(id);
+		
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public void save1(long id) {
 		PropertyBox v1 = PropertyBox.builder(TestJdbcDatastoreTransactional.SET1)
 				.set(TestJdbcDatastoreTransactional.KEY1, id).set(TestJdbcDatastoreTransactional.STR1, "STR1:" + id)
 				.build();
 
 		datastore.save(TestJdbcDatastoreTransactional.TARGET1, v1);
-
-		// save test2
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public void save2(long id) {
 		PropertyBox v2 = PropertyBox.builder(TestJdbcDatastoreTransactional.SET2)
 				.set(TestJdbcDatastoreTransactional.KEY2, id).set(TestJdbcDatastoreTransactional.STR2, "STR2:" + id)
 				.build();
 
 		datastore.save(DataTarget.named("wrong") /*TestJdbcDatastoreTransactional.TARGET2*/, v2);
-		
 	}
 
 }
