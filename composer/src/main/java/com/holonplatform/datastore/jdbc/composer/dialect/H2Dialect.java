@@ -19,6 +19,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.value.ValueTimestampTimeZone;
@@ -196,7 +197,7 @@ public class H2Dialect implements SQLDialect {
 				// H2 TimestampWithTimeZone
 				if (TimestampWithTimeZone.class.isAssignableFrom(value.getClass())) {
 					final ValueTimestampTimeZone tsv = ValueTimestampTimeZone.get((TimestampWithTimeZone) value);
-					return tsv.getTimestamp();
+					return tsv.getTimestamp(TimeZone.getDefault());
 				}
 			}
 			return value;
