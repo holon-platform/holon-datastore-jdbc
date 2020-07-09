@@ -38,7 +38,7 @@ public class DefaultWhereFilter implements WhereFilter {
 	/**
 	 * Parameters
 	 */
-	private final List<Object> parameters = new LinkedList<>();
+	private final transient List<Object> parameters = new LinkedList<>();
 
 	/**
 	 * Constructor.

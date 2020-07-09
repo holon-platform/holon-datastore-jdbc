@@ -68,6 +68,9 @@ public class DefaultSQLExpressionResolvers {
 	@SuppressWarnings("rawtypes")
 	private static final List<SQLContextExpressionResolver> expressionResolvers = new ArrayList<>();
 
+	private DefaultSQLExpressionResolvers() {
+	}
+
 	static {
 		expressionResolvers.add(NullExpressionResolver.INSTANCE);
 		expressionResolvers.add(SQLParameterPlaceholderResolver.INSTANCE);
