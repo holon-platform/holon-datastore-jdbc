@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.holon-platform</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.1.6</version>
+		<version>1.2.0</version>
 	</parent>
 
 	<groupId>com.holon-platform.jdbc</groupId>
@@ -56,19 +56,19 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.5.0</holon.core.version>
+		<holon.core.version>5.7.0</holon.core.version>
 
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.5.0</holon.jdbc.version>
+		<holon.jdbc.version>5.7.0</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
 		<bytebuddy.version>1.10.13</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>3.4.5</hikaricp.version>
+		<hikaricp.version>5.0.1</hikaricp.version>
 
 		<!-- Test JPA bean processors -->
-		<holon.jpa.version>5.5.0</holon.jpa.version>
+		<holon.jpa.version>5.7.0</holon.jpa.version>
 
 		<!-- Test/dialects databases -->
 

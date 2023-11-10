@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -37,7 +39,8 @@
 				<configuration>
 					<archive>
 						<manifestEntries>
-							<Automatic-Module-Name>com.holonplatform.datastore.jdbc</Automatic-Module-Name>
+							<Automatic-Module-Name>
+								com.holonplatform.datastore.jdbc</Automatic-Module-Name>
 						</manifestEntries>
 					</archive>
 				</configuration>
@@ -145,7 +148,7 @@
 									</build>
 									<run>
 										<ports>
-											<port>1521:49161</port>
+											<port>1521:1521</port>
 										</ports>
 										<wait>
 											<time>30000</time>
@@ -591,9 +594,12 @@
 							</includes>
 						</configuration>
 					</plugin>
-					<!-- <plugin> <groupId>io.fabric8</groupId> <artifactId>docker-maven-plugin</artifactId> 
-						<configuration> <images> <image> <name>holon/sqlserver</name> <build> <dockerFileDir>sqlserver</dockerFileDir> 
-						</build> <run> <env> <SA_PASSWORD>T0pSecret</SA_PASSWORD> <ACCEPT_EULA>Y</ACCEPT_EULA> 
+					<!-- <plugin> <groupId>io.fabric8</groupId>
+					<artifactId>docker-maven-plugin</artifactId> 
+						<configuration> <images> <image> <name>holon/sqlserver</name> <build>
+					<dockerFileDir>sqlserver</dockerFileDir> 
+						</build> <run> <env> <SA_PASSWORD>T0pSecret</SA_PASSWORD>
+					<ACCEPT_EULA>Y</ACCEPT_EULA> 
 						</env> <ports> <port>1433:1433</port> </ports> <wait> <time>15000</time> 
 						</wait> </run> </image> </images> </configuration> </plugin> -->
 				</plugins>
@@ -628,7 +634,9 @@
 							<images>
 								<image>
 									<name>holon/sqlite</name>
-									<!-- <build> <dockerFileDir>sqlite</dockerFileDir> </build> -->
+									<!-- <build>
+									<dockerFileDir>sqlite</dockerFileDir>
+									</build> -->
 									<run>
 										<ports>
 											<port>12345:12345</port>
@@ -776,11 +784,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.oracle.jdbc</groupId>
+			<artifactId>ojdbc8</artifactId>
+			<version>${oracle-driver.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- <dependency>
 			<groupId>com.sap.hana</groupId>
 			<artifactId>jdbc</artifactId>
 			<version>${hana-driver.version}</version>
 			<scope>test</scope>
-		</dependency>
+		<dependency> -->
 
 	</dependencies>
 

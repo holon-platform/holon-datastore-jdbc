@@ -6,8 +6,9 @@
 # username: system
 # password: oracle
 
-FROM sath89/oracle-12c
+FROM truevoly/oracle-12c
 
 ADD init.sql /docker-entrypoint-initdb.d/
 
 EXPOSE 1521
+EXPOSE 8080
