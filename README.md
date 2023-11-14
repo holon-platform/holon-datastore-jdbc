@@ -1,6 +1,6 @@
 # Holon platform JDBC Datastore
 
-> Latest release: [5.5.0](#obtain-the-artifacts)
+> Latest release: [5.7.0](#obtain-the-artifacts)
 
 This is the reference __JDBC__ implementation of the [Holon Platform](https://holon-platform.com) `Datastore` API, using the Java `JDBC` API and the `SQL` language for data access and manipulation.
 
@@ -134,7 +134,7 @@ See [Holon Platform code structure and conventions](https://github.com/holon-pla
 
 ### System requirements
 
-The Holon Platform is built using __Java 8__, so you need a JRE/JDK version 8 or above to use the platform artifacts.
+The Holon Platform is built using __Java 11__, so you need a JRE/JDK version 11 or above to use the platform artifacts.
 
 A JDBC driver which supports the __JDBC API version 4.x__ or above is reccomended to use all the functionalities of the JDBC Datastore.
 
@@ -154,7 +154,7 @@ _Maven BOM:_
     <dependency>
         <groupId>com.holon-platform.jdbc</groupId>
         <artifactId>holon-datastore-jdbc-bom</artifactId>
-        <version>5.5.0</version>
+        <version>5.7.0</version>
         <type>pom</type>
         <scope>import</scope>
     </dependency>
