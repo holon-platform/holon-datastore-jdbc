@@ -64,7 +64,7 @@ public class TestJdbcDatastoreConfiguration {
 	private final static DataTarget<String> NAMED_TARGET = DataTarget.named("testd");
 
 	private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
-	private final static PathProperty<String> STR = PathProperty.create("strv", String.class);
+	private final static PathProperty<String> STR1 = PathProperty.create("strv", String.class);
 
 	@Autowired
 	private Datastore datastore;
@@ -82,14 +82,14 @@ public class TestJdbcDatastoreConfiguration {
 	@Test
 	public void testResolvers() {
 
-		datastore.insert(NAMED_TARGET, PropertyBox.builder(KEY, STR).set(KEY, 100L).set(STR, "test").build());
-		datastore.insert(NAMED_TARGET, PropertyBox.builder(KEY, STR).set(KEY, 101L).set(STR, "ztest").build());
+		datastore.insert(NAMED_TARGET, PropertyBox.builder(KEY, STR1).set(KEY, 100L).set(STR1, "test").build());
+		datastore.insert(NAMED_TARGET, PropertyBox.builder(KEY, STR1).set(KEY, 101L).set(STR1, "ztest").build());
 
-		Optional<Long> found = datastore.query().target(NAMED_TARGET).filter(new MyFilter(STR)).findOne(KEY);
+		Optional<Long> found = datastore.query().target(NAMED_TARGET).filter(new MyFilter(STR1)).findOne(KEY);
 		assertTrue(found.isPresent());
 		assertEquals(Long.valueOf(100L), found.get());
 
-		List<Long> values = datastore.query().target(NAMED_TARGET).sort(new MySort(STR)).list(KEY);
+		List<Long> values = datastore.query().target(NAMED_TARGET).sort(new MySort(STR1)).list(KEY);
 		assertEquals(2, values.size());
 		assertEquals(Long.valueOf(101L), values.get(0));
 

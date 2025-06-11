@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Optional;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.internal.utils.ConversionUtils;

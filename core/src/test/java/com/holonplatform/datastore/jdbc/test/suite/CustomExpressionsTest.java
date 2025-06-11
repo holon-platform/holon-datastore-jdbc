@@ -20,7 +20,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.ENM;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -48,7 +48,7 @@ public class CustomExpressionsTest extends AbstractJdbcDatastoreSuiteTest {
 			long count = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).count();
 			assertEquals(1, count);
 
-			Optional<String> str = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).findOne(STR);
+			Optional<String> str = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).findOne(STR1);
 			assertEquals("One", str.get());
 
 			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(ENM, TestEnum.THIRD)
@@ -67,7 +67,7 @@ public class CustomExpressionsTest extends AbstractJdbcDatastoreSuiteTest {
 			assertEquals(1, result.getAffectedCount());
 
 			pb = getDatastore().query().target(NAMED_TARGET).filter(new KeyIsFilter(1)).findOne(PROPERTIES);
-			assertEquals("One", pb.get().getValue(STR));
+			assertEquals("One", pb.get().getValue(STR1));
 
 		});
 	}
@@ -79,7 +79,7 @@ public class CustomExpressionsTest extends AbstractJdbcDatastoreSuiteTest {
 				SQLExpression.class, (kis, ctx) -> Optional.of(SQLExpression.create("keycode > " + kis.getValue())));
 
 		Optional<String> str = getDatastore().query().withExpressionResolver(SQL_RESOLVER).target(NAMED_TARGET)
-				.filter(new KeyIsFilter(1)).findOne(STR);
+				.filter(new KeyIsFilter(1)).findOne(STR1);
 		assertEquals("Two", str.get());
 
 		final ExpressionResolver<KeyIsFilter, SQLExpression> SQL_RESOLVER_ALIAS = new SQLExpressionResolver<KeyIsFilter>() {
@@ -99,7 +99,7 @@ public class CustomExpressionsTest extends AbstractJdbcDatastoreSuiteTest {
 		};
 
 		str = getDatastore().query().withExpressionResolver(SQL_RESOLVER_ALIAS).target(NAMED_TARGET)
-				.filter(new KeyIsFilter(1)).findOne(STR);
+				.filter(new KeyIsFilter(1)).findOne(STR1);
 		assertEquals("Two", str.get());
 	}
 

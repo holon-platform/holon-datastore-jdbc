@@ -106,14 +106,14 @@ public class ExampleJdbcDatastoreFunction {
 
 	public void ifnull() {
 		// tag::function3[]
-		final StringProperty STR = StringProperty.create("str");
+		final StringProperty STR1 = StringProperty.create("str");
 		final DataTarget<?> TARGET = DataTarget.named("test");
 
 		Datastore datastore = JdbcDatastore.builder() //
 				.withExpressionResolver(new IfNullResolver()) // <1>
 				.build();
 
-		Stream<String> values = datastore.query(TARGET).stream(new IfNull<>(STR, "(fallback)")); // <2>
+		Stream<String> values = datastore.query(TARGET).stream(new IfNull<>(STR1, "(fallback)")); // <2>
 		// end::function3[]
 	}
 

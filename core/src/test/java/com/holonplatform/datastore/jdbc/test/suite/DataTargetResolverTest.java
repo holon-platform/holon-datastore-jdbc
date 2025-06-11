@@ -16,7 +16,7 @@
 package com.holonplatform.datastore.jdbc.test.suite;
 
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Optional;
@@ -38,7 +38,7 @@ public class DataTargetResolverTest extends AbstractJdbcDatastoreSuiteTest {
 				(t, c) -> "#testres#".equals(t.getName()) ? Optional.of(DataTarget.named("test1")) : Optional.empty());
 
 		long count = getDatastore().query().withExpressionResolver(dr).target(DataTarget.named("#testres#"))
-				.filter(STR.eq("One")).count();
+				.filter(STR1.eq("One")).count();
 		assertEquals(1, count);
 
 	}
@@ -52,7 +52,7 @@ public class DataTargetResolverTest extends AbstractJdbcDatastoreSuiteTest {
 						: Optional.empty());
 
 		long count = getDatastore().query().withExpressionResolver(dr).target(DataTarget.named("#testres2#"))
-				.filter(STR.eq("One")).count();
+				.filter(STR1.eq("One")).count();
 		assertEquals(1, count);
 
 	}

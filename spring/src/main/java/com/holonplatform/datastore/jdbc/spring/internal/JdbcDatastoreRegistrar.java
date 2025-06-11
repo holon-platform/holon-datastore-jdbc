@@ -59,7 +59,8 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 
 /**
- * Registrar for JDBC {@link Datastore} bean registration using {@link EnableJdbcDatastore} annotation.
+ * Registrar for JDBC {@link Datastore} bean registration using {@link EnableJdbcDatastore}
+ * annotation.
  * 
  * @since 5.0.0
  */
@@ -82,7 +83,8 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader(java.lang.ClassLoader)
+	 * @see
+	 * org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader(java.lang.ClassLoader)
 	 */
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
@@ -92,8 +94,9 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 	/*
 	 * (non-Javadoc)
 	 * @see
-	 * org.springframework.context.annotation.ImportBeanDefinitionRegistrar#registerBeanDefinitions(org.springframework.
-	 * core.type.AnnotationMetadata, org.springframework.beans.factory.support.BeanDefinitionRegistry)
+	 * org.springframework.context.annotation.ImportBeanDefinitionRegistrar#registerBeanDefinitions(org.
+	 * springframework. core.type.AnnotationMetadata,
+	 * org.springframework.beans.factory.support.BeanDefinitionRegistry)
 	 */
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry registry) {
@@ -229,7 +232,8 @@ public class JdbcDatastoreRegistrar extends AbstractConfigPropertyRegistrar impl
 			String dialectClassName = datastoreConfig.getDialect();
 			if (dialectClassName != null) {
 				try {
-					SQLDialect dialect = (SQLDialect) Class.forName(dialectClassName).newInstance();
+					SQLDialect dialect = (SQLDialect) Class.forName(dialectClassName).getDeclaredConstructor()
+							.newInstance();
 					if (dialect != null) {
 						pvs.add("dialect", dialect);
 					}

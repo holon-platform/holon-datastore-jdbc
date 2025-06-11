@@ -17,7 +17,7 @@ package com.holonplatform.datastore.jdbc.composer.internal.resolvers;
 
 import java.util.Optional;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import com.holonplatform.core.CollectionConstantExpression;
 import com.holonplatform.core.Expression.InvalidExpressionException;

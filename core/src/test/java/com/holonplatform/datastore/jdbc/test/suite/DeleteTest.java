@@ -21,7 +21,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NOPK_NMB;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NOPK_TXT;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES_NOID;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -83,7 +83,7 @@ public class DeleteTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testDeleteMissingKey() {
 		inTransaction(() -> {
 
-			PropertyBox value = PropertyBox.builder(PROPERTIES).set(STR, "test").build();
+			PropertyBox value = PropertyBox.builder(PROPERTIES).set(STR1, "test").build();
 			getDatastore().delete(NAMED_TARGET, value);
 
 		});

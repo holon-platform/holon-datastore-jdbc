@@ -46,7 +46,7 @@ public class TestJdbcDatastoreAutoConfigInitialization {
 	final static DataTarget<String> NAMED_TARGET = DataTarget.named("test1");
 
 	final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
-	final static PathProperty<String> STR = PathProperty.create("strv", String.class);
+	final static PathProperty<String> STR1 = PathProperty.create("strv", String.class);
 
 	@Configuration
 	@EnableAutoConfiguration

@@ -22,7 +22,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NOPK_TARG
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NOPK_TXT;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES_NOID;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -65,10 +65,10 @@ public class RefreshTest extends AbstractJdbcDatastoreSuiteTest {
 			PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
 					.orElse(null);
 			assertNotNull(value);
-			assertEquals("One", value.getValue(STR));
+			assertEquals("One", value.getValue(STR1));
 
-			// update STR value
-			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR, "OneX").filter(KEY.eq(1L))
+			// update STR1 value
+			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR1, "OneX").filter(KEY.eq(1L))
 					.execute();
 			assertEquals(1, result.getAffectedCount());
 
@@ -76,7 +76,7 @@ public class RefreshTest extends AbstractJdbcDatastoreSuiteTest {
 			PropertyBox refreshed = getDatastore().refresh(NAMED_TARGET, value);
 			assertNotNull(refreshed);
 			assertEquals(Long.valueOf(1), refreshed.getValue(KEY));
-			assertEquals("OneX", refreshed.getValue(STR));
+			assertEquals("OneX", refreshed.getValue(STR1));
 
 		});
 	}
@@ -94,7 +94,7 @@ public class RefreshTest extends AbstractJdbcDatastoreSuiteTest {
 
 	@Test(expected = DataAccessException.class)
 	public void testRefreshMissingKey() {
-		PropertyBox value = PropertyBox.builder(PROPERTIES).set(STR, "test").build();
+		PropertyBox value = PropertyBox.builder(PROPERTIES).set(STR1, "test").build();
 
 		getDatastore().refresh(NAMED_TARGET, value);
 	}

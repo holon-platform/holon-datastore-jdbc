@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.composer.internal.converters;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -75,8 +76,8 @@ public class BeanSQLResultConverter<T> implements SQLResultConverter<T> {
 	/*
 	 * (non-Javadoc)
 	 * @see
-	 * com.holonplatform.datastore.jdbc.composer.SQLResultConverter#convert(com.holonplatform.datastore.jdbc.composer.
-	 * SQLExecutionContext, com.holonplatform.datastore.jdbc.composer.SQLResult)
+	 * com.holonplatform.datastore.jdbc.composer.SQLResultConverter#convert(com.holonplatform.datastore.
+	 * jdbc.composer. SQLExecutionContext, com.holonplatform.datastore.jdbc.composer.SQLResult)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -86,8 +87,8 @@ public class BeanSQLResultConverter<T> implements SQLResultConverter<T> {
 
 		T instance;
 		try {
-			instance = beanPropertySet.getBeanClass().newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
+			instance = beanPropertySet.getBeanClass().getDeclaredConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			throw new SQLException("Failed to istantiate bean class [" + beanPropertySet.getBeanClass() + "]", e);
 		}
 

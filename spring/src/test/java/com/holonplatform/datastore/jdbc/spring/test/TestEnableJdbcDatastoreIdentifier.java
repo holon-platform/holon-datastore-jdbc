@@ -61,9 +61,9 @@ public class TestEnableJdbcDatastoreIdentifier {
 	private final static DataTarget<String> NAMED_TARGET = DataTarget.named("testd");
 
 	private final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
-	private final static PathProperty<String> STR = PathProperty.create("strv", String.class);
+	private final static PathProperty<String> STR1 = PathProperty.create("strv", String.class);
 
-	private final static PropertySet<?> PROPS = PropertySet.builderOf(KEY, STR).withIdentifier(KEY).build();
+	private final static PropertySet<?> PROPS = PropertySet.builderOf(KEY, STR1).withIdentifier(KEY).build();
 
 	@Autowired
 	private Datastore datastore;
@@ -76,18 +76,18 @@ public class TestEnableJdbcDatastoreIdentifier {
 				datastore.create(TestCommodity.class).getIdentifierResolutionStrategy());
 
 		OperationResult res = datastore.insert(NAMED_TARGET,
-				PropertyBox.builder(KEY, STR).set(KEY, 787L).set(STR, "Test ids").build());
+				PropertyBox.builder(KEY, STR1).set(KEY, 787L).set(STR1, "Test ids").build());
 		assertEquals(1, res.getAffectedCount());
 
 		PropertyBox data = datastore.query().target(NAMED_TARGET).filter(KEY.eq(787L)).findOne(PROPS).orElse(null);
 		assertNotNull(data);
 
-		data.setValue(STR, "*Test ids");
+		data.setValue(STR1, "*Test ids");
 
 		res = datastore.update(NAMED_TARGET, data);
 		assertEquals(1, res.getAffectedCount());
 
-		String str = datastore.query().target(NAMED_TARGET).filter(KEY.eq(787L)).findOne(STR).orElse(null);
+		String str = datastore.query().target(NAMED_TARGET).filter(KEY.eq(787L)).findOne(STR1).orElse(null);
 		assertEquals("*Test ids", str);
 
 	}
@@ -95,19 +95,19 @@ public class TestEnableJdbcDatastoreIdentifier {
 	@Transactional
 	@Test
 	public void testIdentifierResolutionStrategyError() {
-		final PropertySet<?> PROPS_NOID = PropertySet.of(KEY, STR);
+		final PropertySet<?> PROPS_NOID = PropertySet.of(KEY, STR1);
 
 		Assertions.assertThrows(DataAccessException.class, () -> {
 
 			OperationResult res = datastore.insert(NAMED_TARGET,
-					PropertyBox.builder(KEY, STR).set(KEY, 787L).set(STR, "Test ids").build());
+					PropertyBox.builder(KEY, STR1).set(KEY, 787L).set(STR1, "Test ids").build());
 			assertEquals(1, res.getAffectedCount());
 
 			PropertyBox data = datastore.query().target(NAMED_TARGET).filter(KEY.eq(787L)).findOne(PROPS_NOID)
 					.orElse(null);
 			assertNotNull(data);
 
-			data.setValue(STR, "*Test ids");
+			data.setValue(STR1, "*Test ids");
 
 			datastore.update(NAMED_TARGET, data);
 

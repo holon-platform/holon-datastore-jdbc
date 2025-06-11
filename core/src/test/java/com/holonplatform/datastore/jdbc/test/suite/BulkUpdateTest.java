@@ -20,7 +20,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NBOOL;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -39,24 +39,24 @@ public class BulkUpdateTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testBulkUpdate() {
 		inTransaction(() -> {
 
-			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR, "upd").set(NBOOL, false)
+			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR1, "upd").set(NBOOL, false)
 					.filter(KEY.eq(1L)).execute();
 			assertEquals(1, result.getAffectedCount());
 
 			PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
 					.orElse(null);
 			assertNotNull(value);
-			assertEquals("upd", value.getValue(STR));
+			assertEquals("upd", value.getValue(STR1));
 			assertFalse(value.getValue(NBOOL));
 
-			String sv = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(STR).orElse(null);
+			String sv = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(2L)).findOne(STR1).orElse(null);
 			assertNotNull(sv);
 			assertEquals("Two", sv);
 
-			result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR, "updx").filter(KEY.loe(2L)).execute();
+			result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR1, "updx").filter(KEY.loe(2L)).execute();
 			assertEquals(2, result.getAffectedCount());
 
-			Stream<String> vals = getDatastore().query().target(NAMED_TARGET).filter(KEY.loe(2L)).stream(STR);
+			Stream<String> vals = getDatastore().query().target(NAMED_TARGET).filter(KEY.loe(2L)).stream(STR1);
 			vals.forEach(v -> assertEquals("updx", v));
 		});
 	}
@@ -65,14 +65,14 @@ public class BulkUpdateTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testBulkUpdateNulls() {
 		inTransaction(() -> {
 
-			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).setNull(STR).set(DBL, 557.88)
+			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).setNull(STR1).set(DBL, 557.88)
 					.filter(KEY.eq(1L)).execute();
 			assertEquals(1, result.getAffectedCount());
 
 			PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
 					.orElse(null);
 			assertNotNull(value);
-			assertNull(value.getValue(STR));
+			assertNull(value.getValue(STR1));
 			assertEquals(Double.valueOf(557.88), value.getValue(DBL));
 
 		});
@@ -85,7 +85,7 @@ public class BulkUpdateTest extends AbstractJdbcDatastoreSuiteTest {
 			PropertyBox value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
 					.orElse(null);
 			assertNotNull(value);
-			value.setValue(STR, "updpb");
+			value.setValue(STR1, "updpb");
 			value.setValue(DBL, null);
 
 			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(value).filter(KEY.eq(1L)).execute();
@@ -93,7 +93,7 @@ public class BulkUpdateTest extends AbstractJdbcDatastoreSuiteTest {
 
 			value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES).orElse(null);
 			assertNotNull(value);
-			assertEquals("updpb", value.getValue(STR));
+			assertEquals("updpb", value.getValue(STR1));
 			assertNull(value.getValue(DBL));
 
 		});
@@ -103,10 +103,10 @@ public class BulkUpdateTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testBulkUpdateAll() {
 		inTransaction(() -> {
 
-			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR, "all").execute();
+			OperationResult result = getDatastore().bulkUpdate(NAMED_TARGET).set(STR1, "all").execute();
 			assertEquals(2, result.getAffectedCount());
 
-			Stream<String> vals = getDatastore().query().target(NAMED_TARGET).stream(STR);
+			Stream<String> vals = getDatastore().query().target(NAMED_TARGET).stream(STR1);
 			vals.forEach(v -> assertEquals("all", v));
 
 		});

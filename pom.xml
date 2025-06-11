@@ -1,10 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.holon-platform</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.2.0</version>
+		<version>2.0.0</version>
 	</parent>
 
 	<groupId>com.holon-platform.jdbc</groupId>
@@ -46,9 +48,11 @@
 	</issueManagement>
 
 	<scm>
-		<connection>scm:git:https://github.com/holon-platform/holon-datastore-jdbc.git</connection>
+		<connection>
+			scm:git:https://github.com/holon-platform/holon-datastore-jdbc.git</connection>
 		<url>https://github.com/holon-platform/holon-datastore-jdbc</url>
-		<developerConnection>scm:git:https://github.com/holon-platform/holon-datastore-jdbc.git</developerConnection>
+		<developerConnection>
+			scm:git:https://github.com/holon-platform/holon-datastore-jdbc.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 
@@ -56,47 +60,51 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Holon Core -->
-		<holon.core.version>5.7.0</holon.core.version>
+		<holon.core.version>6.0.0</holon.core.version>
 
 		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.7.0</holon.jdbc.version>
+		<holon.jdbc.version>6.0.0</holon.jdbc.version>
 
 		<!-- ByteBuddy -->
-		<bytebuddy.version>1.10.13</bytebuddy.version>
+		<bytebuddy.version>1.15.11</bytebuddy.version>
 
 		<!-- HikariCP (test) -->
-		<hikaricp.version>5.0.1</hikaricp.version>
+		<hikaricp.version>5.1.0</hikaricp.version>
 
 		<!-- Test JPA bean processors -->
-		<holon.jpa.version>5.7.0</holon.jpa.version>
+		<holon.jpa.version>6.0.0</holon.jpa.version>
+		
+		<!--JPA API -->
+		<jpa.api.version>3.1.0</jpa.api.version>
 
 		<!-- Test/dialects databases -->
 
 		<!-- H2 -->
-		<h2.version>1.4.200</h2.version>
+		<h2.version>2.3.232</h2.version>
 		<!-- HSQL -->
-		<hsql.version>2.5.1</hsql.version>
+		<hsql.version>2.7.3</hsql.version>
 		<!-- Derby -->
-		<derby.version>10.14.2.0</derby.version>
+		<derby.version>10.16.1.1</derby.version>
 		<!-- MySQL -->
 		<mysql-driver.version>5.1.49</mysql-driver.version>
-		<mysql-driver8.version>8.0.20</mysql-driver8.version>
+		<mysql-driver8.version>8.4.0</mysql-driver8.version>
+		<mysql-driver9.version>9.3.0</mysql-driver9.version>
 		<!-- PostgreSQL -->
 		<postgre.version>9.4.1212</postgre.version>
-		<postgre10.version>42.2.2</postgre10.version>
+		<postgre10.version>42.7.5</postgre10.version>
 		<!-- Oracle -->
 		<oracle-driver.version>12.2.0.1</oracle-driver.version>
 		<!-- SQLServer -->
 		<sqlserver-driver.version>4.2</sqlserver-driver.version>
 		<!-- MariaDB -->
 		<mariadb-driver.version>1.5.9</mariadb-driver.version>
-		<mariadb-driver2.version>2.2.5</mariadb-driver2.version>
+		<mariadb-driver2.version>3.4.2</mariadb-driver2.version>
 		<!-- DB2 -->
 		<db2-driver.version>10.5</db2-driver.version>
 		<!-- Informix -->
 		<informix-driver.version>4.10.8.1</informix-driver.version>
 		<!-- SQLite -->
-		<sqlite-driver.version>3.20.0</sqlite-driver.version>
+		<sqlite-driver.version>3.47.2.0</sqlite-driver.version>
 		<!-- HANA -->
 		<hana-driver.version>1.120.6</hana-driver.version>
 
@@ -201,6 +209,7 @@
 							<show>public</show>
 							<excludePackageNames>*.internal.*;*.examples.*</excludePackageNames>
 							<quiet>true</quiet>
+							<sourcepath>src/main/java</sourcepath>
 						</configuration>
 					</execution>
 				</executions>

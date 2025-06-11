@@ -15,6 +15,7 @@
  */
 package com.holonplatform.datastore.jdbc.spring.boot;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -33,7 +34,7 @@ import com.holonplatform.spring.EnableDatastoreConfiguration;
  * 
  * @since 5.0.0
  */
-@Configuration
+@AutoConfiguration
 @ConditionalOnClass(JdbcDatastore.class)
 @AutoConfigureAfter({ DataSourceAutoConfiguration.class, DataSourcesAutoConfiguration.class })
 public class JdbcDatastoreAutoConfiguration {

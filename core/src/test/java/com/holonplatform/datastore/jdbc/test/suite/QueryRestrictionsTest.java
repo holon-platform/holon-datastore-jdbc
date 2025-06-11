@@ -17,7 +17,7 @@ package com.holonplatform.datastore.jdbc.test.suite;
 
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -28,11 +28,11 @@ public class QueryRestrictionsTest extends AbstractJdbcDatastoreSuiteTest {
 
 	@Test
 	public void testRestrictions() {
-		List<String> str = getDatastore().query().target(NAMED_TARGET).restrict(1, 0).sort(KEY.asc()).list(STR);
+		List<String> str = getDatastore().query().target(NAMED_TARGET).restrict(1, 0).sort(KEY.asc()).list(STR1);
 		assertEquals(1, str.size());
 		assertEquals("One", str.get(0));
 
-		str = getDatastore().query().target(NAMED_TARGET).restrict(1, 1).sort(KEY.asc()).list(STR);
+		str = getDatastore().query().target(NAMED_TARGET).restrict(1, 1).sort(KEY.asc()).list(STR1);
 		assertEquals(1, str.size());
 		assertEquals("Two", str.get(0));
 	}

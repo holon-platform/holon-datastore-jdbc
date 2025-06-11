@@ -18,7 +18,7 @@ package com.holonplatform.datastore.jdbc.test.suite.database;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.DBL;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -107,7 +107,7 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 	public void testCustomFunction() {
 		test(datastore -> {
 			String result = datastore.query().withExpressionResolver(new IfNullFunctionResolver()).target(NAMED_TARGET)
-					.filter(KEY.eq(1L)).findOne(new IfNullFunction<>(STR, "(fallback)")).orElse(null);
+					.filter(KEY.eq(1L)).findOne(new IfNullFunction<>(STR1, "(fallback)")).orElse(null);
 			assertNotNull(result);
 			assertEquals("One", result);
 		});
@@ -156,7 +156,7 @@ public class H2Test extends AbstractDatabaseSuiteTest {
 	public void testExpressionContext() {
 		test(datastore -> {
 			List<Long> res = getDatastore().query().withExpressionResolver(new MyEqualPredicateResolver())
-					.target(NAMED_TARGET).filter(new MyEqualPredicate<>(STR, "Two")).list(KEY);
+					.target(NAMED_TARGET).filter(new MyEqualPredicate<>(STR1, "Two")).list(KEY);
 			assertEquals(1, res.size());
 			assertEquals(Long.valueOf(2L), res.get(0));
 		});

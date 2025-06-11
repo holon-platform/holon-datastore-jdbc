@@ -27,8 +27,6 @@ import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Priority;
-
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.TypedExpression;
 import com.holonplatform.core.internal.utils.TypeUtils;
@@ -49,6 +47,8 @@ import com.holonplatform.datastore.jdbc.composer.expression.SQLQueryDefinition;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.DialectFunctionsRegistry;
 import com.holonplatform.datastore.jdbc.composer.internal.dialect.ReaderToStringParameterResolver;
 import com.holonplatform.datastore.jdbc.composer.resolvers.SQLContextExpressionResolver;
+
+import jakarta.annotation.Priority;
 
 /**
  * SQLite {@link SQLDialect}.
@@ -81,15 +81,19 @@ public class SQLiteDialect implements SQLDialect {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#init(com.holonplatform.datastore.jdbc.composer.
-	 * SQLExecutionContext)
+	 * @see com.holonplatform.datastore.jdbc.composer.SQLDialect#init(com.holonplatform.datastore.jdbc.
+	 * composer. SQLExecutionContext)
 	 */
 	@Override
 	public void init(SQLDialectContext context) throws SQLException {
 		DatabaseMetaData databaseMetaData = context.getOrRetrieveDatabaseMetaData().orElse(null);
 		if (databaseMetaData != null) {
 			supportsGeneratedKeys = databaseMetaData.supportsGetGeneratedKeys();
-			generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
+			try {
+				generatedKeyAlwaysReturned = databaseMetaData.generatedKeyAlwaysReturned();
+			} catch (SQLException e) {
+				generatedKeyAlwaysReturned = false;
+			}
 			supportsLikeEscapeClause = databaseMetaData.supportsLikeEscapeClause();
 		}
 		context.getValueDeserializer().addValueProcessor(DESERIALIZER);
@@ -100,7 +104,8 @@ public class SQLiteDialect implements SQLDialect {
 	/*
 	 * (non-Javadoc)
 	 * @see
-	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#resolveFunction(com.holonplatform.core.query.QueryFunction)
+	 * com.holonplatform.datastore.jdbc.composer.SQLDialect#resolveFunction(com.holonplatform.core.query
+	 * .QueryFunction)
 	 */
 	@Override
 	public Optional<SQLFunction> resolveFunction(QueryFunction<?, ?> function) {

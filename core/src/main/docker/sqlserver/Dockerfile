@@ -1,6 +1,8 @@
 # holon/sqlserver
 
-FROM microsoft/mssql-server-linux:2017-latest
+# FROM microsoft/mssql-server-linux:2017-latest
+
+FROM mcr.microsoft.com/mssql/server:2017-latest
 
 COPY entrypoint.sh /entrypoint.sh
 COPY entrypoint.sh /import-data.sh

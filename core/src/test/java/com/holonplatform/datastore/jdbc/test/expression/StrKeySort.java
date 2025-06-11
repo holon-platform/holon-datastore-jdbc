@@ -16,7 +16,7 @@
 package com.holonplatform.datastore.jdbc.test.expression;
 
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 
 import java.util.Optional;
 
@@ -32,7 +32,7 @@ public class StrKeySort implements QuerySort {
 	}
 
 	public static final ExpressionResolver<QuerySort, QuerySort> RESOLVER = ExpressionResolver.create(StrKeySort.class,
-			QuerySort.class, (sort, ctx) -> Optional.of(STR.desc().and(KEY.asc())));
+			QuerySort.class, (sort, ctx) -> Optional.of(STR1.desc().and(KEY.asc())));
 
 	public static final ExpressionResolver<QuerySort, SQLExpression> SQL_RESOLVER = ExpressionResolver.create(
 			StrKeySort.class, SQLExpression.class,

@@ -386,19 +386,19 @@ public class BeanDatastoreTest extends AbstractJdbcDatastoreSuiteTest {
 	@Test
 	public void testSorts() {
 
-		final StringProperty STR = PROPERTIES.propertyString("stringValue");
+		final StringProperty STR1 = PROPERTIES.propertyString("stringValue");
 
-		List<Long> res = getBeanDatastore().query(TestDataBean.class).sort(STR.desc()).sort(CODE.desc()).stream()
+		List<Long> res = getBeanDatastore().query(TestDataBean.class).sort(STR1.desc()).sort(CODE.desc()).stream()
 				.map(r -> r.getCode()).collect(Collectors.toList());
 		assertEquals(2, res.size());
 		assertEquals(Long.valueOf(2), res.get(0));
 
-		res = getBeanDatastore().query(TestDataBean.class).sort(STR.desc()).sort(CODE.asc()).stream()
+		res = getBeanDatastore().query(TestDataBean.class).sort(STR1.desc()).sort(CODE.asc()).stream()
 				.map(r -> r.getCode()).collect(Collectors.toList());
 		assertEquals(2, res.size());
 		assertEquals(Long.valueOf(2), res.get(0));
 
-		res = getBeanDatastore().query(TestDataBean.class).sort(STR.desc().and(CODE.desc())).stream()
+		res = getBeanDatastore().query(TestDataBean.class).sort(STR1.desc().and(CODE.desc())).stream()
 				.map(r -> r.getCode()).collect(Collectors.toList());
 		assertEquals(2, res.size());
 		assertEquals(Long.valueOf(2), res.get(0));
@@ -418,7 +418,7 @@ public class BeanDatastoreTest extends AbstractJdbcDatastoreSuiteTest {
 		assertEquals(2, res.size());
 		assertEquals(Long.valueOf(2), res.get(0));
 
-		res = getBeanDatastore().query(TestDataBean.class).sort(QuerySort.of(STR.desc(), CODE.asc())).stream()
+		res = getBeanDatastore().query(TestDataBean.class).sort(QuerySort.of(STR1.desc(), CODE.asc())).stream()
 				.map(r -> r.getCode()).collect(Collectors.toList());
 		assertEquals(2, res.size());
 		assertEquals(Long.valueOf(2), res.get(0));
@@ -427,41 +427,41 @@ public class BeanDatastoreTest extends AbstractJdbcDatastoreSuiteTest {
 	@Test
 	public void testFilters() {
 
-		final StringProperty STR = PROPERTIES.propertyString("stringValue");
+		final StringProperty STR1 = PROPERTIES.propertyString("stringValue");
 		final PathProperty<Double> DBL = PROPERTIES.property("decv");
 		final NumericProperty<BigDecimal> NST_DEC = PROPERTIES.propertyNumeric("nestedDecimalValue", BigDecimal.class);
 
-		long count = getBeanDatastore().query(TestDataBean.class).filter(STR.eq("One")).count();
+		long count = getBeanDatastore().query(TestDataBean.class).filter(STR1.eq("One")).count();
 		assertEquals(1, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(new NotFilter(STR.eq("One"))).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(new NotFilter(STR1.eq("One"))).count();
 		assertEquals(1, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(STR.eq("One").not()).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(STR1.eq("One").not()).count();
 		assertEquals(1, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(STR.neq("Two")).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(STR1.neq("Two")).count();
 		assertEquals(1, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(STR.isNotNull()).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(STR1.isNotNull()).count();
 		assertEquals(2, count);
 
 		count = getBeanDatastore().query(TestDataBean.class).filter(DBL.isNull()).count();
 		assertEquals(1, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(STR.endsWith("x")).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(STR1.endsWith("x")).count();
 		assertEquals(0, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(STR.contains("w")).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(STR1.contains("w")).count();
 		assertEquals(1, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(STR.containsIgnoreCase("O")).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(STR1.containsIgnoreCase("O")).count();
 		assertEquals(2, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(STR.startsWith("O")).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(STR1.startsWith("O")).count();
 		assertEquals(1, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(STR.startsWithIgnoreCase("o")).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(STR1.startsWithIgnoreCase("o")).count();
 		assertEquals(1, count);
 
 		count = getBeanDatastore().query(TestDataBean.class).filter(DBL.gt(7d)).count();
@@ -488,7 +488,7 @@ public class BeanDatastoreTest extends AbstractJdbcDatastoreSuiteTest {
 		count = getBeanDatastore().query(TestDataBean.class).filter(CODE.eq(1L).or(CODE.eq(2L))).count();
 		assertEquals(2, count);
 
-		count = getBeanDatastore().query(TestDataBean.class).filter(CODE.eq(1L).and(STR.eq("One"))).count();
+		count = getBeanDatastore().query(TestDataBean.class).filter(CODE.eq(1L).and(STR1.eq("One"))).count();
 		assertEquals(1, count);
 
 	}

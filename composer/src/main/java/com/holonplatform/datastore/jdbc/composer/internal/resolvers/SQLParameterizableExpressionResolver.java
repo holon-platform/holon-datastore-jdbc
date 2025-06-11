@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import com.holonplatform.core.CollectionConstantExpression;
 import com.holonplatform.core.ConstantConverterExpression;

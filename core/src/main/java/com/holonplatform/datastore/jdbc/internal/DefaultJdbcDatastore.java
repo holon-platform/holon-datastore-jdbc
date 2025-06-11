@@ -74,7 +74,8 @@ import com.holonplatform.jdbc.JdbcConnectionHandler.ConnectionType;
 /**
  * Default {@link JdbcDatastore} implementation.
  * <p>
- * The Datastore instance must be initialized using the {@link #initialize()} method before using it.
+ * The Datastore instance must be initialized using the {@link #initialize()} method before using
+ * it.
  * </p>
  *
  * @since 5.0.0
@@ -171,7 +172,9 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.core.internal.datastore.AbstractInitializableDatastore#initialize(java.lang.ClassLoader)
+	 * @see
+	 * com.holonplatform.core.internal.datastore.AbstractInitializableDatastore#initialize(java.lang.
+	 * ClassLoader)
 	 */
 	@Override
 	protected boolean initialize(ClassLoader classLoader) {
@@ -248,7 +251,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	/**
 	 * Set the data source configuration properties.
 	 * @param configuration the data source configuration properties to set (not null)
-	 * @param buildDataSource Whether to build and set a {@link DataSource} using given configuration properties.
+	 * @param buildDataSource Whether to build and set a {@link DataSource} using given configuration
+	 *        properties.
 	 */
 	public void setConfiguration(DataSourceConfigProperties configuration, boolean buildDataSource) {
 		ObjectUtils.argumentNotNull(configuration, "DataSource configuration must be not null");
@@ -338,7 +342,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.context.JdbcExecutionContext#getIdentifierResolutionStrategy()
+	 * @see
+	 * com.holonplatform.datastore.jdbc.context.JdbcExecutionContext#getIdentifierResolutionStrategy()
 	 */
 	@Override
 	public IdentifierResolutionStrategy getIdentifierResolutionStrategy() {
@@ -402,9 +407,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 	/*
 	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext#withSharedConnection(java.util.
-	 * function.Supplier)
+	 * @see com.holonplatform.datastore.jdbc.internal.context.JdbcStatementExecutionContext#
+	 * withSharedConnection(java.util. function.Supplier)
 	 */
 	@Override
 	public <R> R withSharedConnection(Supplier<R> operations) {
@@ -425,10 +429,12 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	}
 
 	/**
-	 * Obtain a new {@link Connection} using the configured {@link DataSource} and {@link JdbcConnectionHandler}.
+	 * Obtain a new {@link Connection} using the configured {@link DataSource} and
+	 * {@link JdbcConnectionHandler}.
 	 * @param connectionType Connection type
 	 * @return A new {@link Connection}
-	 * @throws SQLException If a {@link DataSource} is not available or an error occurred obtaining a connection
+	 * @throws SQLException If a {@link DataSource} is not available or an error occurred obtaining a
+	 *         connection
 	 */
 	private Connection obtainConnection(ConnectionType connectionType) throws SQLException {
 		// check DataSource
@@ -460,8 +466,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	/*
 	 * (non-Javadoc)
 	 * @see
-	 * com.holonplatform.datastore.jdbc.JdbcDatastore#withConnection(com.holonplatform.datastore.jdbc.JdbcDatastore.
-	 * ConnectionOperation)
+	 * com.holonplatform.datastore.jdbc.JdbcDatastore#withConnection(com.holonplatform.datastore.jdbc.
+	 * JdbcDatastore. ConnectionOperation)
 	 */
 	@Override
 	public <R> R withConnection(ConnectionOperation<R> operation) {
@@ -470,8 +476,10 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.JdbcDatastore#withTransaction(com.holonplatform.core.datastore.transaction.
-	 * TransactionalOperation, com.holonplatform.core.datastore.transaction.TransactionConfiguration)
+	 * @see
+	 * com.holonplatform.datastore.jdbc.JdbcDatastore#withTransaction(com.holonplatform.core.datastore.
+	 * transaction. TransactionalOperation,
+	 * com.holonplatform.core.datastore.transaction.TransactionConfiguration)
 	 */
 	@Override
 	public <R> R withTransaction(TransactionalOperation<R> operation,
@@ -519,8 +527,10 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	}
 
 	/**
-	 * Starts a {@link JdbcTransaction}. If a local transaction is active, it will be forcedly finalized.
-	 * @param configuration Transaction configuration. If <code>null</code>, a default configuration will be used
+	 * Starts a {@link JdbcTransaction}. If a local transaction is active, it will be forcedly
+	 * finalized.
+	 * @param configuration Transaction configuration. If <code>null</code>, a default configuration
+	 *        will be used
 	 * @return A new transaction
 	 */
 	@SuppressWarnings("resource")
@@ -616,8 +626,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 	/*
 	 * (non-Javadoc)
 	 * @see
-	 * com.holonplatform.datastore.jdbc.context.JdbcExecutionContext#prepareStatement(com.holonplatform.datastore.jdbc.
-	 * composer.expression.SQLStatement, java.sql.Connection)
+	 * com.holonplatform.datastore.jdbc.context.JdbcExecutionContext#prepareStatement(com.holonplatform.
+	 * datastore.jdbc. composer.expression.SQLStatement, java.sql.Connection)
 	 */
 	@Override
 	public PreparedStatement prepareStatement(SQLStatement statement, Connection connection) {
@@ -638,9 +648,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 	/*
 	 * (non-Javadoc)
-	 * @see
-	 * com.holonplatform.datastore.jdbc.context.JdbcOperationContext#prepareInsertStatement(com.holonplatform.datastore.
-	 * jdbc.composer.expression.SQLStatement, java.sql.Connection,
+	 * @see com.holonplatform.datastore.jdbc.context.JdbcOperationContext#prepareInsertStatement(com.
+	 * holonplatform.datastore. jdbc.composer.expression.SQLStatement, java.sql.Connection,
 	 * com.holonplatform.datastore.jdbc.composer.expression.SQLPrimaryKey)
 	 */
 	@SuppressWarnings("resource")
@@ -681,7 +690,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.holonplatform.datastore.jdbc.internal.context.StatementExecutionContext#trace(java.lang.String)
+	 * @see com.holonplatform.datastore.jdbc.internal.context.StatementExecutionContext#trace(java.lang.
+	 * String)
 	 */
 	@Override
 	public void trace(String sql) {
@@ -706,8 +716,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 		/*
 		 * (non-Javadoc)
 		 * @see
-		 * com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport#addExpressionResolver(com.holonplatform.
-		 * core.ExpressionResolver)
+		 * com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport#addExpressionResolver(com.
+		 * holonplatform. core.ExpressionResolver)
 		 */
 		@Override
 		public <E extends Expression, R extends Expression> void addExpressionResolver(
@@ -717,7 +727,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport#removeExpressionResolver(com.
+		 * @see
+		 * com.holonplatform.core.ExpressionResolver.ExpressionResolverSupport#removeExpressionResolver(com.
 		 * holonplatform.core.ExpressionResolver)
 		 */
 		@Override
@@ -822,8 +833,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 		/*
 		 * (non-Javadoc)
 		 * @see
-		 * com.holonplatform.core.ExpressionResolver.ExpressionResolverBuilder#withExpressionResolver(com.holonplatform.
-		 * core.ExpressionResolver)
+		 * com.holonplatform.core.ExpressionResolver.ExpressionResolverBuilder#withExpressionResolver(com.
+		 * holonplatform. core.ExpressionResolver)
 		 */
 		@Override
 		public <E extends Expression, R extends Expression> JdbcDatastore.Builder<D> withExpressionResolver(
@@ -834,7 +845,7 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#dataSource(javax.sql.DataSource)
+		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#dataSource(jakarta.sql.DataSource)
 		 */
 		@Override
 		public JdbcDatastore.Builder<D> dataSource(DataSource dataSource) {
@@ -857,7 +868,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#database(com.holonplatform.jdbc.DatabasePlatform)
+		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#database(com.holonplatform.jdbc.
+		 * DatabasePlatform)
 		 */
 		@Override
 		public JdbcDatastore.Builder<D> database(DatabasePlatform database) {
@@ -868,7 +880,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 		/*
 		 * (non-Javadoc)
 		 * @see
-		 * com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#dialect(com.holonplatform.datastore.jdbc.JdbcDialect)
+		 * com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#dialect(com.holonplatform.datastore.jdbc.
+		 * JdbcDialect)
 		 */
 		@Override
 		public JdbcDatastore.Builder<D> dialect(SQLDialect dialect) {
@@ -885,7 +898,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 		public JdbcDatastore.Builder<D> dialect(String dialectClassName) {
 			ObjectUtils.argumentNotNull(dialectClassName, "Dialect class name must be not null");
 			try {
-				datastore.setDialect((SQLDialect) Class.forName(dialectClassName).newInstance());
+				datastore.setDialect(
+						(SQLDialect) Class.forName(dialectClassName).getDeclaredConstructor().newInstance());
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Failed to istantiate dialect class [" + dialectClassName + "]", e);
 			}
@@ -905,9 +919,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 		/*
 		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#connectionHandler(com.holonplatform.datastore.jdbc.
-		 * JdbcConnectionHandler)
+		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#connectionHandler(com.holonplatform.
+		 * datastore.jdbc. JdbcConnectionHandler)
 		 */
 		@Override
 		public JdbcDatastore.Builder<D> connectionHandler(JdbcConnectionHandler connectionHandler) {
@@ -917,9 +930,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 		/*
 		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#transactionFactory(com.holonplatform.datastore.jdbc.tx
-		 * .JdbcTransactionFactory)
+		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#transactionFactory(com.holonplatform.
+		 * datastore.jdbc.tx .JdbcTransactionFactory)
 		 */
 		@Override
 		public Builder<D> transactionFactory(JdbcTransactionFactory transactionFactory) {
@@ -929,8 +941,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#identifierResolutionStrategy(com.holonplatform.
-		 * datastore.jdbc.config.IdentifierResolutionStrategy)
+		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#identifierResolutionStrategy(com.
+		 * holonplatform. datastore.jdbc.config.IdentifierResolutionStrategy)
 		 */
 		@Override
 		public JdbcDatastore.Builder<D> identifierResolutionStrategy(
@@ -941,9 +953,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 		/*
 		 * (non-Javadoc)
-		 * @see
-		 * com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#registerCommodity(com.holonplatform.datastore.jdbc.
-		 * config.JdbcDatastoreCommodityFactory)
+		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#registerCommodity(com.holonplatform.
+		 * datastore.jdbc. config.JdbcDatastoreCommodityFactory)
 		 */
 		@Override
 		public <C extends DatastoreCommodity> JdbcDatastore.Builder<D> withCommodity(
@@ -954,8 +965,8 @@ public class DefaultJdbcDatastore extends AbstractInitializableDatastore<JdbcDat
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#configuration(com.holonplatform.core.datastore.
-		 * DatastoreConfigProperties)
+		 * @see com.holonplatform.datastore.jdbc.JdbcDatastore.Builder#configuration(com.holonplatform.core.
+		 * datastore. DatastoreConfigProperties)
 		 */
 		@Override
 		public JdbcDatastore.Builder<D> configuration(DatastoreConfigProperties configuration) {

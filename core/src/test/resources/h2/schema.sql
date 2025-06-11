@@ -7,7 +7,7 @@ create table test1 (
 	,enmv int 
 	,nbv int not null
 	,nst1 varchar(10) default 'nst1'
-	,nst2 decimal
+	,nst2 decimal(14,4)
 	,nss1 varchar(10) 
 	,tms timestamp
 	,tms2 timestamp

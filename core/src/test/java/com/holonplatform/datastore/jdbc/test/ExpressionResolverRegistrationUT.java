@@ -16,7 +16,7 @@
 package com.holonplatform.datastore.jdbc.test;
 
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import javax.sql.DataSource;
@@ -43,7 +43,7 @@ public class ExpressionResolverRegistrationUT {
 	@Test
 	public void testResolver() {
 
-		String str = datastore.query(NAMED_TARGET).filter(new KeyOne()).findOne(STR).orElse(null);
+		String str = datastore.query(NAMED_TARGET).filter(new KeyOne()).findOne(STR1).orElse(null);
 
 		assertEquals("One", str);
 	}

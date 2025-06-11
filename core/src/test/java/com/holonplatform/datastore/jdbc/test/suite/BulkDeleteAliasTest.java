@@ -18,7 +18,7 @@ package com.holonplatform.datastore.jdbc.test.suite;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TEST3;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TEST3_CODE;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TEST3_SET;
@@ -46,7 +46,7 @@ public class BulkDeleteAliasTest extends AbstractJdbcDatastoreSuiteTest {
 				assertEquals(1, result.getAffectedCount());
 
 				final SubQuery<?> sq = SubQuery.create().target(TEST3)
-						.filter(TEST3_TEXT.eq(NAMED_TARGET.property(STR)));
+						.filter(TEST3_TEXT.eq(NAMED_TARGET.property(STR1)));
 
 				List<PropertyBox> values = getDatastore().query().target(NAMED_TARGET).filter(sq.exists())
 						.list(PROPERTIES);

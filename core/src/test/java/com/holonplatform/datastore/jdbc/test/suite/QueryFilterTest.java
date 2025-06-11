@@ -22,7 +22,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.LDAT;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.LTMS;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NST_DEC;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TIME;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TMS;
 import static org.junit.Assert.assertEquals;
@@ -47,37 +47,37 @@ public class QueryFilterTest extends AbstractJdbcDatastoreSuiteTest {
 	@Test
 	public void testFilters() {
 
-		long count = getDatastore().query().target(NAMED_TARGET).filter(STR.eq("One")).count();
+		long count = getDatastore().query().target(NAMED_TARGET).filter(STR1.eq("One")).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(new NotFilter(STR.eq("One"))).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(new NotFilter(STR1.eq("One"))).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(STR.eq("One").not()).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(STR1.eq("One").not()).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(STR.neq("Two")).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(STR1.neq("Two")).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(STR.isNotNull()).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(STR1.isNotNull()).count();
 		assertEquals(2, count);
 
 		count = getDatastore().query().target(NAMED_TARGET).filter(DBL.isNull()).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(STR.endsWith("x")).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(STR1.endsWith("x")).count();
 		assertEquals(0, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(STR.contains("w")).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(STR1.contains("w")).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(STR.containsIgnoreCase("O")).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(STR1.containsIgnoreCase("O")).count();
 		assertEquals(2, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(STR.startsWith("O")).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(STR1.startsWith("O")).count();
 		assertEquals(1, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(STR.startsWithIgnoreCase("o")).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(STR1.startsWithIgnoreCase("o")).count();
 		assertEquals(1, count);
 
 		count = getDatastore().query().target(NAMED_TARGET).filter(DBL.gt(7d)).count();
@@ -104,7 +104,7 @@ public class QueryFilterTest extends AbstractJdbcDatastoreSuiteTest {
 		count = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L).or(KEY.eq(2L))).count();
 		assertEquals(2, count);
 
-		count = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L).and(STR.eq("One"))).count();
+		count = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(1L).and(STR1.eq("One"))).count();
 		assertEquals(1, count);
 
 	}

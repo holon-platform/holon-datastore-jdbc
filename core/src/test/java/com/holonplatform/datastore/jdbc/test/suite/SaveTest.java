@@ -30,7 +30,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NST_DEC;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NST_STR;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES_NOID;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TIME;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.TMS;
 import static org.junit.Assert.assertEquals;
@@ -53,7 +53,7 @@ public class SaveTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testSaveAsInsert() {
 		inTransaction(() -> {
 
-			PropertyBox value = PropertyBox.builder(PROPERTIES).set(KEY, 401L).set(STR, "k401").set(DBL, 7.45)
+			PropertyBox value = PropertyBox.builder(PROPERTIES).set(KEY, 401L).set(STR1, "k401").set(DBL, 7.45)
 					.set(DAT, TestSampleData.DATE1).set(LDAT, TestSampleData.LDATE1).set(ENM, TestEnum.SECOND)
 					.set(NST_STR, "str1").set(NST_DEC, TestSampleData.BD1).set(NBOOL, false)
 					.set(TMS, TestSampleData.DATETIME1).set(LTMS, TestSampleData.LDATETIME1)
@@ -66,7 +66,7 @@ public class SaveTest extends AbstractJdbcDatastoreSuiteTest {
 			value = getDatastore().query(NAMED_TARGET).filter(KEY.eq(401L)).findOne(PROPERTIES).orElse(null);
 			assertNotNull(value);
 			assertEquals(Long.valueOf(401), value.getValue(KEY));
-			assertEquals("k401", value.getValue(STR));
+			assertEquals("k401", value.getValue(STR1));
 			assertEquals(Double.valueOf(7.45), value.getValue(DBL));
 			assertEquals(TestSampleData.DATE1, value.getValue(DAT));
 			assertEquals(TestSampleData.LDATE1, value.getValue(LDAT));
@@ -85,7 +85,7 @@ public class SaveTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testSaveAsUpdate() {
 		inTransaction(() -> {
 
-			PropertyBox value = PropertyBox.builder(PROPERTIES).set(KEY, 1L).set(STR, "k401").set(DBL, 7.45)
+			PropertyBox value = PropertyBox.builder(PROPERTIES).set(KEY, 1L).set(STR1, "k401").set(DBL, 7.45)
 					.set(DAT, TestSampleData.DATE1).set(LDAT, TestSampleData.LDATE1).set(ENM, TestEnum.SECOND)
 					.set(NST_STR, "str1").set(NST_DEC, TestSampleData.BD1).set(NBOOL, false)
 					.set(TMS, TestSampleData.DATETIME1).set(LTMS, TestSampleData.LDATETIME1)
@@ -98,7 +98,7 @@ public class SaveTest extends AbstractJdbcDatastoreSuiteTest {
 			value = getDatastore().query(NAMED_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES).orElse(null);
 			assertNotNull(value);
 			assertEquals(Long.valueOf(1), value.getValue(KEY));
-			assertEquals("k401", value.getValue(STR));
+			assertEquals("k401", value.getValue(STR1));
 			assertEquals(Double.valueOf(7.45), value.getValue(DBL));
 			assertEquals(TestSampleData.DATE1, value.getValue(DAT));
 			assertEquals(TestSampleData.LDATE1, value.getValue(LDAT));
@@ -117,7 +117,7 @@ public class SaveTest extends AbstractJdbcDatastoreSuiteTest {
 	public void testSaveNoId() {
 		inTransaction(() -> {
 
-			PropertyBox value = PropertyBox.builder(PROPERTIES_NOID).set(KEY, 501L).set(STR, "k501").set(NBOOL, true)
+			PropertyBox value = PropertyBox.builder(PROPERTIES_NOID).set(KEY, 501L).set(STR1, "k501").set(NBOOL, true)
 					.build();
 
 			OperationResult result = getDatastore().save(NAMED_TARGET, value);
@@ -126,9 +126,9 @@ public class SaveTest extends AbstractJdbcDatastoreSuiteTest {
 
 			value = getDatastore().query(NAMED_TARGET).filter(KEY.eq(501L)).findOne(PROPERTIES_NOID).orElse(null);
 			assertNotNull(value);
-			assertEquals("k501", value.getValue(STR));
+			assertEquals("k501", value.getValue(STR1));
 
-			value.setValue(STR, "uxs");
+			value.setValue(STR1, "uxs");
 
 			result = getDatastore().save(NAMED_TARGET, value);
 			assertEquals(1, result.getAffectedCount());
@@ -137,7 +137,7 @@ public class SaveTest extends AbstractJdbcDatastoreSuiteTest {
 			value = getDatastore().query().target(NAMED_TARGET).filter(KEY.eq(501L)).findOne(PROPERTIES_NOID)
 					.orElse(null);
 			assertNotNull(value);
-			assertEquals("uxs", value.getValue(STR));
+			assertEquals("uxs", value.getValue(STR1));
 
 		});
 	}

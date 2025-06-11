@@ -21,7 +21,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NBOOL;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -66,7 +66,7 @@ public class ClobTest extends AbstractJdbcDatastoreSuiteTest {
 			assertEquals("updclob", value.getValue(CLOB_STR));
 
 			// insert
-			value = PropertyBox.builder(CLOB_SET_STR).set(KEY, 77L).set(STR, "Test clob").set(NBOOL, false)
+			value = PropertyBox.builder(CLOB_SET_STR).set(KEY, 77L).set(STR1, "Test clob").set(NBOOL, false)
 					.set(CLOB_STR, "savedclob").build();
 			getDatastore().insert(NAMED_TARGET, value);
 
@@ -114,7 +114,7 @@ public class ClobTest extends AbstractJdbcDatastoreSuiteTest {
 				}
 
 				// insert
-				value = PropertyBox.builder(CLOB_SET_RDR).set(KEY, 77L).set(STR, "Test clob").set(NBOOL, false)
+				value = PropertyBox.builder(CLOB_SET_RDR).set(KEY, 77L).set(STR1, "Test clob").set(NBOOL, false)
 						.set(CLOB_RDR, new StringReader("savedclob")).build();
 				getDatastore().insert(NAMED_TARGET, value);
 

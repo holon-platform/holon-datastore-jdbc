@@ -50,7 +50,7 @@ public class TestJdbcDatastoreAutoConfigStandard {
 	final static DataTarget<String> NAMED_TARGET = DataTarget.named("test1");
 
 	final static PathProperty<Long> KEY = PathProperty.create("keycode", long.class);
-	final static PathProperty<String> STR = PathProperty.create("strv", String.class);
+	final static PathProperty<String> STR1 = PathProperty.create("strv", String.class);
 
 	@Autowired
 	private JdbcDatastore datastore;
@@ -64,7 +64,7 @@ public class TestJdbcDatastoreAutoConfigStandard {
 		assertEquals(DatabasePlatform.H2, ((JdbcDatastoreCommodityContext) datastore).getDatabase().orElse(null));
 		assertTrue(((JdbcDatastoreCommodityContext) datastore).getDialect() instanceof H2Dialect);
 
-		datastore.save(NAMED_TARGET, PropertyBox.builder(KEY, STR).set(KEY, 7L).set(STR, "Test ds (7)").build());
+		datastore.save(NAMED_TARGET, PropertyBox.builder(KEY, STR1).set(KEY, 7L).set(STR1, "Test ds (7)").build());
 
 		Optional<Long> found = datastore.query().target(NAMED_TARGET).filter(KEY.eq(7L)).findOne(KEY);
 		assertTrue(found.isPresent());

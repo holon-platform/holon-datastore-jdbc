@@ -91,7 +91,7 @@
 											<ORACLE_ALLOW_REMOTE>true</ORACLE_ALLOW_REMOTE>
 										</env>
 										<ports>
-											<port>49161:1521</port>
+											<port>1521:1521</port>
 										</ports>
 										<wait>
 											<time>25000</time>
@@ -399,8 +399,8 @@
 			<id>it-mysql8</id>
 			<dependencies>
 				<dependency>
-					<groupId>mysql</groupId>
-					<artifactId>mysql-connector-java</artifactId>
+					<groupId>com.mysql</groupId>
+					<artifactId>mysql-connector-j</artifactId>
 					<version>${mysql-driver8.version}</version>
 					<scope>test</scope>
 				</dependency>
@@ -432,6 +432,65 @@
 									<name>holon/mysql8</name>
 									<build>
 										<dockerFileDir>mysql8</dockerFileDir>
+									</build>
+									<run>
+										<env>
+											<MYSQL_ROOT_PASSWORD>root</MYSQL_ROOT_PASSWORD>
+											<MYSQL_DATABASE>testds</MYSQL_DATABASE>
+										</env>
+										<ports>
+											<port>3306:3306</port>
+										</ports>
+										<wait>
+											<time>20000</time>
+										</wait>
+									</run>
+								</image>
+							</images>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
+		<!-- MySQL 9 integration test -->
+		<profile>
+			<id>it-mysql9</id>
+			<dependencies>
+				<dependency>
+					<groupId>com.mysql</groupId>
+					<artifactId>mysql-connector-j</artifactId>
+					<version>${mysql-driver9.version}</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<includes>
+								<include>**/*MySQLIT.java</include>
+							</includes>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<configuration>
+							<images>
+								<image>
+									<name>holon/mysql9</name>
+									<build>
+										<dockerFileDir>mysql9</dockerFileDir>
 									</build>
 									<run>
 										<env>
@@ -734,9 +793,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.persistence</groupId>
-			<artifactId>javax.persistence-api</artifactId>
-			<version>2.2</version>
+			<groupId>jakarta.persistence</groupId>
+			<artifactId>jakarta.persistence-api</artifactId>
+			<version>${jpa.api.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -758,6 +817,12 @@
 			<artifactId>derby</artifactId>
 			<version>${derby.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+    		<groupId>org.apache.derby</groupId>
+    		<artifactId>derbytools</artifactId>
+    		<version>${derby.version}</version>
+    		<scope>test</scope>
 		</dependency>
 
 		<dependency>

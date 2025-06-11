@@ -21,7 +21,7 @@ import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.KEY;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NAMED_TARGET;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.NBOOL;
 import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.PROPERTIES;
-import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR;
+import static com.holonplatform.datastore.jdbc.test.data.TestDataModel.STR1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -75,7 +75,7 @@ public class BlobTest extends AbstractJdbcDatastoreSuiteTest {
 
 			// insert
 
-			value = PropertyBox.builder(BLOB_SET_BYT).set(KEY, 77L).set(STR, "Test clob").set(NBOOL, false)
+			value = PropertyBox.builder(BLOB_SET_BYT).set(KEY, 77L).set(STR1, "Test clob").set(NBOOL, false)
 					.set(BLOB_BYS, bytes).build();
 			getDatastore().insert(NAMED_TARGET, value);
 
@@ -125,7 +125,7 @@ public class BlobTest extends AbstractJdbcDatastoreSuiteTest {
 
 				// insert
 
-				value = PropertyBox.builder(BLOB_SET_IST).set(KEY, 77L).set(STR, "Test clob").set(NBOOL, false)
+				value = PropertyBox.builder(BLOB_SET_IST).set(KEY, 77L).set(STR1, "Test clob").set(NBOOL, false)
 						.set(BLOB_IST, new ByteArrayInputStream(bytes)).build();
 				getDatastore().insert(NAMED_TARGET, value);
 
@@ -149,7 +149,7 @@ public class BlobTest extends AbstractJdbcDatastoreSuiteTest {
 
 			try (FileInputStream fis = new FileInputStream(file)) {
 
-				PropertyBox value = PropertyBox.builder(BLOB_SET_IST).set(KEY, 77L).set(STR, "Test clob")
+				PropertyBox value = PropertyBox.builder(BLOB_SET_IST).set(KEY, 77L).set(STR1, "Test clob")
 						.set(NBOOL, false).set(BLOB_IST, LimitedInputStream.create(fis, file.length())).build();
 				getDatastore().insert(NAMED_TARGET, value);
 

@@ -30,7 +30,7 @@ public class JdbcDatastoreSQLServerIT extends AbstractJdbcDatastoreTestSuiteIT {
 	public static void initDatastore() {
 
 		final DataSource dataSource = DataSourceBuilder.build("sqlserver/datasource.properties");
-		// initSQL(dataSource, "sqlserver/schema.sql", "sqlserver/data.sql");
+		initSQL(dataSource, "sqlserver/schema.sql", "sqlserver/data.sql");
 
 		datastore = JdbcDatastore.builder().dataSource(dataSource).withCommodity(DatabasePlatformCommodity.FACTORY)
 				.withExpressionResolver(KeyIsFilter.RESOLVER).traceEnabled(true).build();

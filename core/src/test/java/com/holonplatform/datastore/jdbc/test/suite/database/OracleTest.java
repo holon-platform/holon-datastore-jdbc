@@ -33,14 +33,15 @@ public class OracleTest extends AbstractDatabaseSuiteTest {
 
 	@Test
 	public void testLockWait() {
+		test(datastore -> {
+			inTransaction(() -> {
+				boolean succeded = datastore.create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L))
+						.tryLock(2500);
+				assertTrue(succeded);
 
-		inTransaction(() -> {
-			boolean succeded = getDatastore().create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L))
-					.tryLock(2500);
-			assertTrue(succeded);
-
-			succeded = getDatastore().create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L)).tryLock(700);
-			assertTrue(succeded);
+				succeded = datastore.create(LockQuery.class).target(NAMED_TARGET).filter(KEY.eq(1L)).tryLock(700);
+				assertTrue(succeded);
+			});
 		});
 
 	}

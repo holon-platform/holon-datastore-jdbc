@@ -38,7 +38,7 @@ public interface TestDataModel {
 	public final static DataTarget<String> NAMED_TARGET = DataTarget.named("test1");
 
 	public final static NumericProperty<Long> KEY = NumericProperty.create("keycode", long.class);
-	public final static StringProperty STR = StringProperty.create("strv");
+	public final static StringProperty STR1 = StringProperty.create("strv");
 	public final static NumericProperty<Double> DBL = NumericProperty.doubleType("decv");
 	public final static TemporalProperty<Date> DAT = TemporalProperty.create("datv", Date.class)
 			.temporalType(TemporalType.DATE);
@@ -56,20 +56,20 @@ public interface TestDataModel {
 	public final static TemporalProperty<LocalTime> TIME = TemporalProperty.localTime("tm");
 
 	public final static PropertySet<?> PROPERTIES = PropertySet
-			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME).withIdentifier(KEY)
+			.builderOf(KEY, STR1, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME).withIdentifier(KEY)
 			.build();
 
-	public final static PropertySet<?> PROPERTIES_NOID = PropertySet.of(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR,
+	public final static PropertySet<?> PROPERTIES_NOID = PropertySet.of(KEY, STR1, DBL, DAT, LDAT, ENM, NBOOL, NST_STR,
 			NST_DEC, TMS, LTMS, TIME);
 
 	// virtual
 
 	public static final VirtualProperty<String> VIRTUAL_STR = VirtualProperty.create(String.class, pb -> {
-		return pb.getValueIfPresent(STR).map(str -> "[" + str + "]").orElse("NONE");
+		return pb.getValueIfPresent(STR1).map(str -> "[" + str + "]").orElse("NONE");
 	});
 
 	public final static PropertySet<?> PROPERTIES_V = PropertySet
-			.builderOf(KEY, STR, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME, VIRTUAL_STR)
+			.builderOf(KEY, STR1, DBL, DAT, LDAT, ENM, NBOOL, NST_STR, NST_DEC, TMS, LTMS, TIME, VIRTUAL_STR)
 			.withIdentifier(KEY).build();
 
 	// lobs
@@ -84,7 +84,7 @@ public interface TestDataModel {
 
 	// with parent
 	public final static PathProperty<Long> KEY_P = NAMED_TARGET.property(KEY);
-	public final static PathProperty<String> STR_P = NAMED_TARGET.property(STR);
+	public final static PathProperty<String> STR_P = NAMED_TARGET.property(STR1);
 
 	// recur
 

@@ -18,6 +18,8 @@ package com.holonplatform.datastore.jdbc.test.suite.database;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.math.BigInteger;
+
 import org.junit.Test;
 
 import com.holonplatform.core.datastore.DataTarget;
@@ -53,7 +55,9 @@ public class MariaDBTest extends AbstractDatabaseSuiteTest {
 
 				assertEquals(1, result.getInsertedKeys().size());
 
-				assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
+				// for MariaDB10
+				assertEquals(BigInteger.valueOf(1), result.getInsertedKeys().values().iterator().next());
+				// for MariaDB assertEquals(Long.valueOf(1), result.getInsertedKeys().values().iterator().next());
 				assertEquals("code", result.getInsertedKeys().keySet().iterator().next().getName());
 
 				// bring back ids
